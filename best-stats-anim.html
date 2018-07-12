@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>"The best stats you've ever seen" with Matplotlib - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+<style type="text/css">
+
+/*some stuff for output/input prompts*/
+div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
+div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
+div.prompt{min-width:11ex;padding:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
+@media (max-width:480px){div.prompt{text-align:left}}div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
+div.prompt:empty{padding-top:0;padding-bottom:0}
+div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
+div.inner_cell{width:90%;}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
+div.input_prompt{color:navy;border-top:1px solid transparent;}
+div.output_wrapper{margin-top:5px;position:relative;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:4px;-webkit-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);-moz-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
+div.output_collapsed{margin:0px;padding:0px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.out_prompt_overlay{height:100%;padding:0px 0.4em;position:absolute;border-radius:4px;}
+div.out_prompt_overlay:hover{-webkit-box-shadow:inset 0 0 1px #000000;-moz-box-shadow:inset 0 0 1px #000000;box-shadow:inset 0 0 1px #000000;background:rgba(240, 240, 240, 0.5);}
+div.output_prompt{color:darkred;}
+
+a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
+h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
+/* end stuff for output/input prompts*/
+
+
+.highlight-ipynb .hll { background-color: #ffffcc }
+.highlight-ipynb  { background: #f8f8f8; }
+.highlight-ipynb .c { color: #408080; font-style: italic } /* Comment */
+.highlight-ipynb .err { border: 1px solid #FF0000 } /* Error */
+.highlight-ipynb .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight-ipynb .o { color: #666666 } /* Operator */
+.highlight-ipynb .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight-ipynb .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight-ipynb .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight-ipynb .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight-ipynb .gd { color: #A00000 } /* Generic.Deleted */
+.highlight-ipynb .ge { font-style: italic } /* Generic.Emph */
+.highlight-ipynb .gr { color: #FF0000 } /* Generic.Error */
+.highlight-ipynb .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight-ipynb .gi { color: #00A000 } /* Generic.Inserted */
+.highlight-ipynb .go { color: #888888 } /* Generic.Output */
+.highlight-ipynb .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight-ipynb .gs { font-weight: bold } /* Generic.Strong */
+.highlight-ipynb .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight-ipynb .gt { color: #0044DD } /* Generic.Traceback */
+.highlight-ipynb .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight-ipynb .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight-ipynb .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight-ipynb .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight-ipynb .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight-ipynb .kt { color: #B00040 } /* Keyword.Type */
+.highlight-ipynb .m { color: #666666 } /* Literal.Number */
+.highlight-ipynb .s { color: #BA2121 } /* Literal.String */
+.highlight-ipynb .na { color: #7D9029 } /* Name.Attribute */
+.highlight-ipynb .nb { color: #008000 } /* Name.Builtin */
+.highlight-ipynb .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight-ipynb .no { color: #880000 } /* Name.Constant */
+.highlight-ipynb .nd { color: #AA22FF } /* Name.Decorator */
+.highlight-ipynb .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight-ipynb .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight-ipynb .nf { color: #0000FF } /* Name.Function */
+.highlight-ipynb .nl { color: #A0A000 } /* Name.Label */
+.highlight-ipynb .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight-ipynb .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight-ipynb .nv { color: #19177C } /* Name.Variable */
+.highlight-ipynb .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight-ipynb .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight-ipynb .mf { color: #666666 } /* Literal.Number.Float */
+.highlight-ipynb .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight-ipynb .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight-ipynb .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight-ipynb .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight-ipynb .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight-ipynb .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight-ipynb .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight-ipynb .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight-ipynb .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight-ipynb .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight-ipynb .sx { color: #008000 } /* Literal.String.Other */
+.highlight-ipynb .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight-ipynb .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight-ipynb .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight-ipynb .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight-ipynb .vc { color: #19177C } /* Name.Variable.Class */
+.highlight-ipynb .vg { color: #19177C } /* Name.Variable.Global */
+.highlight-ipynb .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight-ipynb .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+
+<style type="text/css">
+/* Overrides of notebook CSS for static HTML export */
+div.entry-content {
+  overflow: visible;
+  padding: 8px;
+}
+.input_area {
+  padding: 0.2em;
+}
+
+a.heading-anchor {
+ white-space: normal;
+}
+
+.rendered_html
+code {
+ font-size: .8em;
+}
+
+pre.ipynb {
+  color: black;
+  background: #f7f7f7;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+  margin: 0px;
+  font-size: 13px;
+}
+
+/* remove the prompt div from text cells */
+div.text_cell .prompt {
+    display: none;
+}
+
+/* remove horizontal padding from text cells, */
+/* so it aligns with outer body text */
+div.text_cell_render {
+    padding: 0.5em 0em;
+}
+
+img.anim_icon{padding:0; border:0; vertical-align:middle; -webkit-box-shadow:none; -box-shadow:none}
+
+div.collapseheader {
+    width=100%;
+    padding: 2px;
+    cursor: pointer;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
+<script type="text/javascript">
+init_mathjax = function() {
+    if (window.MathJax) {
+        // MathJax loaded
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+            },
+            displayAlign: 'left', // Change this to 'center' to center equations.
+            "HTML-CSS": {
+                styles: {'.MathJax_Display': {"margin": 0}}
+            }
+        });
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    }
+}
+init_mathjax();
+</script>
+
+<link rel="canonical" href="./best-stats-anim.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="visualization,python,matplotlib" />
+        <meta name="description" content="Using Matplotlib to replicate a visualization presented by Hans Rosling in a TED talk." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="&#34;The best stats you&#39;ve ever seen&#34; with Matplotlib"/>
+        <meta property="og:url" content="./best-stats-anim.html"/>
+        <meta property="og:description" content="Using Matplotlib to replicate a visualization presented by Hans Rosling in a TED talk."/>
+        <meta property="article:published_time" content="2018-07-12" />
+            <meta property="article:section" content="Visualization" />
+            <meta property="article:tag" content="visualization" />
+            <meta property="article:tag" content="python" />
+            <meta property="article:tag" content="matplotlib" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/monokai.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+        <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin ATOM Feed"/>
+
+
+
+        <link href="./feeds/visualization.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin Visualization ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/business-analytics.html">Business analytics</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./best-stats-anim.html"
+                       rel="bookmark"
+                       title="Permalink to "The best stats you've ever seen" with Matplotlib">
+                        "The best stats you've ever seen" with Matplotlib
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2018-07-12T13:00:00+08:00"> Thu 12 July 2018</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/visualization.html">visualization</a>
+        /
+	<a href="./tag/python.html">python</a>
+        /
+	<a href="./tag/matplotlib.html">matplotlib</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h2>Introduction</h2>
+<p>In a TED talk titled <em>"The best stats you've ever seen"</em> he gave in 2006, Hans Rosling showed the audience how we can use statistics to debunk misconceptions about the world.<br>
+His talk can be seen <a href="https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen">here</a>. It's only 20 minutes long and if you haven't seen it yet, you really should.  </p>
+<p>In this post, I am going to use Matplotlib to replicate the animation he shows at the beginning of his talk. It shows the evolution of the fertility rate and the life expectancy of countries over the years. Hans Rosling built this animation when, after testing his students on global health, he realized that they still thought that the world was divided in two: </p>
+<ul>
+<li>the western world: low fertility rate and high life expectancy</li>
+<li>the third world: high fertility rate and low life expectancy</li>
+</ul>
+<p>There will be some differences between the original visualization and the one I am going to build:</p>
+<ul>
+<li>more data. The talk was made in 2006 with data from 1962 to 2003. I will use data from 1960 to 2016.</li>
+<li>regions. The original visualization has five regions. I will keep the regions from the source data (i.e. seven regions).</li>
+<li>colors. I can't ge the exact colors of the regions. I'll use my own color mapping.</li>
+</ul>
+<h2>Preparing the data</h2>
+<p>The data was downloaded from <a href="https://data.worldbank.org/">data.worldbank.org</a> on June 28th, 2018. </p>
+<ul>
+<li><a href="https://data.worldbank.org/indicator/SP.DYN.LE00.IN">life expentancy at birth</a>: number of years a newborn would live if the patterns of mortality at the time of birth remain the same throughout his life.</li>
+<li><a href="https://data.worldbank.org/indicator/SP.DYN.TFRT.IN">Fertility rate</a>: number of children a woman would give birth to during her childbearing years.  </li>
+<li><a href="https://data.worldbank.org/indicator/SP.POP.TOTL">Country population</a>: total number of residents regardless of legal status or citizenship (midyear estimates)</li>
+</ul>
+<p>The countries metadata is included in the downloaded zip files. It will be used to get the region of the countries. Countries are grouped in seven regions:</p>
+<ul>
+<li>East Asia &amp; Pacific</li>
+<li>Europe &amp; Central Asia</li>
+<li>Latin America &amp; Caribbean</li>
+<li>Middle East &amp; North Africa</li>
+<li>North America</li>
+<li>South Asia</li>
+<li>Sub-Saharan Africa</li>
+</ul>
+<p>I use <code>pandas</code> to import the data and compile a dataframe with which I will generate the visualization.<br>
+I use <code>numpy</code> to execute some operations on the data.<br>
+I use <code>pyplot</code> and <code>animation</code> from <code>matplotlib</code> to generate the visualization.  </p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.animation</span> <span class="kn">as</span> <span class="nn">animation</span>
+</pre></div>
+
+
+<p>I import the data in separate dataframes:</p>
+<div class="highlight"><pre><span></span><span class="n">country</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;country_metadata.csv&#39;</span><span class="p">)</span>
+<span class="n">population</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;country_population.csv&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">fertility_rate</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;fertility_rate.csv&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">life_expectancy</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;life_expectancy.csv&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+
+
+<p>All tables have a <code>Country Name</code> and a <code>Country Code</code> column. I'll use the <code>Country Code</code> column as the country id to merge the datasets.<br>
+So from the country dataframe, I need only the Country Code and Region columns.  </p>
+<div class="highlight"><pre><span></span><span class="n">country</span> <span class="o">=</span> <span class="n">country</span><span class="p">[[</span><span class="s1">&#39;Country Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Region&#39;</span><span class="p">]]</span>
+</pre></div>
+
+
+<p>The <em>population</em>, <em>fertility_rate</em> and <em>life_expectancy</em> dataframes have the same structure. I'll repeat the same process on three of them to prepare the data.<br>
+First, I remove useless columns:  </p>
+<div class="highlight"><pre><span></span><span class="n">population</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;Country Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Indicator Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Indicator Code&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;2017&#39;</span><span class="p">,</span> <span class="s1">&#39;Unnamed: 62&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Next, I drop the countries with missing values. I could try to fill data missing in any given year with the data from the previous or next year but some countries are missing too much if not all data.</p>
+<div class="highlight"><pre><span></span><span class="n">population</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The years are in columns (i.e. one column represents the data of all countries for a given year). I need <code>year</code> to be a variable that has its own column. To do so, I'll use the <code>melt()</code> method on the dataframe.</p>
+<div class="highlight"><pre><span></span><span class="n">years</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1960</span><span class="p">,</span> <span class="mi">2017</span><span class="p">)]</span>
+<span class="n">population</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">population</span><span class="p">,</span>
+                     <span class="n">id_vars</span><span class="o">=</span><span class="s1">&#39;Country Code&#39;</span><span class="p">,</span>
+                     <span class="n">value_vars</span><span class="o">=</span><span class="n">years</span><span class="p">,</span>
+                     <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;Year&#39;</span><span class="p">,</span>
+                     <span class="n">value_name</span><span class="o">=</span><span class="s1">&#39;Population&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>At this point, the <em>population</em> data is ready. I preprocess the <em>fertility_rate</em> and the <em>life_expectancy</em> the same way.<br>
+When the three datasets are ready, I merge them into one dataframe.<br>
+Some countries may have data for one statistic but not the other. After merging the dataframes, I do a <code>dropna()</code> again to remove those cases.</p>
+<div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">country</span><span class="p">,</span> <span class="n">population</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Country Code&#39;</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">life_exp</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Country Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Year&#39;</span><span class="p">])</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">fertility_rate</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Country Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Year&#39;</span><span class="p">])</span>
+<span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The data is ready. I can now start builing the visualization.  </p>
+<h2>Building the visualization</h2>
+<p>The visualization consist of a scatter plot with the <em>fertility rate</em> on the X axis and the <em>life expectancy</em> on the Y axis. The size of the markers is set by the <em>population</em>. The higher the population, the bigger the marker.<br>
+I group the data by region and draw one scatter plot by region.<br>
+To show an example, I am going to plot the data for the year 1960.</p>
+<div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Fertility Rate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Fertility Rate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="o">.</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Life Expectancy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Life Expectancy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># set the regions&#39;s colors</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Latin America &amp; Caribbean&#39;</span><span class="p">:</span> <span class="s1">&#39;#2CA02C&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;South Asia&#39;</span><span class="p">:</span> <span class="s1">&#39;#8C564B&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Sub-Saharan Africa&#39;</span><span class="p">:</span> <span class="s1">&#39;#E377C2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Europe &amp; Central Asia&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF7F0E&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Middle East &amp; North Africa&#39;</span><span class="p">:</span> <span class="s1">&#39;#D62728&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;East Asia &amp; Pacific&#39;</span><span class="p">:</span> <span class="s1">&#39;#1F77B4&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;North America&#39;</span><span class="p">:</span> <span class="s1">&#39;#9467BD&#39;</span>
+<span class="p">}</span>
+
+
+<span class="c1"># create one scatterplot per region</span>
+<span class="c1"># I need to do like this to have all the regions </span>
+<span class="c1"># showing up in the legend</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;Region&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+    <span class="n">scat</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">grp</span><span class="p">[</span><span class="s1">&#39;Fertility Rate&#39;</span><span class="p">],</span> <span class="n">grp</span><span class="p">[</span><span class="s1">&#39;Life Expectancy&#39;</span><span class="p">],</span>
+                      <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span>
+                      <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                      <span class="n">s</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="s1">&#39;Population&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">10000</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                      <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">,</span>
+                      <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># add the year in the middle of the scatter plot</span>
+<span class="c1"># for now, the text is empty (&#39;&#39;). Il will be filled </span>
+<span class="c1"># in each frame</span>
+<span class="n">year_label</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">4.5</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;1960&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span><span class="s1">&#39;bold&#39;</span><span class="p">})</span>
+
+<span class="c1"># decorate the visualization</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span>
+    <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span>
+<span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Fertility Rate&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Life Expectancy&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">markerscale</span><span class="o">=.</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<p>Here's the result:<br>
+<img alt="" src="images/best-stat-static.png"></p>
+<h3>Animate the plot</h3>
+<p>To make the animation, we need to create one plot for each year. Each plot is a frame. Frames are shown in sequence.<br>
+Luckily, matplotlib as an animation module. </p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.animation</span> <span class="kn">as</span> <span class="nn">animation</span>
+</pre></div>
+
+
+<p>To make the animation, I need to define a function that will set the inital state (optional) and a function that will update the plot for each frame.<br>
+But first, I need to modify a bit the script I used to build the static plot. 
+I create a list where I store all my scatter artists. I will iterate through that list to update each scatter plot representing a region individually. Also, I don't need to set the x and y values of the scatter plot. Finaly, I remove the size parameter from the scatter plot. It will be set for each frame.</p>
+<div class="highlight"><pre><span></span><span class="n">scats</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;Region&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+    <span class="n">scat</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([],</span> <span class="p">[],</span>
+                      <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span>
+                      <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                      <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                      <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">,</span>
+                      <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">scats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scat</span><span class="p">)</span>
+
+<span class="n">year_label</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">4.5</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span><span class="s1">&#39;bold&#39;</span><span class="p">})</span>
+</pre></div>
+
+
+<p>The <code>init()</code> method that initialize the animation is very simple</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">init</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">scat</span> <span class="ow">in</span> <span class="n">scats</span><span class="p">:</span>
+        <span class="n">scat</span><span class="o">.</span><span class="n">set_offsets</span><span class="p">([])</span>
+    <span class="k">return</span> <span class="n">scats</span>
+</pre></div>
+
+
+<p>The <code>set_offsets()</code> method set the values of x and y. I want to start with an empty plot so I just pass an empty list.<br>
+Next, I define an <code>update()</code> method that will update the scatter plot for each frame.<br>
+For each region, the method does:</p>
+<ul>
+<li>filter the data for the current year</li>
+<li>set the x and y values (<code>set_offset()</code>)</li>
+<li>changes the size of the markers with the population of the year (<code>set_sizes()</code>)</li>
+<li>update the year label at the center of the figure (<code>set_text</code>)</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">year</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">scat</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scats</span><span class="p">,</span> <span class="n">groups</span><span class="p">):</span>
+        <span class="c1"># get the data for the current year</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;Year&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">year</span><span class="p">]</span>
+        <span class="c1"># set the x and y values</span>
+        <span class="n">scat</span><span class="o">.</span><span class="n">set_offsets</span><span class="p">(</span><span class="n">sample</span><span class="p">[[</span><span class="s1">&#39;Fertility Rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Life Expectancy&#39;</span><span class="p">]])</span>
+        <span class="c1"># update the size of the markers with the population</span>
+        <span class="c1"># of the current year</span>
+        <span class="n">scat</span><span class="o">.</span><span class="n">set_sizes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="s1">&#39;Population&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">10000</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="c1"># update the year label displayed at the center of the figure</span>
+        <span class="n">year_label</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scats</span><span class="p">,</span> 
+</pre></div>
+
+
+<p>I am now ready to make the animation using the <code>FuncAnimation</code> from the animation module.</p>
+<div class="highlight"><pre><span></span><span class="n">ani</span> <span class="o">=</span> <span class="n">animation</span><span class="o">.</span><span class="n">FuncAnimation</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">init_func</span><span class="o">=</span><span class="n">init</span><span class="p">,</span>
+                              <span class="n">frames</span><span class="o">=</span><span class="n">years</span><span class="p">,</span>
+                              <span class="n">interval</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                              <span class="n">repeat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Once the animation in done, I can show it using <code>plt.show()</code> or save it as a movie or an animated gif.<br>
+I am going to save it as a gif to display it on this post:</p>
+<div class="highlight"><pre><span></span><span class="n">ani</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;best_stat_anim.gif&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="s1">&#39;imagemagick&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Et voilà!</p>
+<p><img alt="" src="images/best_stat_anim.gif"></p>
+<h2>source code</h2>
+<p><a href="https://github.com/guillaume-martin/best_stats_ever">github</a><br>
+<a href="https://www.kaggle.com/gemartin/the-best-stats-you-ve-ever-seen-with-matplotlib">kaggle</a></p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/ge_martin"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
+    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2018 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-119773970-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    $("div.collapseheader").click(function () {
+    $header = $(this).children("span").first();
+    $codearea = $(this).children(".input_area");
+    console.log($(this).children());
+    $codearea.slideToggle(500, function () {
+        $header.text(function () {
+            return $codearea.is(":visible") ? "Collapse Code" : "Expand Code";
+        });
+    });
+});
+});
+</script>
+</body>
+</html>
