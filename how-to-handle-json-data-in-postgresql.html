@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>How to handle JSON data in PostgreSQL - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+<style type="text/css">
+
+/*some stuff for output/input prompts*/
+div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
+div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
+div.prompt{min-width:11ex;padding:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
+@media (max-width:480px){div.prompt{text-align:left}}div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
+div.prompt:empty{padding-top:0;padding-bottom:0}
+div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
+div.inner_cell{width:90%;}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
+div.input_prompt{color:navy;border-top:1px solid transparent;}
+div.output_wrapper{margin-top:5px;position:relative;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:4px;-webkit-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);-moz-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
+div.output_collapsed{margin:0px;padding:0px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.out_prompt_overlay{height:100%;padding:0px 0.4em;position:absolute;border-radius:4px;}
+div.out_prompt_overlay:hover{-webkit-box-shadow:inset 0 0 1px #000000;-moz-box-shadow:inset 0 0 1px #000000;box-shadow:inset 0 0 1px #000000;background:rgba(240, 240, 240, 0.5);}
+div.output_prompt{color:darkred;}
+
+a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
+h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
+/* end stuff for output/input prompts*/
+
+
+.highlight-ipynb .hll { background-color: #ffffcc }
+.highlight-ipynb  { background: #f8f8f8; }
+.highlight-ipynb .c { color: #408080; font-style: italic } /* Comment */
+.highlight-ipynb .err { border: 1px solid #FF0000 } /* Error */
+.highlight-ipynb .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight-ipynb .o { color: #666666 } /* Operator */
+.highlight-ipynb .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight-ipynb .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight-ipynb .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight-ipynb .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight-ipynb .gd { color: #A00000 } /* Generic.Deleted */
+.highlight-ipynb .ge { font-style: italic } /* Generic.Emph */
+.highlight-ipynb .gr { color: #FF0000 } /* Generic.Error */
+.highlight-ipynb .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight-ipynb .gi { color: #00A000 } /* Generic.Inserted */
+.highlight-ipynb .go { color: #888888 } /* Generic.Output */
+.highlight-ipynb .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight-ipynb .gs { font-weight: bold } /* Generic.Strong */
+.highlight-ipynb .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight-ipynb .gt { color: #0044DD } /* Generic.Traceback */
+.highlight-ipynb .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight-ipynb .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight-ipynb .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight-ipynb .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight-ipynb .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight-ipynb .kt { color: #B00040 } /* Keyword.Type */
+.highlight-ipynb .m { color: #666666 } /* Literal.Number */
+.highlight-ipynb .s { color: #BA2121 } /* Literal.String */
+.highlight-ipynb .na { color: #7D9029 } /* Name.Attribute */
+.highlight-ipynb .nb { color: #008000 } /* Name.Builtin */
+.highlight-ipynb .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight-ipynb .no { color: #880000 } /* Name.Constant */
+.highlight-ipynb .nd { color: #AA22FF } /* Name.Decorator */
+.highlight-ipynb .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight-ipynb .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight-ipynb .nf { color: #0000FF } /* Name.Function */
+.highlight-ipynb .nl { color: #A0A000 } /* Name.Label */
+.highlight-ipynb .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight-ipynb .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight-ipynb .nv { color: #19177C } /* Name.Variable */
+.highlight-ipynb .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight-ipynb .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight-ipynb .mf { color: #666666 } /* Literal.Number.Float */
+.highlight-ipynb .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight-ipynb .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight-ipynb .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight-ipynb .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight-ipynb .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight-ipynb .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight-ipynb .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight-ipynb .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight-ipynb .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight-ipynb .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight-ipynb .sx { color: #008000 } /* Literal.String.Other */
+.highlight-ipynb .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight-ipynb .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight-ipynb .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight-ipynb .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight-ipynb .vc { color: #19177C } /* Name.Variable.Class */
+.highlight-ipynb .vg { color: #19177C } /* Name.Variable.Global */
+.highlight-ipynb .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight-ipynb .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+
+<style type="text/css">
+/* Overrides of notebook CSS for static HTML export */
+div.entry-content {
+  overflow: visible;
+  padding: 8px;
+}
+.input_area {
+  padding: 0.2em;
+}
+
+a.heading-anchor {
+ white-space: normal;
+}
+
+.rendered_html
+code {
+ font-size: .8em;
+}
+
+pre.ipynb {
+  color: black;
+  background: #f7f7f7;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+  margin: 0px;
+  font-size: 13px;
+}
+
+/* remove the prompt div from text cells */
+div.text_cell .prompt {
+    display: none;
+}
+
+/* remove horizontal padding from text cells, */
+/* so it aligns with outer body text */
+div.text_cell_render {
+    padding: 0.5em 0em;
+}
+
+img.anim_icon{padding:0; border:0; vertical-align:middle; -webkit-box-shadow:none; -box-shadow:none}
+
+div.collapseheader {
+    width=100%;
+    padding: 2px;
+    cursor: pointer;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
+<script type="text/javascript">
+init_mathjax = function() {
+    if (window.MathJax) {
+        // MathJax loaded
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+            },
+            displayAlign: 'left', // Change this to 'center' to center equations.
+            "HTML-CSS": {
+                styles: {'.MathJax_Display': {"margin": 0}}
+            }
+        });
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    }
+}
+init_mathjax();
+</script>
+
+<link rel="canonical" href="./how-to-handle-json-data-in-postgresql.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="json,sql,postgresql,database" />
+        <meta name="description" content="How to read and edit data stored as a JSON object in a PostgreSQL database." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="How to handle JSON data in PostgreSQL"/>
+        <meta property="og:url" content="./how-to-handle-json-data-in-postgresql.html"/>
+        <meta property="og:description" content="How to read and edit data stored as a JSON object in a PostgreSQL database."/>
+        <meta property="article:published_time" content="2018-11-13" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="json" />
+            <meta property="article:tag" content="sql" />
+            <meta property="article:tag" content="postgresql" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+        <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin ATOM Feed"/>
+
+
+
+        <link href="./feeds/database.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin Database ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/business-analytics.html">Business analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./how-to-handle-json-data-in-postgresql.html"
+                       rel="bookmark"
+                       title="Permalink to How to handle JSON data in PostgreSQL">
+                        How to handle JSON data in PostgreSQL
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2018-11-13T12:00:00+08:00"> Tue 13 November 2018</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/json.html">json</a>
+        /
+	<a href="./tag/sql.html">sql</a>
+        /
+	<a href="./tag/postgresql.html">postgresql</a>
+        /
+	<a href="./tag/database.html">database</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h2>Introducing JSON data type</h2>
+<p>PostgreSQL introduced the JSON data type in version 9.2 and the JSONB data type in version 9.4. <br>
+JSON (JavaScript Object Notation) is a data-interchange format designed to be easy to read and write by humans. A JSON object is an unordered set of key:value pairs that looks like <code>{key_1:value_1, key_2:value_2, ...}</code>.
+The <code>value</code> can be a string, a number, a boolean, an object or an array.<br>
+Here is an example of JSON object taken from the <a href="https://en.wikipedia.org/wiki/JSON#Example">wikipedia</a> page:</p>
+<div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;firstName&quot;</span><span class="p">:</span> <span class="s2">&quot;John&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;lastName&quot;</span><span class="p">:</span> <span class="s2">&quot;Smith&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;isAlive&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+  <span class="nt">&quot;age&quot;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span>
+  <span class="nt">&quot;address&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;streetAddress&quot;</span><span class="p">:</span> <span class="s2">&quot;21 2nd Street&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;NY&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;postalCode&quot;</span><span class="p">:</span> <span class="s2">&quot;10021-3100&quot;</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;phoneNumbers&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;home&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;number&quot;</span><span class="p">:</span> <span class="s2">&quot;212 555-1234&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;office&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;number&quot;</span><span class="p">:</span> <span class="s2">&quot;646 555-4567&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;mobile&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;number&quot;</span><span class="p">:</span> <span class="s2">&quot;123 456-7890&quot;</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="nt">&quot;children&quot;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="nt">&quot;spouse&quot;</span><span class="p">:</span> <span class="kc">null</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The values or the firstName, isAlive and age keys are strings, boolean or numbers.<br>
+The values of address is a JSON object.<br>
+the values of phoneNumbers and children are arrays.</p>
+<p>In PostgreSQL, JSON data is stored in plain text while JSONB data is stored in some binary representation. The JSONB data type takes more disk space but is preferable when doing a lot of operations on the JSON data or when indexing the JSON column.</p>
+<p>The use of JSON data gives more flexibility as we can add and remove attributes without changing our schema by adding and deleting columns.</p>
+<h2>Setup the training database</h2>
+<p>To practice with handling JSON data, let's create a simple table <code>orders</code> that has a <code>info</code> column storing the orders details.</p>
+<div class="highlight"><pre><span></span><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">orders</span><span class="p">(</span>
+  <span class="n">id</span> <span class="nb">serial</span> <span class="k">primary</span> <span class="k">key</span>
+  <span class="p">,</span> <span class="n">info</span> <span class="n">json</span>
+<span class="p">);</span>
+</pre></div>
+
+
+<p>Then, we add some data. To insert data in a JSON column, we simply insert the JSON object as a string: <code>'{"key":"value"}'</code>. </p>
+<div class="highlight"><pre><span></span><span class="k">INSERT</span> <span class="k">INTO</span> 
+    <span class="n">orders</span> <span class="p">(</span><span class="n">info</span><span class="p">)</span>
+<span class="k">VALUES</span>
+    <span class="p">(</span><span class="s1">&#39;{ &quot;customer&quot;: &quot;Alice&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;chocolate&quot;,&quot;qty&quot;: 6}}&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;{ &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;{ &quot;customer&quot;: &quot;Charlie&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 1}}&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;{ &quot;customer&quot;: &quot;Doris&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;cheese&quot;,&quot;qty&quot;: 2}}&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;{ &quot;customer&quot;: &quot;Emily&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 2}}&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;{ &quot;customer&quot;: &quot;Fabian&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 6}}&#39;</span><span class="p">)</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<p>We should now have a table where each row represents an order. The <code>info</code> column contains all the details of the order: customer, items, product, quantity.</p>
+<div class="highlight"><pre><span></span>tests=# SELECT * FROM orders;
+ id |                                info                                
+----+--------------------------------------------------------------------
+  1 | { &quot;customer&quot;: &quot;Alice&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;chocolate&quot;,&quot;qty&quot;: 6}}
+  2 | { &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}
+  3 | { &quot;customer&quot;: &quot;Charlie&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 1}}
+  4 | { &quot;customer&quot;: &quot;Doris&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;cheese&quot;,&quot;qty&quot;: 2}}
+  5 | { &quot;customer&quot;: &quot;Emily&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 2}}
+  6 | { &quot;customer&quot;: &quot;Fabian&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 6}}
+(6 rows)
+</pre></div>
+
+
+<h2>Select data</h2>
+<p>There are four operators that we can use in PostgreSQL to query JSON data:</p>
+<ul>
+<li><code>-&gt;</code> returns JSON objects.</li>
+<li><code>-&gt;&gt;</code> returns JSON objects as text.</li>
+<li><code>#&gt;</code> returns JSON objects at a specified path.</li>
+<li><code>#&gt;&gt;</code> returns JSON objects at a specified path as text.</li>
+</ul>
+<h3>The <code>-&gt;</code> and <code>-&gt;&gt;</code> operators</h3>
+<p>Because the <code>-&gt;</code> operator returns a JSON object, we can chain operators.<br>
+I am going to try to select the products from the orders table using the <code>-&gt;&gt;</code> operator to show the difference:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+  <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="k">AS</span> <span class="n">product</span>
+<span class="k">FROM</span> 
+  <span class="n">orders</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="n">ERROR</span><span class="o">:</span>  <span class="n">operator</span> <span class="n">does</span> <span class="n">not</span> <span class="n">exist</span><span class="o">:</span> <span class="n">text</span> <span class="o">-&gt;&gt;</span> <span class="n">unknown</span>
+<span class="n">LINE</span> <span class="mi">2</span><span class="o">:</span>   <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="n">AS</span> <span class="n">product</span>
+                           <span class="o">^</span>
+<span class="n">HINT</span><span class="o">:</span>  <span class="n">No</span> <span class="n">operator</span> <span class="n">matches</span> <span class="n">the</span> <span class="n">given</span> <span class="n">name</span> <span class="n">and</span> <span class="n">argument</span> <span class="n">type</span><span class="o">(</span><span class="n">s</span><span class="o">).</span> <span class="n">You</span> <span class="n">might</span> <span class="n">need</span> <span class="n">to</span> <span class="n">add</span> <span class="n">explicit</span> <span class="n">type</span> <span class="n">casts</span><span class="o">.</span>
+</pre></div>
+
+
+<p>The <code>-&gt;&gt;</code> operator returns items as text so we can't apply the operator <code>-&gt;&gt;</code> on them. That is what <code>operator does not exist: text -&gt;&gt; unknown</code> actually means.<br>
+To get the list of products, I need to get the items as a JSON object using <code>-&gt;</code>, then I can use the <code>-&gt;&gt;</code> operator to extract the products:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+  <span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="k">AS</span> <span class="n">product</span>
+<span class="k">FROM</span> 
+  <span class="n">orders</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>  product  
+-----------
+ chocolate
+ beer
+ milk
+ cheese
+ milk
+ beer
+(6 rows)
+</pre></div>
+
+
+<p>Note that <code>info -&gt; 'items' -&gt; 'product' AS product</code> would also work.</p>
+<h3>The <code>#&gt;</code> and <code>#&gt;&gt;</code> operators</h3>
+<p>When using the <code>-&gt;</code> and <code>-&gt;&gt;</code> operators, I was adding the key as a text in the right operand. If I wanted to get a list of products, I had to chain the operators like this: <code>info -&gt; 'items' -&gt;&gt; 'product'</code>.<br>
+Another way is to specify the path to the key I want to extract:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+  <span class="n">info</span> <span class="o">#&gt;</span> <span class="s1">&#39;{items, product}&#39;</span> <span class="k">AS</span> <span class="n">product</span>
+<span class="k">FROM</span> 
+  <span class="n">orders</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<p>This query is returning the same result as <code>info -&gt; 'items' -&gt; 'product'</code>:</p>
+<div class="highlight"><pre><span></span>  product   
+-------------
+ &quot;chocolate&quot;
+ &quot;beer&quot;
+ &quot;milk&quot;
+ &quot;cheese&quot;
+ &quot;beer&quot;
+ &quot;milk&quot;
+(6 rows)
+</pre></div>
+
+
+<p><code>info #&gt;&gt; '{items, product}'</code> would return the same result as <code>info -&gt; 'items' -&gt;&gt; 'product'</code>.</p>
+<p>The <code>jsonb_pretty</code> function outputs the result in a more readable format.</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+    <span class="n">jsonb_pretty</span><span class="p">(</span><span class="n">info</span><span class="p">::</span><span class="n">jsonb</span><span class="p">)</span> <span class="k">AS</span> <span class="n">orders</span>
+<span class="k">FROM</span>
+    <span class="n">orders</span>
+<span class="k">LIMIT</span> <span class="mi">2</span>
+<span class="p">;</span>    
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>          orders          
+--------------------------------
+ {                             +
+     &quot;items&quot;: {                +
+         &quot;qty&quot;: 6,             +
+         &quot;product&quot;: &quot;chocolate&quot;+
+     },                        +
+     &quot;customer&quot;: &quot;Alice&quot;       +
+ }
+ {                             +
+     &quot;items&quot;: {                +
+         &quot;qty&quot;: 24,            +
+         &quot;product&quot;: &quot;beer&quot;     +
+     },                        +
+     &quot;customer&quot;: &quot;Bob&quot;         +
+ }
+(2 rows)
+</pre></div>
+
+
+<p>The function also works with operators:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+  <span class="n">jsonb_pretty</span><span class="p">((</span><span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span><span class="p">)::</span><span class="n">jsonb</span><span class="p">)</span> <span class="k">AS</span> <span class="n">items</span>
+<span class="k">FROM</span> 
+  <span class="n">orders</span>
+<span class="k">LIMIT</span> <span class="mi">2</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>        items        
+----------------------------
+ {                         +
+     &quot;qty&quot;: 6,             +
+     &quot;product&quot;: &quot;chocolate&quot;+
+ }
+ {                         +
+     &quot;qty&quot;: 24,            +
+     &quot;product&quot;: &quot;beer&quot;     +
+ }
+(2 rows)
+</pre></div>
+
+
+<p>The JSON operators can be used in other parts of a query, like we'll see in the following examples.</p>
+<h3>SELECT with WHERE clause</h3>
+<p>Let's list the customers who bought beer.</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+  <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;customer&#39;</span> <span class="k">AS</span> <span class="n">customer</span>
+<span class="k">FROM</span> 
+  <span class="n">orders</span>
+<span class="k">WHERE</span>
+  <span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="o">=</span> <span class="s1">&#39;beer&#39;</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>customer 
+----------
+ Bob
+ Fabian
+(2 rows)
+</pre></div>
+
+
+<h3>Use aggregate functions</h3>
+<p>We can also use the usual aggregate functions on JSON columns. Note that as the operators return values as text, we need to cast them as integers if we want to calculate sums, averages, etc...<br>
+Let's get some statistics on the quantities ordered:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+  <span class="k">MIN</span><span class="p">((</span><span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;qty&#39;</span><span class="p">)::</span><span class="nb">INTEGER</span><span class="p">)</span> <span class="k">AS</span> <span class="n">mini</span>
+  <span class="p">,</span> <span class="k">MAX</span><span class="p">((</span><span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;qty&#39;</span><span class="p">)::</span><span class="nb">INTEGER</span><span class="p">)</span> <span class="k">AS</span> <span class="n">maxi</span>
+  <span class="p">,</span> <span class="k">SUM</span><span class="p">((</span><span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;qty&#39;</span><span class="p">)::</span><span class="nb">INTEGER</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total</span>
+  <span class="p">,</span> <span class="k">AVG</span><span class="p">((</span><span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;qty&#39;</span><span class="p">)::</span><span class="nb">INTEGER</span><span class="p">)</span> <span class="k">AS</span> <span class="n">average</span>
+<span class="k">FROM</span> 
+  <span class="n">orders</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span> mini | maxi | total |      average       
+------+------+-------+--------------------
+    1 |   24 |    41 | 6.8333333333333333
+(1 row)
+</pre></div>
+
+
+<h3>GROUP BY statement</h3>
+<p>Aggregates often come with a GROUP BY statement. Like for the <em>WHERE</em> clause, we can use the <code>-&gt;</code> and <code>-&gt;&gt;</code> operators in the <em>GROUP BY</em> statement.
+Let's get the total quantity ordered per product:</p>
+<div class="highlight"><pre><span></span><span class="k">SELECT</span> 
+    <span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="k">AS</span> <span class="n">product</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">((</span><span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;qty&#39;</span><span class="p">)::</span><span class="nb">INTEGER</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total</span>
+<span class="k">FROM</span> 
+    <span class="n">orders</span>
+<span class="k">GROUP</span> <span class="k">BY</span>
+    <span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>  product  | total 
+-----------+-------
+ milk      |     3
+ beer      |    30
+ cheese    |     2
+ chocolate |     6
+(4 rows)
+</pre></div>
+
+
+<h2>UPDATE data</h2>
+<h3>Changing an existing value</h3>
+<p>To change a value inside a JSON attribute, we can use the <code>jsonb_set()</code> function. As it is implemented for JSONB data types only, we need to cast our JSON columns as JSONB.<br>
+Function:</p>
+<div class="highlight"><pre><span></span><span class="n">jsonb_set</span><span class="p">(</span><span class="n">target</span>            <span class="n">jsonb</span>
+          <span class="p">,</span> <span class="n">path</span>            <span class="nb">text</span><span class="p">[],</span>
+          <span class="p">,</span> <span class="n">new_value</span>       <span class="n">jsonb</span>
+          <span class="p">[,</span> <span class="n">create_missing</span> <span class="nb">boolean</span><span class="p">])</span>
+</pre></div>
+
+
+<p>The function will replace the section of <code>target</code> designated by <code>path</code> with the <code>new_value</code>. If the section doesn't exist and <code>create_missing</code> is set to true (default), the <code>new_value</code> will be added.  </p>
+<p>Let's change Fabian's name to Bob</p>
+<div class="highlight"><pre><span></span><span class="k">UPDATE</span> 
+   <span class="n">orders</span>
+<span class="k">SET</span>
+  <span class="n">info</span> <span class="o">=</span> <span class="n">jsonb_set</span><span class="p">(</span><span class="n">info</span><span class="p">::</span><span class="n">jsonb</span><span class="p">,</span> <span class="s1">&#39;{customer}&#39;</span><span class="p">,</span> <span class="n">jsonb</span> <span class="s1">&#39;&quot;Bob&quot;&#39;</span><span class="p">)</span>
+<span class="k">WHERE</span> 
+  <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;customer&#39;</span> <span class="o">=</span> <span class="s1">&#39;Fabian&#39;</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>tests=# SELECT * FROM orders WHERE info -&gt;&gt; &#39;customer&#39; = &#39;Bob&#39;;
+ id |                             info                             
+----+--------------------------------------------------------------
+  2 | { &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}
+  6 | {&quot;items&quot;: {&quot;qty&quot;: 6, &quot;product&quot;: &quot;beer&quot;}, &quot;customer&quot;: &quot;Bob&quot;}
+(2 rows)
+</pre></div>
+
+
+<p>We now have two customers named Bob. Note that because the keys in the JSON data are not sorted, the two records look different.</p>
+<p>Using the <code>path</code> parameter, we can update data deeper into the JSON hierarchy.<br>
+For example, let's set the quantity of cheese bought by Doris to three:</p>
+<div class="highlight"><pre><span></span><span class="k">UPDATE</span> 
+   <span class="n">orders</span>
+<span class="k">SET</span>
+  <span class="n">info</span> <span class="o">=</span> <span class="n">jsonb_set</span><span class="p">(</span><span class="n">info</span><span class="p">::</span><span class="n">jsonb</span><span class="p">,</span> <span class="s1">&#39;{items,qty}&#39;</span><span class="p">,</span> <span class="n">jsonb</span> <span class="s1">&#39;3&#39;</span><span class="p">)</span>
+<span class="k">WHERE</span> 
+  <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;customer&#39;</span> <span class="o">=</span> <span class="s1">&#39;Doris&#39;</span>
+  <span class="k">AND</span> <span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="o">=</span> <span class="s1">&#39;cheese&#39;</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>tests=# SELECT * FROM orders WHERE info -&gt;&gt; &#39;customer&#39; = &#39;Doris&#39;;
+ id |                              info                               
+----+-----------------------------------------------------------------
+  4 | {&quot;items&quot;: {&quot;qty&quot;: 3, &quot;product&quot;: &quot;cheese&quot;}, &quot;customer&quot;: &quot;Doris&quot;}
+(1 row)
+</pre></div>
+
+
+<h3>Creating a new key</h3>
+<p>Let's say that I want to add a unit_price to the items.
+We can use the <code>jsonb_insert</code> function that was introduced in 9.6.<br>
+Function:</p>
+<div class="highlight"><pre><span></span><span class="n">jsonb_insert</span><span class="p">(</span><span class="n">target</span>          <span class="n">jsonb</span>
+             <span class="p">,</span> <span class="n">path</span>          <span class="nb">text</span><span class="p">[]</span>
+             <span class="p">,</span> <span class="n">new_value</span>     <span class="n">jsonb</span>
+             <span class="p">[,</span> <span class="n">insert_after</span> <span class="nb">boolean</span><span class="p">])</span>
+</pre></div>
+
+
+<p>The <code>new_value</code> will be inserted in the <code>target</code> in the section designated by <code>path</code>.</p>
+<p>I am going to add 5 as the unit_price of chocolate.</p>
+<div class="highlight"><pre><span></span><span class="k">UPDATE</span>
+    <span class="n">orders</span>
+<span class="k">SET</span> 
+    <span class="n">info</span> <span class="o">=</span> <span class="n">jsonb_insert</span><span class="p">(</span><span class="n">info</span><span class="p">::</span><span class="n">jsonb</span><span class="p">,</span> <span class="s1">&#39;{items,unit_price}&#39;</span><span class="p">,</span> <span class="n">jsonb</span> <span class="s1">&#39;5&#39;</span><span class="p">)</span>
+<span class="k">WHERE</span> 
+    <span class="n">info</span> <span class="o">-&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="o">=</span> <span class="s1">&#39;chocolate&#39;</span>
+<span class="p">;</span>    
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>tests=# SELECT * FROM orders WHERE info -&gt; &#39;items&#39; -&gt;&gt; &#39;product&#39; = &#39;chocolate&#39;;
+ id |                                info                                
+----+--------------------------------------------------------------------
+  1 | {&quot;items&quot;: {&quot;qty&quot;: 6, &quot;product&quot;: &quot;chocolate&quot;, &quot;unit_price&quot;: 5}, &quot;customer&quot;: &quot;Alice&quot;}
+(1 row)
+</pre></div>
+
+
+<p>I have now a new attribute that I was able to add without modifying my schema. This is one of the main advantages of using JSON data, it allows for more flexibility. I also added a new attribute to one record without impacting the other records.</p>
+<h3>Removing a key</h3>
+<p>Removing a key from a JSON object is very easy and doesn't require the use of a function. If I cast my data as JSONB, I can simply remove the key by typing <code>column = column - key</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">UPDATE</span> 
+  <span class="n">orders</span>
+<span class="k">SET</span> 
+  <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="p">::</span><span class="n">jsonb</span> <span class="o">-</span> <span class="s1">&#39;customer&#39;</span>
+<span class="k">WHERE</span>
+  <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;customer&#39;</span> <span class="o">=</span> <span class="s1">&#39;Emily&#39;</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>tests=# SELECT * FROM orders WHERE id = 5;
+ id |                   info                   
+----+------------------------------------------
+  5 | {&quot;items&quot;: {&quot;qty&quot;: 2, &quot;product&quot;: &quot;milk&quot;}}
+(1 row)
+</pre></div>
+
+
+<p>The record doesn't have a customer anymore.</p>
+<h2>Further reading</h2>
+<p><a href="https://json.org/">json.org</a><br>
+<a href="https://en.wikipedia.org/wiki/JSON">JSON wikipedia article</a><br>
+<a href="https://stackoverflow.com/a/22910602">Explanation of JSONB introduced by PostgreSQL</a><br>
+<a href="https://www.postgresql.org/docs/11/functions-json.html">PostgreSQL JSON Fonctions and Operators</a></p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/ge_martin"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
+    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2018 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-119773970-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    $("div.collapseheader").click(function () {
+    $header = $(this).children("span").first();
+    $codearea = $(this).children(".input_area");
+    console.log($(this).children());
+    $codearea.slideToggle(500, function () {
+        $header.text(function () {
+            return $codearea.is(":visible") ? "Collapse Code" : "Expand Code";
+        });
+    });
+});
+});
+</script>
+</body>
+</html>
