@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2018-11-28T08:55:00+08:00</updated><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T08:55:00+08:00</published><updated>2018-11-28T08:55:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2018-11-28T12:44:00+08:00</updated><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T12:44:00+08:00</published><updated>2018-11-28T12:44:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
 It shows a comparison of a party night in selected cities around the world. 
 The data is available on &lt;a href="https://data.world/makeovermonday/2018w48/workspace/file?filename=Cost+of+a+night+out+around+the+world.xlsx"&gt;data.world&lt;/a&gt;&lt;/p&gt;
 &lt;h2&gt;The original visualization&lt;/h2&gt;
@@ -2932,10 +2932,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="4481628c-a0ba-4af0-9f46-daf51f664703"&gt;&lt;/div&gt;
+&lt;div id="891892cc-40fc-4529-b65a-e10d3534fd68"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#4481628c-a0ba-4af0-9f46-daf51f664703');
+var element = $('#891892cc-40fc-4529-b65a-e10d3534fd68');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -3776,10 +3776,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="0addb01d-4a4d-4fec-9326-52713179e1d7"&gt;&lt;/div&gt;
+&lt;div id="af8a861a-db87-46b0-8e33-b35753363b6e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0addb01d-4a4d-4fec-9326-52713179e1d7');
+var element = $('#af8a861a-db87-46b0-8e33-b35753363b6e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -4616,10 +4616,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="d21c513a-f4af-40f9-bf2f-79b7046ed0de"&gt;&lt;/div&gt;
+&lt;div id="18f69094-76fe-41d2-8d2b-b3d1ba291791"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d21c513a-f4af-40f9-bf2f-79b7046ed0de');
+var element = $('#18f69094-76fe-41d2-8d2b-b3d1ba291791');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -5462,10 +5462,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="53b9dfc4-0848-418f-937a-911e6925a1b9"&gt;&lt;/div&gt;
+&lt;div id="6e55abd0-ea11-44b8-9490-b80ede43fa9d"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#53b9dfc4-0848-418f-937a-911e6925a1b9');
+var element = $('#6e55abd0-ea11-44b8-9490-b80ede43fa9d');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6302,10 +6302,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="9c64ee3f-3d22-434a-9811-ac3eb5a78c35"&gt;&lt;/div&gt;
+&lt;div id="b2970d01-0f93-4bf1-be79-5fc52cf9d30f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#9c64ee3f-3d22-434a-9811-ac3eb5a78c35');
+var element = $('#b2970d01-0f93-4bf1-be79-5fc52cf9d30f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7145,10 +7145,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="05797ad3-8688-4c32-b8c6-8c3688c82b5e"&gt;&lt;/div&gt;
+&lt;div id="f4e15d81-331b-4b78-abdf-493cb0aef347"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#05797ad3-8688-4c32-b8c6-8c3688c82b5e');
+var element = $('#f4e15d81-331b-4b78-abdf-493cb0aef347');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7994,10 +7994,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="bce3b710-911c-4e52-9846-c6229971bb3a"&gt;&lt;/div&gt;
+&lt;div id="33f2462a-1fd1-47d7-8d1a-96c48b895395"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#bce3b710-911c-4e52-9846-c6229971bb3a');
+var element = $('#33f2462a-1fd1-47d7-8d1a-96c48b895395');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8837,10 +8837,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="0de98f1d-1906-4fe2-8f5e-05c78e0c7481"&gt;&lt;/div&gt;
+&lt;div id="cbc70e7c-b6a5-4c2a-a1e9-2d417ca322b4"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0de98f1d-1906-4fe2-8f5e-05c78e0c7481');
+var element = $('#cbc70e7c-b6a5-4c2a-a1e9-2d417ca322b4');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9714,10 +9714,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="133e2941-773f-4646-9698-4fa088aa7ea7"&gt;&lt;/div&gt;
+&lt;div id="8ee6c817-9eb6-4551-8bb6-6772014a7717"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#133e2941-773f-4646-9698-4fa088aa7ea7');
+var element = $('#8ee6c817-9eb6-4551-8bb6-6772014a7717');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10558,10 +10558,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="4f033db1-c1dd-4e2b-b3f3-507b6ce70afb"&gt;&lt;/div&gt;
+&lt;div id="813096f0-8f94-4675-a529-1275a5981f4d"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#4f033db1-c1dd-4e2b-b3f3-507b6ce70afb');
+var element = $('#813096f0-8f94-4675-a529-1275a5981f4d');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11431,10 +11431,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="70493d4d-4569-41f5-8d89-819c0adb9cda"&gt;&lt;/div&gt;
+&lt;div id="bdf84f68-359b-4f20-8e6e-c78805a6a76c"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#70493d4d-4569-41f5-8d89-819c0adb9cda');
+var element = $('#bdf84f68-359b-4f20-8e6e-c78805a6a76c');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12303,10 +12303,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="b1968a0a-2fa6-4aca-8858-a8e20de4efb1"&gt;&lt;/div&gt;
+&lt;div id="c1899ca3-d46f-4d06-9f80-41aa59421f18"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#b1968a0a-2fa6-4aca-8858-a8e20de4efb1');
+var element = $('#c1899ca3-d46f-4d06-9f80-41aa59421f18');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13175,10 +13175,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="05e60eba-72ea-4525-80f0-ff880b855897"&gt;&lt;/div&gt;
+&lt;div id="c3e3dcd2-11a5-425a-b615-5ad6c97c5a3a"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#05e60eba-72ea-4525-80f0-ff880b855897');
+var element = $('#c3e3dcd2-11a5-425a-b615-5ad6c97c5a3a');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14008,10 +14008,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="18aabb3a-97b4-467f-92e8-ce94609f88ec"&gt;&lt;/div&gt;
+&lt;div id="efc8b53e-823f-40a1-9d83-2f3ff18562e6"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#18aabb3a-97b4-467f-92e8-ce94609f88ec');
+var element = $('#efc8b53e-823f-40a1-9d83-2f3ff18562e6');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14882,10 +14882,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="3e4b62fd-a06a-4bc6-9186-0490fd65cedb"&gt;&lt;/div&gt;
+&lt;div id="8718922c-ac72-42da-9b07-b07b329024dc"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#3e4b62fd-a06a-4bc6-9186-0490fd65cedb');
+var element = $('#8718922c-ac72-42da-9b07-b07b329024dc');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -15753,10 +15753,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="b682ce36-a032-4821-ab5e-fefdb75cece3"&gt;&lt;/div&gt;
+&lt;div id="2b1a5082-135d-4a78-91b7-6e5a5560fc66"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#b682ce36-a032-4821-ab5e-fefdb75cece3');
+var element = $('#2b1a5082-135d-4a78-91b7-6e5a5560fc66');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
