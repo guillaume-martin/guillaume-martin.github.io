@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2018-11-15T08:45:00+08:00</updated><entry><title>How to handle JSON data in PostgreSQL</title><link href="https://guillaume-martin.github.io/blog/how-to-handle-json-data-in-postgresql.html" rel="alternate"></link><published>2018-11-15T08:45:00+08:00</published><updated>2018-11-15T08:45:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-15:/blog/how-to-handle-json-data-in-postgresql.html</id><summary type="html">&lt;p&gt;How to read and edit data stored as a JSON object in a PostgreSQL database.&lt;/p&gt;</summary><content type="html">&lt;h2&gt;Introducing JSON data type&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2018-11-28T08:55:00+08:00</updated><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T08:55:00+08:00</published><updated>2018-11-28T08:55:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
+It shows a comparison of a party night in selected cities around the world. 
+The data is available on &lt;a href="https://data.world/makeovermonday/2018w48/workspace/file?filename=Cost+of+a+night+out+around+the+world.xlsx"&gt;data.world&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;The original visualization&lt;/h2&gt;
+&lt;p&gt;&lt;img alt="original" src="/images/the_price_of_a_party_around_the_world_n.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;The designer chose horizontal stacked bars to show the average price of a party night. There is one bar per city. The length of the bar represents the total cost of the night.&lt;br&gt;
+Each bar is segmented into parts that represent the cost of the items purchased during the night: club entry, two longdrinks, a taxi ride and a Big Mac.&lt;br&gt;
+The bars are usually the best choice for comparisons. we can easily compare the total price between two cities even if those cities are not next to each other on the chart. It is clear that a night out in New York is more expensive than a night out in Paris. However, I find it more challenging to compare the price of items. Are the longdrinks more expensive in New York than in Paris? &lt;/p&gt;
+&lt;h2&gt;My goal&lt;/h2&gt;
+&lt;p&gt;In my visualization, I want to improve the comparison of the price of the different items in each city. I also want to keep the comparison of the totals easy.&lt;br&gt;
+The dataset has two categories of activity: a Date night or a Party night. I am going to show both of them.&lt;/p&gt;
+&lt;h2&gt;My visualization&lt;/h2&gt;
+&lt;p&gt;I keep the horizontal bars to compare the total price per city. Below the bars, I am showing a parallel coordinates graph. On the X axis, we have the items purchased during the night. On the Y axis, we have the cost. There is one line per city. 
+There is a filter to select whether we want to see the data for a Date night or for a Party night.&lt;br&gt;
+When we click on the bar of a city, the line in the second graph is highlighted, making it easier to compare the price of the items in this city with the price in other cities. &lt;/p&gt;
+&lt;p&gt;The interactive visualization can be seen &lt;a href="https://public.tableau.com/views/makeovermonday-2018wk48/Dashboard1?:embed=y&amp;amp;:display_count=yes"&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="final" src="/images/makeovermonday_2018wk48.jpeg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="final with highlight" src="/images/makeovermonday-2018wk48-highlighted.png"&gt;&lt;/p&gt;</content><category term="tableau"></category><category term="visualization"></category><category term="makeovermonday"></category></entry><entry><title>How to handle JSON data in PostgreSQL</title><link href="https://guillaume-martin.github.io/blog/how-to-handle-json-data-in-postgresql.html" rel="alternate"></link><published>2018-11-15T08:45:00+08:00</published><updated>2018-11-15T08:45:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-15:/blog/how-to-handle-json-data-in-postgresql.html</id><summary type="html">&lt;p&gt;How to read and edit data stored as a JSON object in a PostgreSQL database.&lt;/p&gt;</summary><content type="html">&lt;h2&gt;Introducing JSON data type&lt;/h2&gt;
 &lt;p&gt;PostgreSQL introduced the JSON data type in version 9.2 and the JSONB data type in version 9.4. &lt;br&gt;
 JSON (JavaScript Object Notation) is a data-interchange format designed to be easy to read and write by humans. A JSON object is an unordered set of key:value pairs that looks like &lt;code&gt;{key_1:value_1, key_2:value_2, ...}&lt;/code&gt;.
 The &lt;code&gt;value&lt;/code&gt; can be a string, a number, a boolean, an object or an array.&lt;br&gt;
@@ -2915,10 +2932,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="bb1f671a-e76b-41ed-a9f5-1c0e7d58d02c"&gt;&lt;/div&gt;
+&lt;div id="4481628c-a0ba-4af0-9f46-daf51f664703"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#bb1f671a-e76b-41ed-a9f5-1c0e7d58d02c');
+var element = $('#4481628c-a0ba-4af0-9f46-daf51f664703');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -3759,10 +3776,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="57aee894-1b79-4583-867e-d600479779c7"&gt;&lt;/div&gt;
+&lt;div id="0addb01d-4a4d-4fec-9326-52713179e1d7"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#57aee894-1b79-4583-867e-d600479779c7');
+var element = $('#0addb01d-4a4d-4fec-9326-52713179e1d7');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -4599,10 +4616,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="a09d6971-1dc8-4d06-9a9a-68546fec38c1"&gt;&lt;/div&gt;
+&lt;div id="d21c513a-f4af-40f9-bf2f-79b7046ed0de"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#a09d6971-1dc8-4d06-9a9a-68546fec38c1');
+var element = $('#d21c513a-f4af-40f9-bf2f-79b7046ed0de');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -5445,10 +5462,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="7c1b131b-1f26-44b7-9d53-fcdcf6b90242"&gt;&lt;/div&gt;
+&lt;div id="53b9dfc4-0848-418f-937a-911e6925a1b9"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#7c1b131b-1f26-44b7-9d53-fcdcf6b90242');
+var element = $('#53b9dfc4-0848-418f-937a-911e6925a1b9');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6285,10 +6302,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="78b438e6-fcb0-4b59-b840-b6e249a1e2be"&gt;&lt;/div&gt;
+&lt;div id="9c64ee3f-3d22-434a-9811-ac3eb5a78c35"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#78b438e6-fcb0-4b59-b840-b6e249a1e2be');
+var element = $('#9c64ee3f-3d22-434a-9811-ac3eb5a78c35');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7128,10 +7145,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="f702e86c-4e81-4cf7-a892-7b6993b1febe"&gt;&lt;/div&gt;
+&lt;div id="05797ad3-8688-4c32-b8c6-8c3688c82b5e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#f702e86c-4e81-4cf7-a892-7b6993b1febe');
+var element = $('#05797ad3-8688-4c32-b8c6-8c3688c82b5e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7977,10 +7994,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="bba9f57f-96da-4f35-ad01-ca4d7adb1e16"&gt;&lt;/div&gt;
+&lt;div id="bce3b710-911c-4e52-9846-c6229971bb3a"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#bba9f57f-96da-4f35-ad01-ca4d7adb1e16');
+var element = $('#bce3b710-911c-4e52-9846-c6229971bb3a');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8820,10 +8837,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="ec41120d-ff8f-4fbd-abfb-2f8e3c9eec82"&gt;&lt;/div&gt;
+&lt;div id="0de98f1d-1906-4fe2-8f5e-05c78e0c7481"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ec41120d-ff8f-4fbd-abfb-2f8e3c9eec82');
+var element = $('#0de98f1d-1906-4fe2-8f5e-05c78e0c7481');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9697,10 +9714,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="5c7281bf-e454-4bf6-ad70-d91e1135a246"&gt;&lt;/div&gt;
+&lt;div id="133e2941-773f-4646-9698-4fa088aa7ea7"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#5c7281bf-e454-4bf6-ad70-d91e1135a246');
+var element = $('#133e2941-773f-4646-9698-4fa088aa7ea7');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10541,10 +10558,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="42b434da-3de4-47b3-bc02-5ef642b3ceea"&gt;&lt;/div&gt;
+&lt;div id="4f033db1-c1dd-4e2b-b3f3-507b6ce70afb"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#42b434da-3de4-47b3-bc02-5ef642b3ceea');
+var element = $('#4f033db1-c1dd-4e2b-b3f3-507b6ce70afb');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11414,10 +11431,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="72bd790d-1199-4a95-bb6e-11d4d772f4d5"&gt;&lt;/div&gt;
+&lt;div id="70493d4d-4569-41f5-8d89-819c0adb9cda"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#72bd790d-1199-4a95-bb6e-11d4d772f4d5');
+var element = $('#70493d4d-4569-41f5-8d89-819c0adb9cda');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12286,10 +12303,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="1dc60129-2dcb-4c38-86d5-45501861bd16"&gt;&lt;/div&gt;
+&lt;div id="b1968a0a-2fa6-4aca-8858-a8e20de4efb1"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#1dc60129-2dcb-4c38-86d5-45501861bd16');
+var element = $('#b1968a0a-2fa6-4aca-8858-a8e20de4efb1');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13158,10 +13175,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="806edca1-2411-474d-8f22-8dbd20d6b90b"&gt;&lt;/div&gt;
+&lt;div id="05e60eba-72ea-4525-80f0-ff880b855897"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#806edca1-2411-474d-8f22-8dbd20d6b90b');
+var element = $('#05e60eba-72ea-4525-80f0-ff880b855897');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13991,10 +14008,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="b5c461aa-30b2-457b-9132-5dd193502ad8"&gt;&lt;/div&gt;
+&lt;div id="18aabb3a-97b4-467f-92e8-ce94609f88ec"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#b5c461aa-30b2-457b-9132-5dd193502ad8');
+var element = $('#18aabb3a-97b4-467f-92e8-ce94609f88ec');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14865,10 +14882,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="2365cd00-a428-471c-b21b-14413fd1c572"&gt;&lt;/div&gt;
+&lt;div id="3e4b62fd-a06a-4bc6-9186-0490fd65cedb"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#2365cd00-a428-471c-b21b-14413fd1c572');
+var element = $('#3e4b62fd-a06a-4bc6-9186-0490fd65cedb');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -15736,10 +15753,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="c111973d-b710-420a-8829-511ed26b3f45"&gt;&lt;/div&gt;
+&lt;div id="b682ce36-a032-4821-ab5e-fefdb75cece3"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#c111973d-b710-420a-8829-511ed26b3f45');
+var element = $('#b682ce36-a032-4821-ab5e-fefdb75cece3');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
