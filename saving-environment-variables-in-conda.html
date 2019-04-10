@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Articles by Guillaume Martin - Guillaume Martin</title>
+    <title>How to set environment variables in a conda virtual environment - Guillaume Martin</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -173,31 +173,43 @@ init_mathjax = function() {
 init_mathjax();
 </script>
 
+<link rel="canonical" href="./saving-environment-variables-in-conda.html">
 
         <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="linux,environment variables,virtual environments,anaconda,conda" />
+        <meta name="description" content="How to save environment variables in a virtual environment set using conda." />
 
-    <!-- Open Graph tags -->
         <meta property="og:site_name" content="Guillaume Martin" />
-        <meta property="og:type" content="website"/>
-        <meta property="og:title" content="Guillaume Martin"/>
-        <meta property="og:url" content=".."/>
-        <meta property="og:description" content="Guillaume Martin"/>
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="How to set environment variables in a conda virtual environment"/>
+        <meta property="og:url" content="./saving-environment-variables-in-conda.html"/>
+        <meta property="og:description" content="How to save environment variables in a virtual environment set using conda."/>
+        <meta property="article:published_time" content="2019-04-10" />
+            <meta property="article:section" content="Linux" />
+            <meta property="article:tag" content="linux" />
+            <meta property="article:tag" content="environment variables" />
+            <meta property="article:tag" content="virtual environments" />
+            <meta property="article:tag" content="anaconda" />
+            <meta property="article:tag" content="conda" />
+            <meta property="article:author" content="Guillaume Martin" />
 
 
 
     <!-- Bootstrap -->
-        <link rel="stylesheet" href="../theme/css/bootstrap.flatly.min.css" type="text/css"/>
-    <link href="../theme/css/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
 
-    <link href="../theme/css/pygments/vs.css" rel="stylesheet">
-    <link rel="stylesheet" href="../theme/css/style.css" type="text/css"/>
-        <link href="../static/css/custom.css" rel="stylesheet">
+    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
 
-        <link href="../feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+        <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Guillaume Martin ATOM Feed"/>
 
 
 
+        <link href="./feeds/linux.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin Linux ATOM Feed"/>
 
 </head>
 <body>
@@ -211,25 +223,25 @@ init_mathjax();
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a href="../" class="navbar-brand">
+            <a href="./" class="navbar-brand">
 Guillaume Martin            </a>
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
             <ul class="nav navbar-nav">
                         <li >
-                            <a href="../category/business-analytics.html">Business analytics</a>
+                            <a href="./category/business-analytics.html">Business analytics</a>
                         </li>
                         <li >
-                            <a href="../category/database.html">Database</a>
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/linux.html">Linux</a>
                         </li>
                         <li >
-                            <a href="../category/linux.html">Linux</a>
+                            <a href="./category/machine-learning.html">Machine learning</a>
                         </li>
                         <li >
-                            <a href="../category/machine-learning.html">Machine learning</a>
-                        </li>
-                        <li >
-                            <a href="../category/visualization.html">Visualization</a>
+                            <a href="./category/visualization.html">Visualization</a>
                         </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -246,37 +258,126 @@ Guillaume Martin            </a>
 <div class="container">
     <div class="row">
         <div class="col-sm-9">
-            <article>
-                <h2><a href="../average-ensemble-optimization.html">Average ensemble optimization</a></h2>
-                <div class="summary"><p>How to find the best weights to use in a weighted average ensemble.</p>
-                    <a class="btn btn-default btn-xs" href="../average-ensemble-optimization.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="../makeovermonday-2018wk21.html">Makeover Monday Week 21 - 2018</a></h2>
-                <div class="summary"><p>Review of the Guardian's predictions for the Premier League 2017-18</p>
-                    <a class="btn btn-default btn-xs" href="../makeovermonday-2018wk21.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="../customize-matplotlib-charts.html">Customizing Matplotlib Charts</a></h2>
-                <div class="summary"><p>Explore the Matplotlib API and learn how to customize your charts.</p>
-                    <a class="btn btn-default btn-xs" href="../customize-matplotlib-charts.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./saving-environment-variables-in-conda.html"
+                       rel="bookmark"
+                       title="Permalink to How to set environment variables in a conda virtual environment">
+                        How to set environment variables in a conda virtual environment
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2019-04-10T13:15:00+08:00"> Wed 10 April 2019</time>
+    </span>
 
-        <ul class="pagination">
-                <li class="prev"><a href="../author/guillaume-martin.html">&laquo;</a>
-                </li>
-                    <li class=""><a
-                            href="../author/guillaume-martin.html">1</a></li>
-                    <li class="active"><a
-                            href="../author/guillaume-martin2.html">2</a></li>
-                <li class="next disabled"><a href="#">&raquo;</a></li>
-        </ul>
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/linux.html">linux</a>
+        /
+	<a href="./tag/environment-variables.html">environment variables</a>
+        /
+	<a href="./tag/virtual-environments.html">virtual environments</a>
+        /
+	<a href="./tag/anaconda.html">anaconda</a>
+        /
+	<a href="./tag/conda.html">conda</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                    <div>
+                        <section>
+                            <p id="post-share-links">
+                                Share:&nbsp;&nbsp;
+                                <a href="https://twitter.com/intent/tweet?text=How%20to%20set%20environment%20variables%20in%20a%20conda%20virtual%20environment&url=https%3A//guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" target="_blank" title="Share on Twitter">
+                                    <img src="/static/icons/twitter-4-48.jpg" alt="Twitter">
+                                </a>&nbsp;&nbsp;
+                                <a href="http://www.facebook.com/sharer/sharer.php?u=https%3A//guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" target="_blank" title="Share on Facebook">
+                                    <img src="/static/icons/facebook-4-48.jpg" alt="Facebook">
+                                </a>&nbsp;&nbsp;
+                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html&title=How%20to%20set%20environment%20variables%20in%20a%20conda%20virtual%20environment&summary=How%20to%20save%20environment%20variables%20in%20a%20virtual%20environment%20set%20using%20conda.&source=https%3A//guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" target="_blank" title="Share on LinkedIn">
+                                    <img src="/static/icons/linkedin-4-48.jpg" alt="Linkedin">
+                                </a>&nbsp;&nbsp;
+                                <!-- <a href="https://news.ycombinator.com/submitlink?t=How%20to%20set%20environment%20variables%20in%20a%20conda%20virtual%20environment&u=https%3A//guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" target="_blank" title="Share on HackerNews">HackerNews</a> -->
+                                <a href="mailto:?subject=How%20to%20set%20environment%20variables%20in%20a%20conda%20virtual%20environment&amp;body=https%3A//guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" target="_blank" title="Share via Email">
+                                    <img src="/static/icons/email-14-48.jpg" alt="Email">
+                                </a>&nbsp;&nbsp;
+                            </p>
+                        </section>
+                    </div>
+                </div>
+                <p>Environment variables are useful to store sensitive data like API keys or passwords when we don't want them to be hard coded in our source code. But we often only use them in some specific circumstances and don't need to have them set all the time. In this short post, I am going to show how to save environment variables in a virtual environment set using conda.</p>
+<p>First, we need to create the virtual environment using the <code>conda create</code> command:</p>
+<div class="highlight"><pre><span></span>$ conda create --name my_environment
+</pre></div>
+
+
+<p>This command will create a <code>my_environment</code> subdirectory in the <code>anaconda3/env</code> directory. </p>
+<p>Next, we activate the environment:</p>
+<div class="highlight"><pre><span></span>$ <span class="nb">source</span> activate my_environment
+<span class="o">(</span>my_environment<span class="o">)</span>$ 
+</pre></div>
+
+
+<p>Now, we need to create scripts that will set our environment variables whenever we activate our virtual environment and unset them when we deactivate. The path to our environment directory is set as <code>$CONDA_PREFIX</code>. We <code>cd</code> to that directory and create a <code>/etc/conda/activate.d</code> and a <code>/etc/conda/deactivate.d</code> directory:</p>
+<div class="highlight"><pre><span></span><span class="o">(</span>my_environment<span class="o">)</span>$ <span class="nb">cd</span> <span class="nv">$CONDA_PREFIX</span>
+<span class="o">(</span>my_environment<span class="o">)</span>$ mkdir -p ./etc/conda/activate.d
+<span class="o">(</span>my_environment<span class="o">)</span>$ mkdir -p ./etc/conda/deactivate.d
+</pre></div>
+
+
+<p>In each of those directories, we create a <code>env_var.sh</code> script where we'll write the commands to set and unset our variables:</p>
+<div class="highlight"><pre><span></span><span class="o">(</span>my_environment<span class="o">)</span>$ touch ./etc/conda/activate.d/env_vars.sh
+<span class="o">(</span>my_environment<span class="o">)</span>$ touch ./etc/conda/deactivate.d/env_vars.sh
+</pre></div>
+
+
+<p>In <code>activate.d/env_vars.sh</code>, we add the <code>export</code> commands to set our variables when the virtual environment is activated:</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
+
+<span class="nb">export</span> <span class="nv">MY_VARIABLE</span><span class="o">=</span>some_value
+</pre></div>
+
+
+<p>In <code>deactivate.d/env_vars.sh</code>, we add the <code>unset</code> commands to delete our variables when the virtual environment in deactivated.</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
+
+<span class="nb">unset</span> MY_VARIABLE
+</pre></div>
+
+
+<p>Let's test our setting. We need to reactivate our environment to get the variables set.</p>
+<div class="highlight"><pre><span></span><span class="o">(</span>my_environment<span class="o">)</span>$ conda deactivate
+$ conda activate my_environment
+<span class="o">(</span>my_environment<span class="o">)</span>$ <span class="nb">echo</span> <span class="nv">$MY_VARIABLE</span>
+some_value
+</pre></div>
+
+
+<p>The environment variable has been set. Now, let's check if the variable is unset when we deactivate our environment:</p>
+<div class="highlight"><pre><span></span><span class="o">(</span>my_environment<span class="o">)</span>$ conda deactivate
+$ <span class="nb">echo</span> <span class="nv">$MY_VARIABLE</span>
+
+$
+</pre></div>
+
+
+<p>The <code>echo</code> command returns an empty line, meaning that our variable has been unset.</p>
+<p>Voilà! We now have a virtual environment with it's own environment variables.</p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
         </div>
         <div class="col-sm-3" id="sidebar">
             <aside>
@@ -299,67 +400,67 @@ Guillaume Martin            </a>
 
 <!-- Sidebar/Tag Cloud -->
 <li class="list-group-item">
-  <a href="../"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
   <ul class="list-group " id="tags">
     <li class="list-group-item tag-1">
-      <a href="../tag/visualization.html">visualization</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="../tag/python.html">python</a>
+      <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="../tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="../tag/matplotlib.html">matplotlib</a>
+      <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="../tag/tableau.html">tableau</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/scipy.html">scipy</a>
+      <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/crm.html">crm</a>
+      <a href="./tag/crm.html">crm</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/anaconda.html">anaconda</a>
+      <a href="./tag/anaconda.html">anaconda</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/conda.html">conda</a>
+      <a href="./tag/conda.html">conda</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/optimization.html">optimization</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/virtual-environments.html">virtual environments</a>
+      <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/marketing.html">marketing</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/machine-learning.html">machine learning</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/segmentation.html">segmentation</a>
+      <a href="./tag/segmentation.html">segmentation</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/json.html">json</a>
+      <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/sql.html">sql</a>
+      <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/database.html">database</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/linux.html">linux</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/postgresql.html">postgresql</a>
+      <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="../tag/environment-variables.html">environment variables</a>
+      <a href="./tag/environment-variables.html">environment variables</a>
     </li>
   </ul>
 </li>
@@ -384,15 +485,15 @@ Guillaume Martin            </a>
       </div>
    </div>
 </footer>
-<script src="../theme/js/jquery.min.js"></script>
+<script src="./theme/js/jquery.min.js"></script>
 
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="../theme/js/bootstrap.min.js"></script>
+<script src="./theme/js/bootstrap.min.js"></script>
 
 <!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="../theme/js/respond.min.js"></script>
+<script src="./theme/js/respond.min.js"></script>
 
-    <script src="../static/js/custom.js"></script>
+    <script src="./static/js/custom.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">

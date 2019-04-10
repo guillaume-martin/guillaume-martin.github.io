@@ -1,5 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-03-15T15:41:00+08:00</updated><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T12:44:00+08:00</published><updated>2018-11-28T12:47:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-04-10T16:10:00+08:00</updated><entry><title>How to set environment variables in a conda virtual environment</title><link href="https://guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" rel="alternate"></link><published>2019-04-10T13:15:00+08:00</published><updated>2019-04-10T16:10:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-04-10:/blog/saving-environment-variables-in-conda.html</id><summary type="html">&lt;p&gt;How to save environment variables in a virtual environment set using conda.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Environment variables are useful to store sensitive data like API keys or passwords when we don't want them to be hard coded in our source code. But we often only use them in some specific circumstances and don't need to have them set all the time. In this short post, I am going to show how to save environment variables in a virtual environment set using conda.&lt;/p&gt;
+&lt;p&gt;First, we need to create the virtual environment using the &lt;code&gt;conda create&lt;/code&gt; command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ conda create --name my_environment
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This command will create a &lt;code&gt;my_environment&lt;/code&gt; subdirectory in the &lt;code&gt;anaconda3/env&lt;/code&gt; directory. &lt;/p&gt;
+&lt;p&gt;Next, we activate the environment:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;source&lt;/span&gt; activate my_environment
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now, we need to create scripts that will set our environment variables whenever we activate our virtual environment and unset them when we deactivate. The path to our environment directory is set as &lt;code&gt;$CONDA_PREFIX&lt;/code&gt;. We &lt;code&gt;cd&lt;/code&gt; to that directory and create a &lt;code&gt;/etc/conda/activate.d&lt;/code&gt; and a &lt;code&gt;/etc/conda/deactivate.d&lt;/code&gt; directory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$CONDA_PREFIX&lt;/span&gt;
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ mkdir -p ./etc/conda/activate.d
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ mkdir -p ./etc/conda/deactivate.d
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In each of those directories, we create a &lt;code&gt;env_var.sh&lt;/code&gt; script where we'll write the commands to set and unset our variables:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ touch ./etc/conda/activate.d/env_vars.sh
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ touch ./etc/conda/deactivate.d/env_vars.sh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In &lt;code&gt;activate.d/env_vars.sh&lt;/code&gt;, we add the &lt;code&gt;export&lt;/code&gt; commands to set our variables when the virtual environment is activated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/sh&lt;/span&gt;
+
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;MY_VARIABLE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;some_value
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In &lt;code&gt;deactivate.d/env_vars.sh&lt;/code&gt;, we add the &lt;code&gt;unset&lt;/code&gt; commands to delete our variables when the virtual environment in deactivated.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/sh&lt;/span&gt;
+
+&lt;span class="nb"&gt;unset&lt;/span&gt; MY_VARIABLE
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Let's test our setting. We need to reactivate our environment to get the variables set.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ conda deactivate
+$ conda activate my_environment
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$MY_VARIABLE&lt;/span&gt;
+some_value
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The environment variable has been set. Now, let's check if the variable is unset when we deactivate our environment:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ conda deactivate
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$MY_VARIABLE&lt;/span&gt;
+
+$
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The &lt;code&gt;echo&lt;/code&gt; command returns an empty line, meaning that our variable has been unset.&lt;/p&gt;
+&lt;p&gt;Voilà! We now have a virtual environment with it's own environment variables.&lt;/p&gt;</content><category term="linux"></category><category term="environment variables"></category><category term="virtual environments"></category><category term="anaconda"></category><category term="conda"></category></entry><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T12:44:00+08:00</published><updated>2018-11-28T12:47:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
 It shows a comparison of the cost of a night out in selected cities around the world. 
 The data is available on &lt;a href="https://data.world/makeovermonday/2018w48/workspace/file?filename=Cost+of+a+night+out+around+the+world.xlsx"&gt;data.world&lt;/a&gt;&lt;/p&gt;
 &lt;h2&gt;The original visualization&lt;/h2&gt;
@@ -5229,10 +5286,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="a7c9c152-2dc2-464e-b658-b525e6d2ec0d"&gt;&lt;/div&gt;
+&lt;div id="abdcb77e-37ee-4cbe-9772-563c0178e3f9"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#a7c9c152-2dc2-464e-b658-b525e6d2ec0d');
+var element = $('#abdcb77e-37ee-4cbe-9772-563c0178e3f9');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6073,10 +6130,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="e388a5ea-9bb1-4bc6-a2f3-2fbfcd3a8a10"&gt;&lt;/div&gt;
+&lt;div id="4f7cc20c-0c48-435b-b9d6-1790ef66c7cd"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#e388a5ea-9bb1-4bc6-a2f3-2fbfcd3a8a10');
+var element = $('#4f7cc20c-0c48-435b-b9d6-1790ef66c7cd');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6913,10 +6970,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="eef859e0-b7a3-4261-b406-b7d1ea2508e8"&gt;&lt;/div&gt;
+&lt;div id="528214dc-38df-4df6-b011-e587ccf533d9"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#eef859e0-b7a3-4261-b406-b7d1ea2508e8');
+var element = $('#528214dc-38df-4df6-b011-e587ccf533d9');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7759,10 +7816,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="0ad886b6-03bb-45ae-8f9b-e2a9c3456c0b"&gt;&lt;/div&gt;
+&lt;div id="feb26b2f-b223-483c-8b87-de29df1059bc"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0ad886b6-03bb-45ae-8f9b-e2a9c3456c0b');
+var element = $('#feb26b2f-b223-483c-8b87-de29df1059bc');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8599,10 +8656,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="3e4f5397-3873-4481-9d47-1bcf93db56d8"&gt;&lt;/div&gt;
+&lt;div id="a34551cb-2482-412e-bae4-8ac699890f65"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#3e4f5397-3873-4481-9d47-1bcf93db56d8');
+var element = $('#a34551cb-2482-412e-bae4-8ac699890f65');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9442,10 +9499,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="1e8a0d72-bc7a-46e9-ab41-a323636f973f"&gt;&lt;/div&gt;
+&lt;div id="8705f98a-4337-478e-ad0c-cb1568cdf759"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#1e8a0d72-bc7a-46e9-ab41-a323636f973f');
+var element = $('#8705f98a-4337-478e-ad0c-cb1568cdf759');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10291,10 +10348,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="51f2becd-6f15-48b0-aaf2-3c3cd6f5dc1f"&gt;&lt;/div&gt;
+&lt;div id="0e073afd-80f3-4ea7-bfb9-83b47bfb63c8"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#51f2becd-6f15-48b0-aaf2-3c3cd6f5dc1f');
+var element = $('#0e073afd-80f3-4ea7-bfb9-83b47bfb63c8');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11134,10 +11191,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="0197a15f-522d-4774-b2e6-1811b51ae4c3"&gt;&lt;/div&gt;
+&lt;div id="9410a1f9-1c85-46ec-86fd-d2d8f39f1864"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0197a15f-522d-4774-b2e6-1811b51ae4c3');
+var element = $('#9410a1f9-1c85-46ec-86fd-d2d8f39f1864');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12011,10 +12068,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="5d0f634b-9a9b-4e17-9687-13ba1a505b19"&gt;&lt;/div&gt;
+&lt;div id="2de982bf-b78d-44e1-9691-34c7ff044cdb"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#5d0f634b-9a9b-4e17-9687-13ba1a505b19');
+var element = $('#2de982bf-b78d-44e1-9691-34c7ff044cdb');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12855,10 +12912,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="ca07c911-34fa-451c-8465-b5f3da3137db"&gt;&lt;/div&gt;
+&lt;div id="d9fc8e8d-e5b4-4508-bcbd-0f0450d98afe"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ca07c911-34fa-451c-8465-b5f3da3137db');
+var element = $('#d9fc8e8d-e5b4-4508-bcbd-0f0450d98afe');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13728,10 +13785,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="c124674d-75d6-4adb-957c-f66036acfe44"&gt;&lt;/div&gt;
+&lt;div id="ab0b3261-8a4d-436d-8dc1-af393fe95bf4"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#c124674d-75d6-4adb-957c-f66036acfe44');
+var element = $('#ab0b3261-8a4d-436d-8dc1-af393fe95bf4');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14600,10 +14657,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="d343a674-cbbb-483f-9ade-fe91f3e39961"&gt;&lt;/div&gt;
+&lt;div id="da93d802-6b13-4fe0-ac51-333e92f80240"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d343a674-cbbb-483f-9ade-fe91f3e39961');
+var element = $('#da93d802-6b13-4fe0-ac51-333e92f80240');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -15472,10 +15529,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="c942245f-cf40-441e-af18-ce19c20cc5f7"&gt;&lt;/div&gt;
+&lt;div id="10df28ea-adf6-414e-8ab6-bfcfd20d0f5b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#c942245f-cf40-441e-af18-ce19c20cc5f7');
+var element = $('#10df28ea-adf6-414e-8ab6-bfcfd20d0f5b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -16305,10 +16362,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="5bc4e907-f8e1-42fd-b774-9b98e26e9376"&gt;&lt;/div&gt;
+&lt;div id="0ea01f97-cf1c-4ec6-b80f-22a21f440a03"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#5bc4e907-f8e1-42fd-b774-9b98e26e9376');
+var element = $('#0ea01f97-cf1c-4ec6-b80f-22a21f440a03');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -17179,10 +17236,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="4eac3e27-358e-4b5e-8a5b-81d729a08e5d"&gt;&lt;/div&gt;
+&lt;div id="ef0eabe8-fa60-4624-974c-5c58de3cf1c6"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#4eac3e27-358e-4b5e-8a5b-81d729a08e5d');
+var element = $('#ef0eabe8-fa60-4624-974c-5c58de3cf1c6');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -18050,10 +18107,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="136659c2-fb9f-4c80-a2ae-de9b19b72151"&gt;&lt;/div&gt;
+&lt;div id="046c45df-268a-4b06-a0ba-56ee21111970"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#136659c2-fb9f-4c80-a2ae-de9b19b72151');
+var element = $('#046c45df-268a-4b06-a0ba-56ee21111970');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
