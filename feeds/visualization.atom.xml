@@ -523,10 +523,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="abdcb77e-37ee-4cbe-9772-563c0178e3f9"&gt;&lt;/div&gt;
+&lt;div id="04af9dd3-4fc4-4f27-a20a-2fd5b79d5a9e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#abdcb77e-37ee-4cbe-9772-563c0178e3f9');
+var element = $('#04af9dd3-4fc4-4f27-a20a-2fd5b79d5a9e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -1367,10 +1367,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="4f7cc20c-0c48-435b-b9d6-1790ef66c7cd"&gt;&lt;/div&gt;
+&lt;div id="f338d2cf-ee8f-485e-a6c3-14c206970e53"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#4f7cc20c-0c48-435b-b9d6-1790ef66c7cd');
+var element = $('#f338d2cf-ee8f-485e-a6c3-14c206970e53');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -2207,10 +2207,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="528214dc-38df-4df6-b011-e587ccf533d9"&gt;&lt;/div&gt;
+&lt;div id="ef30f168-7a23-4cab-8016-f522e35ab70b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#528214dc-38df-4df6-b011-e587ccf533d9');
+var element = $('#ef30f168-7a23-4cab-8016-f522e35ab70b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -3053,10 +3053,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="feb26b2f-b223-483c-8b87-de29df1059bc"&gt;&lt;/div&gt;
+&lt;div id="d6d0f77c-7a5f-4397-a4e3-56b195a5f7b8"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#feb26b2f-b223-483c-8b87-de29df1059bc');
+var element = $('#d6d0f77c-7a5f-4397-a4e3-56b195a5f7b8');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -3893,10 +3893,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="a34551cb-2482-412e-bae4-8ac699890f65"&gt;&lt;/div&gt;
+&lt;div id="5481a32d-b71c-4be4-bf6b-2ed19baee7b5"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#a34551cb-2482-412e-bae4-8ac699890f65');
+var element = $('#5481a32d-b71c-4be4-bf6b-2ed19baee7b5');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -4736,10 +4736,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="8705f98a-4337-478e-ad0c-cb1568cdf759"&gt;&lt;/div&gt;
+&lt;div id="a4542f39-86e3-4ab9-97ae-8c2f27c641e8"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#8705f98a-4337-478e-ad0c-cb1568cdf759');
+var element = $('#a4542f39-86e3-4ab9-97ae-8c2f27c641e8');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -5585,10 +5585,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="0e073afd-80f3-4ea7-bfb9-83b47bfb63c8"&gt;&lt;/div&gt;
+&lt;div id="f99c8eef-bc37-40bf-b07e-12e87ff3d64a"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0e073afd-80f3-4ea7-bfb9-83b47bfb63c8');
+var element = $('#f99c8eef-bc37-40bf-b07e-12e87ff3d64a');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6428,10 +6428,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="9410a1f9-1c85-46ec-86fd-d2d8f39f1864"&gt;&lt;/div&gt;
+&lt;div id="83fdd88a-0442-4312-a444-9bdf93db8840"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#9410a1f9-1c85-46ec-86fd-d2d8f39f1864');
+var element = $('#83fdd88a-0442-4312-a444-9bdf93db8840');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7305,10 +7305,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="2de982bf-b78d-44e1-9691-34c7ff044cdb"&gt;&lt;/div&gt;
+&lt;div id="f0ca12f8-fed6-4dff-9935-79b093b6c74f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#2de982bf-b78d-44e1-9691-34c7ff044cdb');
+var element = $('#f0ca12f8-fed6-4dff-9935-79b093b6c74f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8149,10 +8149,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="d9fc8e8d-e5b4-4508-bcbd-0f0450d98afe"&gt;&lt;/div&gt;
+&lt;div id="7b9582fd-a228-491c-b62a-e9db2ae118aa"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d9fc8e8d-e5b4-4508-bcbd-0f0450d98afe');
+var element = $('#7b9582fd-a228-491c-b62a-e9db2ae118aa');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9022,10 +9022,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="ab0b3261-8a4d-436d-8dc1-af393fe95bf4"&gt;&lt;/div&gt;
+&lt;div id="d558794b-17e7-453a-8ca5-dbd255b62f7c"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ab0b3261-8a4d-436d-8dc1-af393fe95bf4');
+var element = $('#d558794b-17e7-453a-8ca5-dbd255b62f7c');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9894,10 +9894,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="da93d802-6b13-4fe0-ac51-333e92f80240"&gt;&lt;/div&gt;
+&lt;div id="12672e2f-5923-4989-a925-a69f77ae696e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#da93d802-6b13-4fe0-ac51-333e92f80240');
+var element = $('#12672e2f-5923-4989-a925-a69f77ae696e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10766,10 +10766,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="10df28ea-adf6-414e-8ab6-bfcfd20d0f5b"&gt;&lt;/div&gt;
+&lt;div id="f3a662a8-5123-497d-ae0b-ed77bdc40455"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#10df28ea-adf6-414e-8ab6-bfcfd20d0f5b');
+var element = $('#f3a662a8-5123-497d-ae0b-ed77bdc40455');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11599,10 +11599,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="0ea01f97-cf1c-4ec6-b80f-22a21f440a03"&gt;&lt;/div&gt;
+&lt;div id="09a311c0-7cb7-4441-94e7-a053d9bf5c4b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0ea01f97-cf1c-4ec6-b80f-22a21f440a03');
+var element = $('#09a311c0-7cb7-4441-94e7-a053d9bf5c4b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12473,10 +12473,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="ef0eabe8-fa60-4624-974c-5c58de3cf1c6"&gt;&lt;/div&gt;
+&lt;div id="20405a03-e6bb-41c1-86ff-5cd5d9ffbc3f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ef0eabe8-fa60-4624-974c-5c58de3cf1c6');
+var element = $('#20405a03-e6bb-41c1-86ff-5cd5d9ffbc3f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13344,10 +13344,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="046c45df-268a-4b06-a0ba-56ee21111970"&gt;&lt;/div&gt;
+&lt;div id="0ff6cf48-b1e6-4d65-94da-e3f080ee6128"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#046c45df-268a-4b06-a0ba-56ee21111970');
+var element = $('#0ff6cf48-b1e6-4d65-94da-e3f080ee6128');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 

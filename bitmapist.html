@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Analytics with bitmapist4 - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+<style type="text/css">
+
+/*some stuff for output/input prompts*/
+div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
+div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
+div.prompt{min-width:11ex;padding:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
+@media (max-width:480px){div.prompt{text-align:left}}div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
+div.prompt:empty{padding-top:0;padding-bottom:0}
+div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
+div.inner_cell{width:90%;}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
+div.input_prompt{color:navy;border-top:1px solid transparent;}
+div.output_wrapper{margin-top:5px;position:relative;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:4px;-webkit-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);-moz-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
+div.output_collapsed{margin:0px;padding:0px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.out_prompt_overlay{height:100%;padding:0px 0.4em;position:absolute;border-radius:4px;}
+div.out_prompt_overlay:hover{-webkit-box-shadow:inset 0 0 1px #000000;-moz-box-shadow:inset 0 0 1px #000000;box-shadow:inset 0 0 1px #000000;background:rgba(240, 240, 240, 0.5);}
+div.output_prompt{color:darkred;}
+
+a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
+h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
+/* end stuff for output/input prompts*/
+
+
+.highlight-ipynb .hll { background-color: #ffffcc }
+.highlight-ipynb  { background: #f8f8f8; }
+.highlight-ipynb .c { color: #408080; font-style: italic } /* Comment */
+.highlight-ipynb .err { border: 1px solid #FF0000 } /* Error */
+.highlight-ipynb .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight-ipynb .o { color: #666666 } /* Operator */
+.highlight-ipynb .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight-ipynb .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight-ipynb .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight-ipynb .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight-ipynb .gd { color: #A00000 } /* Generic.Deleted */
+.highlight-ipynb .ge { font-style: italic } /* Generic.Emph */
+.highlight-ipynb .gr { color: #FF0000 } /* Generic.Error */
+.highlight-ipynb .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight-ipynb .gi { color: #00A000 } /* Generic.Inserted */
+.highlight-ipynb .go { color: #888888 } /* Generic.Output */
+.highlight-ipynb .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight-ipynb .gs { font-weight: bold } /* Generic.Strong */
+.highlight-ipynb .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight-ipynb .gt { color: #0044DD } /* Generic.Traceback */
+.highlight-ipynb .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight-ipynb .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight-ipynb .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight-ipynb .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight-ipynb .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight-ipynb .kt { color: #B00040 } /* Keyword.Type */
+.highlight-ipynb .m { color: #666666 } /* Literal.Number */
+.highlight-ipynb .s { color: #BA2121 } /* Literal.String */
+.highlight-ipynb .na { color: #7D9029 } /* Name.Attribute */
+.highlight-ipynb .nb { color: #008000 } /* Name.Builtin */
+.highlight-ipynb .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight-ipynb .no { color: #880000 } /* Name.Constant */
+.highlight-ipynb .nd { color: #AA22FF } /* Name.Decorator */
+.highlight-ipynb .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight-ipynb .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight-ipynb .nf { color: #0000FF } /* Name.Function */
+.highlight-ipynb .nl { color: #A0A000 } /* Name.Label */
+.highlight-ipynb .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight-ipynb .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight-ipynb .nv { color: #19177C } /* Name.Variable */
+.highlight-ipynb .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight-ipynb .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight-ipynb .mf { color: #666666 } /* Literal.Number.Float */
+.highlight-ipynb .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight-ipynb .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight-ipynb .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight-ipynb .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight-ipynb .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight-ipynb .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight-ipynb .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight-ipynb .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight-ipynb .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight-ipynb .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight-ipynb .sx { color: #008000 } /* Literal.String.Other */
+.highlight-ipynb .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight-ipynb .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight-ipynb .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight-ipynb .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight-ipynb .vc { color: #19177C } /* Name.Variable.Class */
+.highlight-ipynb .vg { color: #19177C } /* Name.Variable.Global */
+.highlight-ipynb .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight-ipynb .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+
+<style type="text/css">
+/* Overrides of notebook CSS for static HTML export */
+div.entry-content {
+  overflow: visible;
+  padding: 8px;
+}
+.input_area {
+  padding: 0.2em;
+}
+
+a.heading-anchor {
+ white-space: normal;
+}
+
+.rendered_html
+code {
+ font-size: .8em;
+}
+
+pre.ipynb {
+  color: black;
+  background: #f7f7f7;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+  margin: 0px;
+  font-size: 13px;
+}
+
+/* remove the prompt div from text cells */
+div.text_cell .prompt {
+    display: none;
+}
+
+/* remove horizontal padding from text cells, */
+/* so it aligns with outer body text */
+div.text_cell_render {
+    padding: 0.5em 0em;
+}
+
+img.anim_icon{padding:0; border:0; vertical-align:middle; -webkit-box-shadow:none; -box-shadow:none}
+
+div.collapseheader {
+    width=100%;
+    padding: 2px;
+    cursor: pointer;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
+<script type="text/javascript">
+init_mathjax = function() {
+    if (window.MathJax) {
+        // MathJax loaded
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+            },
+            displayAlign: 'left', // Change this to 'center' to center equations.
+            "HTML-CSS": {
+                styles: {'.MathJax_Display': {"margin": 0}}
+            }
+        });
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    }
+}
+init_mathjax();
+</script>
+
+<link rel="canonical" href="./bitmapist.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="python,bitmap,redis,bitmapist" />
+        <meta name="description" content="A memory efficient and fast tool to analyze your users&#39; activity." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Analytics with bitmapist4"/>
+        <meta property="og:url" content="./bitmapist.html"/>
+        <meta property="og:description" content="A memory efficient and fast tool to analyze your users&#39; activity."/>
+        <meta property="article:published_time" content="2019-05-03" />
+            <meta property="article:section" content="analytics" />
+            <meta property="article:tag" content="python" />
+            <meta property="article:tag" content="bitmap" />
+            <meta property="article:tag" content="redis" />
+            <meta property="article:tag" content="bitmapist" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+        <link href="./feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin ATOM Feed"/>
+
+
+
+        <link href="./feeds/analytics.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin analytics ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li class="active">
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li >
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./bitmapist.html"
+                       rel="bookmark"
+                       title="Permalink to Analytics with bitmapist4">
+                        Analytics with bitmapist4
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2019-05-03T00:00:00+08:00"> Fri 03 May 2019</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/python.html">python</a>
+        /
+	<a href="./tag/bitmap.html">bitmap</a>
+        /
+	<a href="./tag/redis.html">redis</a>
+        /
+	<a href="./tag/bitmapist.html">bitmapist</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                    <div>
+                        <section>
+                            <p id="post-share-links">
+                                Share:&nbsp;&nbsp;
+                                <a href="https://twitter.com/intent/tweet?text=Analytics%20with%20bitmapist4&url=https%3A//guillaume-martin.github.io/blog/bitmapist.html" target="_blank" title="Share on Twitter">
+                                    <img src="/static/icons/twitter-4-48.jpg" alt="Twitter">
+                                </a>&nbsp;&nbsp;
+                                <a href="http://www.facebook.com/sharer/sharer.php?u=https%3A//guillaume-martin.github.io/blog/bitmapist.html" target="_blank" title="Share on Facebook">
+                                    <img src="/static/icons/facebook-4-48.jpg" alt="Facebook">
+                                </a>&nbsp;&nbsp;
+                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//guillaume-martin.github.io/blog/bitmapist.html&title=Analytics%20with%20bitmapist4&summary=A%20memory%20efficient%20and%20fast%20tool%20to%20analyze%20your%20users%27%20activity.&source=https%3A//guillaume-martin.github.io/blog/bitmapist.html" target="_blank" title="Share on LinkedIn">
+                                    <img src="/static/icons/linkedin-4-48.jpg" alt="Linkedin">
+                                </a>&nbsp;&nbsp;
+                                <!-- <a href="https://news.ycombinator.com/submitlink?t=Analytics%20with%20bitmapist4&u=https%3A//guillaume-martin.github.io/blog/bitmapist.html" target="_blank" title="Share on HackerNews">HackerNews</a> -->
+                                <a href="mailto:?subject=Analytics%20with%20bitmapist4&amp;body=https%3A//guillaume-martin.github.io/blog/bitmapist.html" target="_blank" title="Share via Email">
+                                    <img src="/static/icons/email-14-48.jpg" alt="Email">
+                                </a>&nbsp;&nbsp;
+                            </p>
+                        </section>
+                    </div>
+                </div>
+                <p>In this post, I'll have a look at bitmaps and how they can help us analyzing our users data. I'll also look at a python library that let us take advantage of bitmaps the easy way.</p>
+<h2>What is bitmap?</h2>
+<p>A bitmap, also called bit array, bit set, bit string or bit vector, is an array that stores bits. It is a mapping from a domain (mostly integers) to bits. A position in the array is called an offset.</p>
+<p>A set of integers {1,2,3,4,5,6,7,8} could be map to the array [0,1,1,0,0,0,1,0].</p>
+<h3>Bit operations</h3>
+<p>We can manipulate the bits in a bitmap using the usual logical operators AND, OR, XOR, NOT.</p>
+<ul>
+<li>
+<p>set a bit to 1: 11101<mark>0</mark>10 <strong>OR</strong> 00000<mark>1</mark>00 = 11101<mark>1</mark>10</p>
+</li>
+<li>
+<p>set a bit to 0: 111010<mark>1</mark>0 <strong>AND</strong> 111111<mark>0</mark>1 = 111010<mark>0</mark>0</p>
+</li>
+<li>
+<p>test if a bit is set:</p>
+</li>
+<li>
+<p>1110101<mark>0</mark> <strong>AND</strong> 000000<mark>1</mark> = 0000000 (= 0 -&gt; the bit is not set)</p>
+</li>
+<li>
+<p>111010<mark>1</mark>0 <strong>AND</strong> 000000<mark>1</mark>0 = 000000<mark>1</mark>0 (<span class="math">\(\neq\)</span> 0 -&gt; the bit is set)</p>
+</li>
+<li>
+<p>toggle a bit</p>
+</li>
+<li>
+<p><mark>0</mark>10 <strong>XOR</strong> 00000<mark>1</mark>00 = 11101<mark>1</mark>10</p>
+</li>
+<li>
+<p>11101<mark>1</mark>10 <strong>XOR</strong> 00000<mark>1</mark>00 = 11101<mark>0</mark>10</p>
+</li>
+<li>
+<p>invert all bits</p>
+</li>
+<li>
+<p><strong>NOT</strong> 10110010 = 01001101</p>
+</li>
+</ul>
+<h3>Redis implementation</h3>
+<p>There is no bitmap data structure in Redis. Bitmaps are stored as strings. However there are built-in functions to work with bitmaps.</p>
+<p>To set a bit, we can use the <a href="https://redis.io/commands/setbit"><code>SETBIT key offset value</code></a> function.</p>
+<div class="highlight"><pre><span></span>&gt; SETBIT foo <span class="m">12</span> <span class="m">1</span>
+<span class="o">(</span>integer<span class="o">)</span> <span class="m">0</span>
+&gt; GET foo
+<span class="s2">&quot;\x00\b&quot;</span>
+</pre></div>
+
+
+<p>Let's use an example with 8 bits: 11101010</p>
+<p>For each offset where the value is one, we run the command <code>SETBIT bitmap &lt;offset&gt; 1</code>.
+Our bit array is now stored with the key <code>bitmap</code>.</p>
+<p>We can get the value of the bit at any offset with the <a href="https://redis.io/commands/getbit"><code>GETBIT key offset</code></a> command:</p>
+<div class="highlight"><pre><span></span>&gt; GETBIT bitmap <span class="m">2</span>
+<span class="o">(</span>integer<span class="o">)</span> <span class="m">1</span>
+&gt; GETBIT bitmap <span class="m">4</span>
+<span class="o">(</span>integer<span class="o">)</span> <span class="m">0</span>
+</pre></div>
+
+
+<p>To know how many bits are set to 1, we can use the <a href="https://redis.io/commands/bitcount"><code>BITCOUNT key [start end]</code></a> command:</p>
+<div class="highlight"><pre><span></span>&gt; BITCOUNT bitmap
+<span class="o">(</span>integer<span class="o">)</span> <span class="m">5</span>
+</pre></div>
+
+
+<p>Finally, we can do bit operations with <a href="https://redis.io/commands/bitop"><code>BITOP operation destkey key [key...]</code></a> where <code>destkey</code> is the destination key where the result is stored.
+As an example, we are going to set two bitmaps and then find how many bits are set to 1 in both of them.</p>
+<p><code>bitmap1:10011</code></p>
+<p><code>bitmap2:01001</code></p>
+<div class="highlight"><pre><span></span>&gt; SETBIT bitmap1 1 1
+(integer) 0
+&gt; SETBIT bitmap1 4 1
+(integer) 0
+&gt; SETBIT bitmap1 5 1
+(integer) 0
+&gt; SETBIT bitmap2 2 1
+(integer) 0
+&gt; SETBIT bitmap2 5 1
+(integer) 0
+&gt; BITOP AND both bitmap1 bitmap2
+(integer) 1
+&gt; BITCOUNT both
+(integer) 1
+</pre></div>
+
+
+<h3>Use in Analytics</h3>
+<p>Well, this looks nice, but what are we supposed to do with this?</p>
+<p>Using bit operations on Redis is very fast. As a consequence, bitmaps are often used in real time analytics.</p>
+<p>I'll show how it is used with an example. We are a SaaS business and we want to track our users activity. Each of our users is going to have a number as an id (1, 2, 3,...).  We can use that id as the offset in the bitmap. The key in which we store the bitmap would be the activity we are tracking. For example, users' activity for March 1st will be stored in <code>active:2019-03-01</code>.</p>
+<p>I have five users with ids going from 0 to 4. On March 1st, users 1 and 4 have been active. We record their activity by setting he bit at their offset to 1:</p>
+<div class="highlight"><pre><span></span>&gt; SETBIT active:2019-03-01 1 1
+(integer) 0
+&gt; SETBIT active:2019-03-01 4 1
+(integer) 0
+</pre></div>
+
+
+<p>Our bitmap should look like this: <code>01001</code>. Now if I want to get the number of active users for March 1st, I get the bit count for that day:</p>
+<div class="highlight"><pre><span></span>&gt; BITCOUNT active:2019-03-01
+(integer) 2
+</pre></div>
+
+
+<p>Two users were active that day.</p>
+<p>If I want to know whether a user had been active on a given day, I just need to get the value of the bit at the offset that matches her id:</p>
+<div class="highlight"><pre><span></span>&gt; GETBIT active:2019-03-01 2
+(integer) 0
+&gt; GETBIT active:2019-03-01 4
+(integer) 1
+</pre></div>
+
+
+<p>User 2 didn't connect on March 1st, whereas user 4 did.</p>
+<h4>Weekly Active Users (WAU)</h4>
+<p>We've been tracking the activity of our users for quite some times so we have bitmaps for every day. Now, we want to get the WAU which is the number of active users in a given week. A weekly active user is a user who has been active at least one day during the week we're interested in. We need to use the <code>OR</code> operator on activity on all days of that week. The command will look something like <code>BITOP OR &lt;destination_key&gt; &lt;monday_key&gt; &lt;tuesday_key&gt;...&lt;sunday_key&gt;</code>.</p>
+<p>For this example, I'll show how to get the WAU for week 10 (March 4th to March 10th). I'll store the active users of the week in the <code>active:2019-w10</code> key</p>
+<div class="highlight"><pre><span></span>&gt; BITOP OR active:2019-w10 \
+    active:2019-03-04 \
+    active:2019-03-05 \
+    active:2019-03-06 \
+    active:2019-03-07 \
+    active:2019-03-08 \
+    active:2019-03-09 \
+    active:2019-03-10
+</pre></div>
+
+
+<p>I now have a bitmap for week 10 of 2019. If a user has been active at least once during that week, her bit is set to 1. To get the total number of active users for the week (WAU), I use the <code>BITCOUNT</code> command.</p>
+<div class="highlight"><pre><span></span>&gt; BICOUNT active:2019-w10
+</pre></div>
+
+
+<h4>Retention</h4>
+<p>Let say we want the retention rate over two periods of time, period 1 and period 2:
+</p>
+<div class="math">$$
+Retention\ Rate = \frac{\#\ of\ users\ active\ in\ period\ 1\ AND\ period\ 2 }{\#\ of\ users\ active\ during\ period\ 1}
+$$</div>
+<p>
+So if we want to get the retention rate between week 10 and week 11, we first need to get the users who were active in both weeks. Assuming we've already aggregated our weekly data: </p>
+<div class="highlight"><pre><span></span>&gt; BITOP AND active:w10+w11 active:w10 active:w11
+</pre></div>
+
+
+<p>The number of users active during both weeks is:</p>
+<div class="highlight"><pre><span></span>&gt; BITCOUNT active:w10+w11
+</pre></div>
+
+
+<p>We just need to divide this number by the number of users active during week 10 (<code>BITCOUNT active:w10</code>) and we have our retention rate.</p>
+<p>Note that the Redis CLI does not support arithmetic operations. I cannot type <code>BITCOUNT active:w10+w11 / BITCOUNT active:w10</code>. </p>
+<h4>Churn</h4>
+<p>The customer churn (also known as customer attrition) is simply the lost of customers.
+</p>
+<div class="math">$$
+\%\ Customer\ Churn = \frac{\#\ of\ customers\ who\ churned}{total\ \#\ of\ customers}
+$$</div>
+<p>
+As an example, we're going to say that a customer has churned if she's not active for three months, let's say Q2 of 2019. We are also going to take into account only the users that were active in Q1. Those who were not active in Q1 churned long ago. I'll assume that we already have aggregated our monthly data.</p>
+<p>First, I get the users active during Q1:</p>
+<div class="highlight"><pre><span></span>&gt; BITOP OR active:2019-Q1 \
+    active:2019-01 \
+    active:2019-02 \
+    active:2019:03
+</pre></div>
+
+
+<p>I do the same  to get users active during Q2:</p>
+<div class="highlight"><pre><span></span>&gt; BITOP OR active:2019-Q2 \
+    active:2019-04 \
+    active:2019-05 \
+    active:2019-06
+</pre></div>
+
+
+<p>Then, I invert all the bits of <code>active:2019-Q2</code> to get users that were inactive:</p>
+<div class="highlight"><pre><span></span>&gt; BITOP NOT inactive:2019-Q2 active:2019-Q2
+</pre></div>
+
+
+<p>Finaly, I find users that were active in Q1 AND inactive in Q2:</p>
+<div class="highlight"><pre><span></span>&gt; BITOP AND churned:2019-Q2 \
+    active:2019-Q1 \
+    inactive:2019-Q2
+&gt; BITCOUNT churned:2019-Q2
+</pre></div>
+
+
+<p>We saw how we can do analytics with bitmaps, but using the Redis command line is not convenient. If we want to do some arithmetic, or generate nice reports, we will have to use another language. </p>
+<p>For those using Python, there is the <a href="https://pypi.org/project/redis/">redis package</a> that would let us interface with our Redis database. But there are also a python library and a server developed by the <a href="doist.com">Doist</a> team. </p>
+<h2>Doist applications</h2>
+<h3>bitmapist-server</h3>
+<p><a href="https://github.com/Doist/bitmapist-server">github</a></p>
+<p>bitmapist-server is a standalone server developed by Doist to be used with their bitmapist library.
+Redis stores bitmaps in plain bytes arrays. This implementation can require a lot of memory when working with large sparse bitmaps. This can be the case if you're tracking users' activity. If you have millions of users but a small fraction of them is active on any given day, you will end up with a bitmap that as millions of bytes but only few of them are set to 1.</p>
+<p>The bitmapist-server helps saving memory using two techniques:</p>
+<ul>
+<li><a href="http://roaringbitmap.org/">compressed bitmap representation</a>.</li>
+<li>only keeping <em>hot</em> dataset in memory.</li>
+</ul>
+<p>The Doist team claims that a dataset that would use 129.48G on redis only uses 300M on bitmapist-server.</p>
+<h3>bitmapist4</h3>
+<p><a href="https://github.com/Doist/bitmapist4">github</a></p>
+<p>Bitmapist4 is a python library that let us easily manipulate bitmaps on Redis or bitmapist-server. It provides functions for easily saving events and aggregate automatically weekly and monthly data. It also has a cohort module that helps us run cohort analysis in only a few lines of code.</p>
+<h2>Setup</h2>
+<h3>Run bitmapist-server</h3>
+<p>You can build the server from source following the instructions on <a href="https://github.com/Doist/bitmapist-server">github</a>, but there's a Dockerfile in the repository and using containers is a lot easier. So we are going to create a bitmapist-server container and run it. If you don't have docker installed on your computer you can download it <a href="https://www.docker.com/products/docker-desktop">here</a> for Mac and Windows. For linux, instructions can be found on https://docs.docker.com/install/linux/docker-ce/<distro>/ (replace distro with centos, debian, fedora, ubuntu or binaries).</p>
+<p>Build the docker image:</p>
+<div class="highlight"><pre><span></span>$ git clone https://github.com/Doist/bitmapist-server.git
+$ <span class="nb">cd</span> bitmapist-server
+$ docker build -t bitmapist-server:latest ./
+</pre></div>
+
+
+<p>Run the container:</p>
+<div class="highlight"><pre><span></span>$ docker container run -d -p <span class="m">6379</span>:6379 --name bitmapist-server bitmapist-server
+</pre></div>
+
+
+<p>Control that the container is running</p>
+<div class="highlight"><pre><span></span>$ docker container ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+8fc1ab9d39f1        bitmapist-server    <span class="s2">&quot;./bitmapist-server …&quot;</span>   <span class="m">20</span> hours ago        Up <span class="m">5</span> minutes        <span class="m">0</span>.0.0.0:6379-&gt;6379/tcp   bitmapist-server
+</pre></div>
+
+
+<h3>Install bitmapist4</h3>
+<p>To install the bitmapist4 library, simply type the following command.</p>
+<div class="highlight"><pre><span></span>$ pip install bitmapist4
+</pre></div>
+
+
+<h3>Dataset</h3>
+<p>For this tutorial, I use the dataset from the <em>WSDM - KKBox's Churn Prediction Challenge</em> competition hosted on kaggle. It can be downloaded <a href="https://www.kaggle.com/c/kkbox-churn-prediction-challenge/data">here</a>.</p>
+<p>This is a good dataset because it contains the logs of the users' activity. I will use the <code>members_v3.csv</code> and <code>user_logs.csv</code> files.</p>
+<p>The data descriptions given by Kaggle are as follow:</p>
+<p><strong>members.csv</strong></p>
+<p>This is the users' information. Note that not every user in the dataset is available. </p>
+<ul>
+<li>msno</li>
+<li>city  </li>
+<li>bd: age. </li>
+<li>gender    </li>
+<li>registered_via: registration method</li>
+<li>registration_init_time: format <code>%Y%m%d</code></li>
+<li>expiration_date: format <code>%Y%m%d</code>, taken as a snapshot at which the member.csv is extracted. Not representing the actual churn behavior.   </li>
+</ul>
+<p>Let's have a look at the first lines:</p>
+<div class="highlight"><pre><span></span>$ head -n <span class="m">5</span> members_v3.csv
+msno,city,bd,gender,registered_via,registration_init_time
+Rb9UwLQTrxzBVwCB6+bCcSQWZ9JiNLC9dXtM1oEsZA8<span class="o">=</span>,1,0,,11,20110911
++tJonkh+O1CA796Fm5X60UMOtB6POHAwPjbTRVl/EuU<span class="o">=</span>,1,0,,7,20110914
+<span class="nv">cV358ssn7a0f7jZOwGNWS07wCKVqxyiImJUX6xcIwKw</span><span class="o">=</span>,1,0,,11,20110915
+9bzDeJP6sQodK73K5CBlJ6fgIQzPeLnRl0p5B77XP+g<span class="o">=</span>,1,0,,11,20110915
+</pre></div>
+
+
+<p><code>msno</code> is the id of the user. This is a string, however, we need integers to save data in bitmaps as the id is going to be the offset at which we save the user's bit. We'll ignore <code>city</code>, <code>bd</code> and <code>gender</code> to keep things simple.</p>
+<p>Let's control how many lines the file has:</p>
+<div class="highlight"><pre><span></span>$ wc -l members_v3.csv
+<span class="m">6769474</span> members_v3.csv
+</pre></div>
+
+
+<p>The file has a little bit less than 6.8 million lines.</p>
+<p><strong>user_logs.csv</strong></p>
+<p>Those are the daily user logs describing listening behavior of a user. The data has been collected until 2/28/2017. </p>
+<ul>
+<li>msno: user id</li>
+<li>date: format <code>%Y%m%d</code></li>
+<li>num_25: # of songs played less than 25% of the song length</li>
+<li>num_50: # of songs played between 25% to 50% of the song length</li>
+<li>num_75: # of songs played between 50% to 75% of of the song length</li>
+<li>num_985: # of songs played between 75% to 98.5% of the song length</li>
+<li>num_100: # of songs played over 98.5% of the song length</li>
+<li>num_unq: # of unique songs played</li>
+<li>total_secs: total seconds played</li>
+</ul>
+<p>Let's have a look at the first lines</p>
+<div class="highlight"><pre><span></span>$ head -n <span class="m">5</span> user_logs.csv
+msno,date,num_25,num_50,num_75,num_985,num_100,num_unq,total_secs
+rxIP2f2aN0rYNp+toI0Obt/N/FYQX8hcO1fTmmy2h34<span class="o">=</span>,20150513,0,0,0,0,1,1,280.3350
+rxIP2f2aN0rYNp+toI0Obt/N/FYQX8hcO1fTmmy2h34<span class="o">=</span>,20150709,9,1,0,0,7,11,1658.9480
+<span class="nv">yxiEWwE9VR5utpUecLxVdQ5B7NysUPfrNtGINaM2zA8</span><span class="o">=</span>,20150105,3,3,0,0,68,36,17364.9560
+<span class="nv">yxiEWwE9VR5utpUecLxVdQ5B7NysUPfrNtGINaM2zA8</span><span class="o">=</span>,20150306,1,0,1,1,97,27,24667.3170
+</pre></div>
+
+
+<p>Each line represents the activity of a user on a given day. In the following examples, I will ignore the information related to the number of songs played or the duration of the session. I will only record whether on a given day a user had been active, i.e. for each line, I will set the user's bit to 1 for that day. For example, the first line will be saved in <code>active:2015-05-13</code>.</p>
+<p>Let's control how many lines the file has.</p>
+<div class="highlight"><pre><span></span>$ wc -l user_logs.csv
+<span class="m">47375490</span> user_logs.csv
+</pre></div>
+
+
+<p>The <code>user_logs.csv</code> file has over 47 millions lines.</p>
+<h2>Loading the data</h2>
+<p>Before starting working on analytics, we need to save the data from the csv files into the bitmapist-server.
+I have two issues to deal with:</p>
+<ul>
+<li>The users ids are strings but I need an integer because the id is the offset in the bitmap array.</li>
+<li>I can't load the entire logs at once because my computer doesn't have enough memory.</li>
+</ul>
+<p>So here is how I am going to proceed:</p>
+<ol>
+<li>Save data from the <code>members_v3.csv</code> file. </li>
+</ol>
+<p>There are no duplicate users (<code>msno</code>). For each line, I can assign an integer to the <code>msno</code> and save the pair in a dictionary.  Then, I increment the integer before the next line. I will have an integer id for each user that I can use to mark an event.</p>
+<p>For each line, I will mark two events: the <em>date of registration</em> (<code>registration_init_time</code>) and the <em>registration method</em> (<code>registered_via</code>). I can use the <code>transaction()</code> method to take advantage of <a href="https://redis.io/topics/pipelining">Redis pipelining</a>.</p>
+<div class="highlight"><pre><span></span><span class="n">members_file</span> <span class="o">=</span> <span class="s1">&#39;../data/members_v3.csv&#39;</span>
+<span class="n">id_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">members_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
+   <span class="nb">next</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>  <span class="c1"># skip the headers</span>
+   <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>    
+   <span class="k">for</span> <span class="n">id_int</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
+       <span class="k">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+       <span class="c1"># add the user id to the id dictionary</span>
+       <span class="n">id_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">id_int</span><span class="p">)</span>
+
+       <span class="k">with</span> <span class="n">b</span><span class="o">.</span><span class="n">transaction</span><span class="p">():</span>
+           <span class="c1"># save registration date for cohort analysis</span>
+           <span class="n">b</span><span class="o">.</span><span class="n">mark_event</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">,</span>
+                       <span class="nb">str</span><span class="p">(</span><span class="n">id_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])]),</span>
+                       <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">))</span>
+
+           <span class="c1"># save registration method</span>
+           <span class="n">b</span><span class="o">.</span><span class="n">mark_unique</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;registered_via:{row[4]}&#39;</span><span class="p">,</span>
+                       <span class="nb">str</span><span class="p">(</span><span class="n">id_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])]))</span>  
+</pre></div>
+
+
+<ol>
+<li>
+<p>I iterate through the <code>user_logs.csv</code> file and mark an <code>active</code> event for each line. </p>
+<p>Because the dataset is quite large and I don't need all the data, I'll load only the rows for 2016.</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="n">log_file</span> <span class="o">=</span> <span class="s1">&#39;../data/user_logs.csv&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+        <span class="c1"># we keep only the logs of users in members dataset and logs for 2016</span>
+        <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">id_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;2016&#39;</span><span class="p">:</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">mark_event</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span>
+                         <span class="n">id_dict</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> 
+                         <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">))</span>
+</pre></div>
+
+
+<h3>b.mark_event() and b.unique()</h3>
+<p>The interesting part in the loading script are the <code>mark_event()</code> and <code>mark_unique()</code> methods. Let's see what they do.</p>
+<p>b is an instance of the <code>Bitmapist</code> class. </p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bitmapist4</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">bitmapist4</span><span class="o">.</span><span class="n">Bitmapist</span><span class="p">(</span><span class="n">prefix_key</span><span class="o">=</span><span class="s1">&#39;kkbox__&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The prefix key is a string that will be added to the redis key. The default value is <code>bitmapist_</code>, but if you want to track multiple applications, you could differentiate them with the prefix.</p>
+<h4>mark_event()</h4>
+<p>The <code>mark_event()</code> method let us record that an event has happened at a certain time. It takes the following arguments:</p>
+<ul>
+<li><code>event_name</code> (string): the name of the event you are recording (e.g. 'active')</li>
+<li><code>uuid</code> (integer): the id of the user. </li>
+<li><code>timestamp</code> (datetime): the time at which the event happened. If ignored, it will be marked now in UTC timezone (<code>datetime.datetime.utcnow()</code>).</li>
+<li><code>track_hourly</code> (boolean): the default is False, but you can set it to True if you want to track hourly events. </li>
+<li><code>track_unique</code> (boolean):  set to True if you want to also mark the unique event. For example, you want to track usage of a feature. Every time someone used that feature, you will mark the event at the day the feature was used (e.g. set the bit to 1 for id 123 for key <code>feature_used:2019-03-01</code>). That way, you can track who used the feature on any given day. But you may also want to know who ever used this feature. This data is not time specific. In this case, you set <code>track_unique</code> to <code>True</code> and the event is also recorded without the timestamp (e.g. set the bit to 1 for id 123 for key <code>feature_used</code>)</li>
+</ul>
+<p>When you mark an event with a timestamp, Bitmapist will automatically save the event for the month, week and day. Which mean that you don't have to aggregate the data later using bit operations. </p>
+<h4>mark_unique()</h4>
+<p>The <code>mark_unique()</code> method only takes the <code>event_name</code> and <code>uuid</code> arguments. It is used to save events for which the time is not important. In our example, I marked the registration method as a unique event because all I want to know is how the user registered, I don't care about the date (it was saved with the <em>registered</em> event).</p>
+<h2>Analytics</h2>
+<p>Now that our data is saved in our bitmapist server, we can start the fun part: data analysis!</p>
+<h3>Users Activity</h3>
+<h4>Daily Active Users (DAU)</h4>
+<p>I can get the number of users active on any given day using <code>DayEvents()</code> with the <code>active</code> event name.</p>
+<p>There are two ways to extract the information for a specific date:</p>
+<div class="highlight"><pre><span></span><span class="c1"># set up the date to April 3rd, 2016</span>
+<span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># method one</span>
+<span class="n">dau</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">DayEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dau</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;There were {count:,} users active on April 3rd, 2016.&#39;</span><span class="p">)</span>
+
+<span class="c1"># method two</span>
+<span class="n">dau</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">DayEvents</span><span class="o">.</span><span class="n">from_date</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
+<span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dau</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;There were {count:,} users active on April 3rd, 2016.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>There were 62,507 users active on April 3rd, 2016.
+There were 62,507 users active on April 3rd, 2016.
+</pre></div>
+
+
+<h4>Weekly Active User (WAU)</h4>
+<p>The same way I could extract the number of users active on a given day, I can also extract the users active on a specific week. Remember that when we marked the event, bitmapist automatically saved the weekly and monthly data. So I just have to use <code>WeekEvents()</code> with the <code>active</code> event name.</p>
+<div class="highlight"><pre><span></span><span class="n">wau</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">WeekEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span>  <span class="c1"># 14 is the week number</span>
+<span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wau</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The <code>WeekEvents</code> class takes a <code>year</code> and a <code>week</code> arguments. If you don't have the week number, you can use the <code>from_date()</code> classmethod instead of extracting the week number from the date by yourself:</p>
+<div class="highlight"><pre><span></span><span class="n">wau</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">WeekEvents</span><span class="o">.</span><span class="n">from_date</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
+<span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wau</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;There were {count:,} users active on week 13 of 2016.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>There were 156,759 users active on week 13 of 2016.
+</pre></div>
+
+
+<p>If we don't provide the date, bitmapist will return the data for now. That means we would have live data about how many users were active today, this week, this month, ...</p>
+<h4>Retention</h4>
+<p>As we saw earlier, the retention is the percentage of users active during a period and that were also active the following one. In the example I used, we looked at the retention rate between week 10 and 11. Let's see how we could get this information with bitmapist:</p>
+<div class="highlight"><pre><span></span><span class="n">active_w10</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">WeekEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">active_W10_w11</span> <span class="o">=</span> <span class="n">active_w10</span> <span class="o">&amp;</span> <span class="n">b</span><span class="o">.</span><span class="n">WeekEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">retention</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_W10_w11</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_w10</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{retention * 100:.0f}</span><span class="si">% o</span><span class="s1">f users active in week 10 were still active in week 11.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>47% of users active in week 10 were still active in week 11.
+</pre></div>
+
+
+<p>To get the number of users active both week, I used the <code>&amp;</code> operator. Bitmapist let us use such operators to compare or combine bitmaps. Let's have a look.</p>
+<h4>Bit operations</h4>
+<p><strong>NOT (~)</strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># Not active in January</span>
+<span class="n">jan_inactives</span> <span class="o">=</span> <span class="o">~</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{len(jan_inactives):,} users were not active in January 2016.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>6,360,354 users were not active in January 2016.
+</pre></div>
+
+
+<p><strong>AND (&amp;)</strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># active in both January and February</span>
+<span class="n">jan_and_feb</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{len(jan_and_feb):,} users were active in January and February 2016.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>127,278 users were active in January and February 2016.
+</pre></div>
+
+
+<p>We can also combine operators.</p>
+<div class="highlight"><pre><span></span><span class="c1"># active one month but not the following one</span>
+<span class="n">jan_not_feb</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{len(jan_not_feb):,} users were active in January 2016 but not active in February.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>281,840 users were active in January 2016 but not active in February.
+</pre></div>
+
+
+<p><strong>OR (|)</strong></p>
+<p>We don't have quarters data in Bitmapist. We can use the OR operator to aggregate it ourselves:</p>
+<div class="highlight"><pre><span></span><span class="c1"># active in quarter 1</span>
+<span class="n">actives_q1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> \
+             <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> \
+             <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> 
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{len(actives_q1):,} users were active during the first quarter of 2016.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>810,499 users were active during the first quarter of 2016.
+</pre></div>
+
+
+<h4>Churn</h4>
+<p>Let's look now at how bitmapist can help us get the churn between Q1 and Q2. The active users in Q1 are all the users that were active during one the three months of the quarter. I'll use the <code>|</code> (OR) operator. I also need to know which users were not active during the second quarter. Those are the users who were not active in any month of the quarter. I'll use the <code>~</code> (NOT) operator to get the inactive users of each month and the <code>&amp;</code> (AND) operator to aggregate the three months activity.</p>
+<div class="highlight"><pre><span></span><span class="n">actives_q1</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> \
+             <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> \
+             <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> 
+
+<span class="n">inactives_q2</span> <span class="o">=</span> <span class="o">~</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> \
+               <span class="o">~</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> \
+               <span class="o">~</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> 
+
+<span class="n">churn_q2</span> <span class="o">=</span> <span class="n">actives_q1</span> <span class="o">&amp;</span> <span class="n">inactives_q2</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{len(churn_q2):,} users churned in the second quarter.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>210,409 users churned in the second quarter.
+</pre></div>
+
+
+<h3>Cohort analysis</h3>
+<p>Bitmapist also has a <code>cohort</code> module that does all the heavy work for us. </p>
+<p>First, I get ready...</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">bitmapist4</span> <span class="kn">import</span> <span class="n">Bitmapist</span><span class="p">,</span> <span class="n">cohort</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">Bitmapist</span><span class="p">(</span><span class="n">key_prefix</span><span class="o">=</span><span class="s1">&#39;kkbox_&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Then I get my cohort table. The <code>cohort</code> module has a <code>get_cohort_table()</code> method.
+We need to provide the cohort and the activity. The cohort is how we group the users (e.g. registration date)  and the activity is what we are tracking (e.g. the active event).</p>
+<div class="highlight"><pre><span></span><span class="n">table_pct</span> <span class="o">=</span> <span class="n">cohort</span><span class="o">.</span><span class="n">get_cohort_table</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">),</span>
+                                    <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">),</span>
+                                    <span class="n">rows</span> <span class="o">=</span> <span class="mi">39</span><span class="p">)</span>
+<span class="n">table_pct</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>CohortTable([
+  CohortRow(&#39;01 Jan 2016&#39;, 253156, [13.738564363475485, 6.1945993774589585, 5.25328256095056, 5.003239109481901, 5.020619696945757, 4.761490938393718, 4.838123528575266, 4.733444990440677, 4.597955410892888, 4.7117192561108565, 4.7373951239551895, 4.634691652577857, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+  CohortRow(&#39;01 Feb 2016&#39;, 208170, [13.772877936302061, 7.072104529951482, 5.54834990632656, 5.474852284190805, 5.145794302733343, 5.092472498438776, 5.010328097228227, 4.960368929240524, 5.049718979680069, 5.022337512609886, 4.959888552625258, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+  CohortRow(&#39;01 Mar 2016&#39;, 195618, [13.599464261979982, 6.271406516782709, 5.1667024506947214, 4.843623797401057, 4.732693310431555, 4.630453230275332, 4.580866791399565, 4.66572605792923, 4.756208528867487, 4.539970759337075, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+ ...
+   CohortRow(&#39;01 Jan 2019&#39;, 0, [0, 0, 0]),
+   CohortRow(&#39;01 Feb 2019&#39;, 0, [0, 0]),
+   CohortRow(&#39;01 Mar 2019&#39;, 0, [0])])
+</pre></div>
+
+
+<p>I am just showing the first  and last three rows. The <code>nrows</code> arguments set how many rows the table has.  We can see that the last row of the table is March 2019. This is the time at which the table starts. So if I want to make a cohort analysis on my data, I need to set <code>row=39</code> so that the table has enough rows to include the 2016 cohorts.</p>
+<p>The data is not easy to read. We can convert it into a DataFrame using the <code>df()</code> method. I also keep only the useful rows using <code>.iloc[:12]</code>.</p>
+<div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">table_pct</span><span class="o">.</span><span class="n">df</span><span class="p">()</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>cohort</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>...</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01 Jan 2016</td>
+<td>253156</td>
+<td>13.738564</td>
+<td>6.194599</td>
+<td>5.253283</td>
+<td>5.003239</td>
+<td>5.020620</td>
+<td>4.761491</td>
+<td>4.838124</td>
+<td>4.733445</td>
+<td>4.597955</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>01 Feb 2016</td>
+<td>208170</td>
+<td>13.772878</td>
+<td>7.072105</td>
+<td>5.548350</td>
+<td>5.474852</td>
+<td>5.145794</td>
+<td>5.092472</td>
+<td>5.010328</td>
+<td>4.960369</td>
+<td>5.049719</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>NaN</td>
+</tr>
+<tr>
+<td>01 Mar 2016</td>
+<td>195618</td>
+<td>13.599464</td>
+<td>6.271407</td>
+<td>5.166702</td>
+<td>4.843624</td>
+<td>4.732693</td>
+<td>4.630453</td>
+<td>4.580867</td>
+<td>4.665726</td>
+<td>4.756209</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+<p>That's better, but what do those numbers mean?</p>
+<p>The index identify the cohort. The first row is for the users who registered in January 2016. 
+The cohort column gives us the size of the cohort (i.e. how many users registered that month):</p>
+<div class="highlight"><pre><span></span><span class="c1"># registered in January</span>
+<span class="n">january</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{len(january):,} users registered in January&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>253,156 users registered in January
+</pre></div>
+
+
+<p>The following columns give us the percentage of users from that cohort who are active for this period. For the January cohort, 0 is January, 1 is February and so on. For the February cohort, 0 is February, 1 is March, ... :</p>
+<div class="highlight"><pre><span></span><span class="c1"># how many users were active in January</span>
+<span class="n">active_jan</span> <span class="o">=</span> <span class="n">january</span> <span class="o">&amp;</span> <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">active_jan_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_jan</span><span class="p">)</span>
+<span class="n">active_jan_pct</span> <span class="o">=</span> <span class="n">active_jan_num</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">january</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{active_jan_num:,} of those users were active the same month. That is {active_jan_pct:.6f} percents.&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>34,780 of those users were active the same month. That is 13.738564 percents.
+</pre></div>
+
+
+<p>This <code>13.738564</code> percents is the number we can read in the column 1 of the January cohort row.:</p>
+<table>
+<thead>
+<tr>
+<th>cohort</th>
+<th>0</th>
+<th>1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01 Jan 2016</td>
+<td>253156</td>
+<td>13.738564</td>
+</tr>
+</tbody>
+</table>
+<p>If you need users count instead of percentages, you can set the <code>user_percent</code> parameter to False.</p>
+<div class="highlight"><pre><span></span><span class="n">table_cnt</span> <span class="o">=</span> <span class="n">cohort</span><span class="o">.</span><span class="n">get_cohort_table</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">),</span>
+                                <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">),</span>
+                                <span class="n">rows</span> <span class="o">=</span> <span class="mi">39</span><span class="p">,</span>
+                                <span class="n">use_percent</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">table_cnt</span><span class="o">.</span><span class="n">df</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>cohort</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>...</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01 Jan 2016</td>
+<td>253156</td>
+<td>34780</td>
+<td>15682.0</td>
+<td>13299.0</td>
+<td>12666.0</td>
+<td>12710.0</td>
+<td>12054.0</td>
+<td>12248.0</td>
+<td>11983.0</td>
+<td>11640.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td>01 Feb 2016</td>
+<td>208170</td>
+<td>28671</td>
+<td>14722.0</td>
+<td>11550.0</td>
+<td>11397.0</td>
+<td>10712.0</td>
+<td>10601.0</td>
+<td>10430.0</td>
+<td>10326.0</td>
+<td>10512.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>NaN</td>
+</tr>
+<tr>
+<td>01 Mar 2016</td>
+<td>195618</td>
+<td>26603</td>
+<td>12268.0</td>
+<td>10107.0</td>
+<td>9475.0</td>
+<td>9258.0</td>
+<td>9058.0</td>
+<td>8961.0</td>
+<td>9127.0</td>
+<td>9304.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+<p>We can improve the display further using the <code>stylize()</code> method. It will format the percentages correctly and highlight some data.</p>
+<div class="highlight"><pre><span></span><span class="n">cohort</span><span class="o">.</span><span class="n">stylize</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+
+
+<p><img alt="stylized df" src="images/bitmapist_stylized_df.png"></p>
+<h4>Visualize our cohorts</h4>
+<p>Now that our cohort data is stored in a dataframe, it is easy to create visualizations from it.</p>
+<h5>Cohort heatmap</h5>
+<div class="highlight"><pre><span></span><span class="n">months</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1900</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%b&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">)]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cohorts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:</span><span class="mi">13</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">months</span><span class="p">)))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">cohorts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">months</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">cohorts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="s1">&#39;dimgrey&#39;</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{value:.1f}&#39;</span><span class="p">,</span>
+                      <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;months&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;cohorts&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cohort Analysis for 2016&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<p><img alt="cohort heatmap" src="/images/bitmapist_cohort_heatmap.jpg"></p>
+<h5>Cohorts Plots</h5>
+<div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">cohorts</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">months</span><span class="p">[</span><span class="n">c</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;months&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% o</span><span class="s1">f active users&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cohort Analysis for 2016&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<p><img alt="cohorts plots" src="/images/bitmapist_cohorts_plots.jpg"></p>
+<h2>Registration methods cohorts</h2>
+<p>We are now going to use bitmapist to run a cohort analysis where we group users by registration method. We want to know what method has the highest user retention. </p>
+<p>First, I need to get all the registration methods. Bitmapist has a method to extract all the events that have been saved: <code>get_event_names()</code>.  The registration method was saved as a unique event. Getting all the events names will give me the registration methods.</p>
+<div class="highlight"><pre><span></span><span class="n">b</span><span class="o">.</span><span class="n">get_event_names</span><span class="p">()</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="p">[</span><span class="s s-Atom">&#39;active&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:-1&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:1&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:10&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:11&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:13&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:14&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:16&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:17&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:18&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:19&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:2&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:3&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:4&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:5&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:6&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:7&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:8&#39;</span><span class="p">,</span>
+ <span class="s s-Atom">&#39;registered_via:9&#39;</span><span class="p">]</span>
+</pre></div>
+
+
+<p>All I have to do now is extract the number from the <code>registered_via:#</code> events.</p>
+<div class="highlight"><pre><span></span><span class="n">registration_methods</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">b</span><span class="o">.</span><span class="n">get_event_names</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">m</span><span class="p">]</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>[&#39;-1&#39;,
+ &#39;1&#39;,
+ &#39;10&#39;,
+ &#39;11&#39;,
+ &#39;13&#39;,
+ &#39;14&#39;,
+ &#39;16&#39;,
+ &#39;17&#39;,
+ &#39;18&#39;,
+ &#39;19&#39;,
+ &#39;2&#39;,
+ &#39;3&#39;,
+ &#39;4&#39;,
+ &#39;5&#39;,
+ &#39;6&#39;,
+ &#39;7&#39;,
+ &#39;8&#39;,
+ &#39;9&#39;]
+</pre></div>
+
+
+<p>Next, as I only saved the activity data for 2016, I am only going to consider the users who registered in 2016. I create a <code>base_users</code> bitmap:</p>
+<div class="highlight"><pre><span></span><span class="n">base_users</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">YearEvent</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Before going further, I want to have a look at how many user used each method to register.</p>
+<div class="highlight"><pre><span></span><span class="n">users_count</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">UniqueEvents</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;registered_via:{m}&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">base_users</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">registration_methods</span><span class="p">]</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;methods&#39;</span><span class="p">:</span><span class="n">registration_methods</span><span class="p">,</span>
+                   <span class="s1">&#39;users_count&#39;</span><span class="p">:</span><span class="n">users_count</span><span class="p">})</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;users_count&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;methods&#39;</span><span class="p">)</span>   
+</pre></div>
+
+
+<p><img alt="methods users count" src="/images/bitmapist_methods_users-count.jpg"></p>
+<p>I used the <code>AND</code> operator to limit the registrations to 2016 : <code>b.UniqueEvents(f'registered_via:{m}') &amp; base_users</code>. 
+Most users registered via method 4. After that, some users registered via methods 7, 9, 3. I will ignore the other methods in the following analysis. </p>
+<div class="highlight"><pre><span></span><span class="c1"># I create a matrix where I&#39;ll store the data that</span>
+<span class="c1"># I&#39;ll use later to generate a dataframe</span>
+<span class="n">matrix</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># I&#39;ll add one row per method to the matrix.</span>
+<span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">]:</span>
+    <span class="c1"># The first element of the row is the name of the cohort.</span>
+    <span class="c1"># Here, I use the registration method.</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="n">method</span><span class="p">]</span>
+
+    <span class="c1"># The next element is the number of users who registered </span>
+    <span class="c1"># using this method in 2016. </span>
+    <span class="n">users</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">UniqueEvents</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;registered_via:{method}&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">base_users</span>
+    <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">users</span><span class="p">))</span>
+
+    <span class="c1"># The following cells are the percentage of users that are active</span>
+    <span class="c1"># n months after their registration, n being the period.</span>
+    <span class="k">for</span> <span class="n">period</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+        <span class="n">actives</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">users</span> <span class="o">&amp;</span>
+                      <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="n">month</span><span class="p">)</span> <span class="o">&amp;</span> 
+                      <span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">,</span> <span class="n">month</span> <span class="o">+</span> <span class="n">period</span><span class="p">))</span> <span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span> 
+        <span class="n">pct_active</span> <span class="o">=</span> <span class="n">actives</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">actives</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pct_active</span><span class="p">)</span>
+    <span class="n">matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;users_count&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">df</span>
+</pre></div>
+
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>method</th>
+<th>users_count</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>3</td>
+<td>84791</td>
+<td>14.572301</td>
+<td>8.024437</td>
+<td>5.762404</td>
+<td>4.823625</td>
+<td>4.213891</td>
+<td>3.515703</td>
+<td>3.001498</td>
+<td>2.549799</td>
+<td>2.171221</td>
+<td>1.763159</td>
+<td>1.142810</td>
+<td>0.622708</td>
+</tr>
+<tr>
+<td>1</td>
+<td>4</td>
+<td>1890005</td>
+<td>12.737903</td>
+<td>2.842638</td>
+<td>1.521477</td>
+<td>1.296399</td>
+<td>1.123172</td>
+<td>0.987564</td>
+<td>0.852432</td>
+<td>0.715871</td>
+<td>0.588570</td>
+<td>0.462962</td>
+<td>0.325766</td>
+<td>0.154920</td>
+</tr>
+<tr>
+<td>2</td>
+<td>7</td>
+<td>168888</td>
+<td>21.171427</td>
+<td>30.015750</td>
+<td>26.596324</td>
+<td>24.227891</td>
+<td>22.440315</td>
+<td>19.428852</td>
+<td>16.647719</td>
+<td>13.998034</td>
+<td>11.956445</td>
+<td>10.514068</td>
+<td>7.727014</td>
+<td>4.245417</td>
+</tr>
+<tr>
+<td>3</td>
+<td>9</td>
+<td>90800</td>
+<td>18.244493</td>
+<td>16.658590</td>
+<td>13.555066</td>
+<td>11.843612</td>
+<td>10.251101</td>
+<td>8.642070</td>
+<td>7.219163</td>
+<td>5.938326</td>
+<td>4.606828</td>
+<td>3.592511</td>
+<td>2.359031</td>
+<td>1.219163</td>
+</tr>
+</tbody>
+</table>
+<p>I can now create a heatmap from the dataframe to easily visualize the retention rate per registration method.</p>
+<div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
+<span class="n">cohorts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span>
+<span class="n">periods</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">)]</span>
+
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cohorts</span><span class="p">)))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">periods</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">cohorts</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cohorts</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">11</span> <span class="k">else</span> <span class="s1">&#39;dimgrey&#39;</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{value:.1f}&#39;</span><span class="p">,</span>
+                      <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;months&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;cohorts&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cohort Analysis for 2016&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+
+<p><img alt="methods cohorts heatmap" src="/images/bitmapist_methods_cohorts_heatmap.jpg"></p>
+<p>We can see that while method 4 was the most used registration method, it has the worst retention rate. This might be what pulled down the retention rate on all cohorts in the previous analysis. This would require to dig a bit deeper.</p>
+<h2>Conclusion</h2>
+<p>The slowest part of what I have done here was loading the data in the bitmapist server. It took several hours. But in a production environment, the events would be recorded has they happen. In Redis, the <code>SETBIT</code> operation has a time complexity of O(1). It doesn't matter how large your bitmap get, setting a new bit will always require the same time.</p>
+<p>Another advantage of using bitmapist server is that I was able to load the data in my computer. Thing that I was not able to do using pandas.</p>
+<h2>References</h2>
+<ul>
+<li><a href="https://github.com/Doist/bitmapist-server/blob/master/Dockerfile">bitmap-server repository</a></li>
+<li><a href="https://github.com/Doist/bitmapist4">bitmapist4 repository</a></li>
+<li><a href="https://redis.io/commands">redis commands</a></li>
+<li><a href="https://redis.io/topics/pipelining">Using pipelining to speedup Redis queries</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Bitmap">Bitmap - Wikipedia article</a></li>
+<li><a href="https://www.kaggle.com/c/kkbox-churn-prediction-challenge">Kaggle's WSDM - KKBox's Churn Prediction Challenge</a></li>
+<li><a href="https://www.slideshare.net/crashlytics/crashlytics-on-redis-analytics">Scaling Crashlytics: Building Analytics on Redis 2.6</a></li>
+</ul>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/ge_martin"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
+    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2019 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-119773970-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    $("div.collapseheader").click(function () {
+    $header = $(this).children("span").first();
+    $codearea = $(this).children(".input_area");
+    console.log($(this).children());
+    $codearea.slideToggle(500, function () {
+        $header.text(function () {
+            return $codearea.is(":visible") ? "Collapse Code" : "Expand Code";
+        });
+    });
+});
+});
+</script>
+</body>
+</html>

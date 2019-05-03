@@ -1,5 +1,1163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-04-10T16:10:00+08:00</updated><entry><title>How to set environment variables in a conda virtual environment</title><link href="https://guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" rel="alternate"></link><published>2019-04-10T13:15:00+08:00</published><updated>2019-04-10T16:10:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-04-10:/blog/saving-environment-variables-in-conda.html</id><summary type="html">&lt;p&gt;How to save environment variables in a virtual environment set using conda.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Environment variables are useful to store sensitive data like API keys or passwords when we don't want them to be hard coded in our source code. But we often only use them in some specific circumstances and don't need to have them set all the time. In this short post, I am going to show how to save environment variables in a virtual environment set using conda.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-05-03T00:00:00+08:00</updated><entry><title>Analytics with bitmapist4</title><link href="https://guillaume-martin.github.io/blog/bitmapist.html" rel="alternate"></link><published>2019-05-03T00:00:00+08:00</published><updated>2019-05-03T00:00:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-05-03:/blog/bitmapist.html</id><summary type="html">&lt;p&gt;A memory efficient and fast tool to analyze your users' activity.&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this post, I'll have a look at bitmaps and how they can help us analyzing our users data. I'll also look at a python library that let us take advantage of bitmaps the easy way.&lt;/p&gt;
+&lt;h2&gt;What is bitmap?&lt;/h2&gt;
+&lt;p&gt;A bitmap, also called bit array, bit set, bit string or bit vector, is an array that stores bits. It is a mapping from a domain (mostly integers) to bits. A position in the array is called an offset.&lt;/p&gt;
+&lt;p&gt;A set of integers {1,2,3,4,5,6,7,8} could be map to the array [0,1,1,0,0,0,1,0].&lt;/p&gt;
+&lt;h3&gt;Bit operations&lt;/h3&gt;
+&lt;p&gt;We can manipulate the bits in a bitmap using the usual logical operators AND, OR, XOR, NOT.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;set a bit to 1: 11101&lt;mark&gt;0&lt;/mark&gt;10 &lt;strong&gt;OR&lt;/strong&gt; 00000&lt;mark&gt;1&lt;/mark&gt;00 = 11101&lt;mark&gt;1&lt;/mark&gt;10&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;set a bit to 0: 111010&lt;mark&gt;1&lt;/mark&gt;0 &lt;strong&gt;AND&lt;/strong&gt; 111111&lt;mark&gt;0&lt;/mark&gt;1 = 111010&lt;mark&gt;0&lt;/mark&gt;0&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;test if a bit is set:&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;1110101&lt;mark&gt;0&lt;/mark&gt; &lt;strong&gt;AND&lt;/strong&gt; 000000&lt;mark&gt;1&lt;/mark&gt; = 0000000 (= 0 -&amp;gt; the bit is not set)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;111010&lt;mark&gt;1&lt;/mark&gt;0 &lt;strong&gt;AND&lt;/strong&gt; 000000&lt;mark&gt;1&lt;/mark&gt;0 = 000000&lt;mark&gt;1&lt;/mark&gt;0 (&lt;span class="math"&gt;\(\neq\)&lt;/span&gt; 0 -&amp;gt; the bit is set)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;toggle a bit&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;mark&gt;0&lt;/mark&gt;10 &lt;strong&gt;XOR&lt;/strong&gt; 00000&lt;mark&gt;1&lt;/mark&gt;00 = 11101&lt;mark&gt;1&lt;/mark&gt;10&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;11101&lt;mark&gt;1&lt;/mark&gt;10 &lt;strong&gt;XOR&lt;/strong&gt; 00000&lt;mark&gt;1&lt;/mark&gt;00 = 11101&lt;mark&gt;0&lt;/mark&gt;10&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;invert all bits&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;NOT&lt;/strong&gt; 10110010 = 01001101&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Redis implementation&lt;/h3&gt;
+&lt;p&gt;There is no bitmap data structure in Redis. Bitmaps are stored as strings. However there are built-in functions to work with bitmaps.&lt;/p&gt;
+&lt;p&gt;To set a bit, we can use the &lt;a href="https://redis.io/commands/setbit"&gt;&lt;code&gt;SETBIT key offset value&lt;/code&gt;&lt;/a&gt; function.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; SETBIT foo &lt;span class="m"&gt;12&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;
+&lt;span class="o"&gt;(&lt;/span&gt;integer&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;
+&amp;gt; GET foo
+&lt;span class="s2"&gt;&amp;quot;\x00\b&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Let's use an example with 8 bits: 11101010&lt;/p&gt;
+&lt;p&gt;For each offset where the value is one, we run the command &lt;code&gt;SETBIT bitmap &amp;lt;offset&amp;gt; 1&lt;/code&gt;.
+Our bit array is now stored with the key &lt;code&gt;bitmap&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;We can get the value of the bit at any offset with the &lt;a href="https://redis.io/commands/getbit"&gt;&lt;code&gt;GETBIT key offset&lt;/code&gt;&lt;/a&gt; command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; GETBIT bitmap &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="o"&gt;(&lt;/span&gt;integer&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;
+&amp;gt; GETBIT bitmap &lt;span class="m"&gt;4&lt;/span&gt;
+&lt;span class="o"&gt;(&lt;/span&gt;integer&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To know how many bits are set to 1, we can use the &lt;a href="https://redis.io/commands/bitcount"&gt;&lt;code&gt;BITCOUNT key [start end]&lt;/code&gt;&lt;/a&gt; command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITCOUNT bitmap
+&lt;span class="o"&gt;(&lt;/span&gt;integer&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="m"&gt;5&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Finally, we can do bit operations with &lt;a href="https://redis.io/commands/bitop"&gt;&lt;code&gt;BITOP operation destkey key [key...]&lt;/code&gt;&lt;/a&gt; where &lt;code&gt;destkey&lt;/code&gt; is the destination key where the result is stored.
+As an example, we are going to set two bitmaps and then find how many bits are set to 1 in both of them.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;bitmap1:10011&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;bitmap2:01001&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; SETBIT bitmap1 1 1
+(integer) 0
+&amp;gt; SETBIT bitmap1 4 1
+(integer) 0
+&amp;gt; SETBIT bitmap1 5 1
+(integer) 0
+&amp;gt; SETBIT bitmap2 2 1
+(integer) 0
+&amp;gt; SETBIT bitmap2 5 1
+(integer) 0
+&amp;gt; BITOP AND both bitmap1 bitmap2
+(integer) 1
+&amp;gt; BITCOUNT both
+(integer) 1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Use in Analytics&lt;/h3&gt;
+&lt;p&gt;Well, this looks nice, but what are we supposed to do with this?&lt;/p&gt;
+&lt;p&gt;Using bit operations on Redis is very fast. As a consequence, bitmaps are often used in real time analytics.&lt;/p&gt;
+&lt;p&gt;I'll show how it is used with an example. We are a SaaS business and we want to track our users activity. Each of our users is going to have a number as an id (1, 2, 3,...).  We can use that id as the offset in the bitmap. The key in which we store the bitmap would be the activity we are tracking. For example, users' activity for March 1st will be stored in &lt;code&gt;active:2019-03-01&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I have five users with ids going from 0 to 4. On March 1st, users 1 and 4 have been active. We record their activity by setting he bit at their offset to 1:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; SETBIT active:2019-03-01 1 1
+(integer) 0
+&amp;gt; SETBIT active:2019-03-01 4 1
+(integer) 0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Our bitmap should look like this: &lt;code&gt;01001&lt;/code&gt;. Now if I want to get the number of active users for March 1st, I get the bit count for that day:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITCOUNT active:2019-03-01
+(integer) 2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Two users were active that day.&lt;/p&gt;
+&lt;p&gt;If I want to know whether a user had been active on a given day, I just need to get the value of the bit at the offset that matches her id:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; GETBIT active:2019-03-01 2
+(integer) 0
+&amp;gt; GETBIT active:2019-03-01 4
+(integer) 1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;User 2 didn't connect on March 1st, whereas user 4 did.&lt;/p&gt;
+&lt;h4&gt;Weekly Active Users (WAU)&lt;/h4&gt;
+&lt;p&gt;We've been tracking the activity of our users for quite some times so we have bitmaps for every day. Now, we want to get the WAU which is the number of active users in a given week. A weekly active user is a user who has been active at least one day during the week we're interested in. We need to use the &lt;code&gt;OR&lt;/code&gt; operator on activity on all days of that week. The command will look something like &lt;code&gt;BITOP OR &amp;lt;destination_key&amp;gt; &amp;lt;monday_key&amp;gt; &amp;lt;tuesday_key&amp;gt;...&amp;lt;sunday_key&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;For this example, I'll show how to get the WAU for week 10 (March 4th to March 10th). I'll store the active users of the week in the &lt;code&gt;active:2019-w10&lt;/code&gt; key&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITOP OR active:2019-w10 \
+    active:2019-03-04 \
+    active:2019-03-05 \
+    active:2019-03-06 \
+    active:2019-03-07 \
+    active:2019-03-08 \
+    active:2019-03-09 \
+    active:2019-03-10
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I now have a bitmap for week 10 of 2019. If a user has been active at least once during that week, her bit is set to 1. To get the total number of active users for the week (WAU), I use the &lt;code&gt;BITCOUNT&lt;/code&gt; command.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BICOUNT active:2019-w10
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Retention&lt;/h4&gt;
+&lt;p&gt;Let say we want the retention rate over two periods of time, period 1 and period 2:
+&lt;/p&gt;
+&lt;div class="math"&gt;$$
+Retention\ Rate = \frac{\#\ of\ users\ active\ in\ period\ 1\ AND\ period\ 2 }{\#\ of\ users\ active\ during\ period\ 1}
+$$&lt;/div&gt;
+&lt;p&gt;
+So if we want to get the retention rate between week 10 and week 11, we first need to get the users who were active in both weeks. Assuming we've already aggregated our weekly data: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITOP AND active:w10+w11 active:w10 active:w11
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The number of users active during both weeks is:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITCOUNT active:w10+w11
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We just need to divide this number by the number of users active during week 10 (&lt;code&gt;BITCOUNT active:w10&lt;/code&gt;) and we have our retention rate.&lt;/p&gt;
+&lt;p&gt;Note that the Redis CLI does not support arithmetic operations. I cannot type &lt;code&gt;BITCOUNT active:w10+w11 / BITCOUNT active:w10&lt;/code&gt;. &lt;/p&gt;
+&lt;h4&gt;Churn&lt;/h4&gt;
+&lt;p&gt;The customer churn (also known as customer attrition) is simply the lost of customers.
+&lt;/p&gt;
+&lt;div class="math"&gt;$$
+\%\ Customer\ Churn = \frac{\#\ of\ customers\ who\ churned}{total\ \#\ of\ customers}
+$$&lt;/div&gt;
+&lt;p&gt;
+As an example, we're going to say that a customer has churned if she's not active for three months, let's say Q2 of 2019. We are also going to take into account only the users that were active in Q1. Those who were not active in Q1 churned long ago. I'll assume that we already have aggregated our monthly data.&lt;/p&gt;
+&lt;p&gt;First, I get the users active during Q1:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITOP OR active:2019-Q1 \
+    active:2019-01 \
+    active:2019-02 \
+    active:2019:03
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I do the same  to get users active during Q2:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITOP OR active:2019-Q2 \
+    active:2019-04 \
+    active:2019-05 \
+    active:2019-06
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then, I invert all the bits of &lt;code&gt;active:2019-Q2&lt;/code&gt; to get users that were inactive:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITOP NOT inactive:2019-Q2 active:2019-Q2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Finaly, I find users that were active in Q1 AND inactive in Q2:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; BITOP AND churned:2019-Q2 \
+    active:2019-Q1 \
+    inactive:2019-Q2
+&amp;gt; BITCOUNT churned:2019-Q2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We saw how we can do analytics with bitmaps, but using the Redis command line is not convenient. If we want to do some arithmetic, or generate nice reports, we will have to use another language. &lt;/p&gt;
+&lt;p&gt;For those using Python, there is the &lt;a href="https://pypi.org/project/redis/"&gt;redis package&lt;/a&gt; that would let us interface with our Redis database. But there are also a python library and a server developed by the &lt;a href="doist.com"&gt;Doist&lt;/a&gt; team. &lt;/p&gt;
+&lt;h2&gt;Doist applications&lt;/h2&gt;
+&lt;h3&gt;bitmapist-server&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/Doist/bitmapist-server"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;bitmapist-server is a standalone server developed by Doist to be used with their bitmapist library.
+Redis stores bitmaps in plain bytes arrays. This implementation can require a lot of memory when working with large sparse bitmaps. This can be the case if you're tracking users' activity. If you have millions of users but a small fraction of them is active on any given day, you will end up with a bitmap that as millions of bytes but only few of them are set to 1.&lt;/p&gt;
+&lt;p&gt;The bitmapist-server helps saving memory using two techniques:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://roaringbitmap.org/"&gt;compressed bitmap representation&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;only keeping &lt;em&gt;hot&lt;/em&gt; dataset in memory.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The Doist team claims that a dataset that would use 129.48G on redis only uses 300M on bitmapist-server.&lt;/p&gt;
+&lt;h3&gt;bitmapist4&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/Doist/bitmapist4"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Bitmapist4 is a python library that let us easily manipulate bitmaps on Redis or bitmapist-server. It provides functions for easily saving events and aggregate automatically weekly and monthly data. It also has a cohort module that helps us run cohort analysis in only a few lines of code.&lt;/p&gt;
+&lt;h2&gt;Setup&lt;/h2&gt;
+&lt;h3&gt;Run bitmapist-server&lt;/h3&gt;
+&lt;p&gt;You can build the server from source following the instructions on &lt;a href="https://github.com/Doist/bitmapist-server"&gt;github&lt;/a&gt;, but there's a Dockerfile in the repository and using containers is a lot easier. So we are going to create a bitmapist-server container and run it. If you don't have docker installed on your computer you can download it &lt;a href="https://www.docker.com/products/docker-desktop"&gt;here&lt;/a&gt; for Mac and Windows. For linux, instructions can be found on https://docs.docker.com/install/linux/docker-ce/&lt;distro&gt;/ (replace distro with centos, debian, fedora, ubuntu or binaries).&lt;/p&gt;
+&lt;p&gt;Build the docker image:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ git clone https://github.com/Doist/bitmapist-server.git
+$ &lt;span class="nb"&gt;cd&lt;/span&gt; bitmapist-server
+$ docker build -t bitmapist-server:latest ./
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Run the container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker container run -d -p &lt;span class="m"&gt;6379&lt;/span&gt;:6379 --name bitmapist-server bitmapist-server
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Control that the container is running&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker container ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+8fc1ab9d39f1        bitmapist-server    &lt;span class="s2"&gt;&amp;quot;./bitmapist-server …&amp;quot;&lt;/span&gt;   &lt;span class="m"&gt;20&lt;/span&gt; hours ago        Up &lt;span class="m"&gt;5&lt;/span&gt; minutes        &lt;span class="m"&gt;0&lt;/span&gt;.0.0.0:6379-&amp;gt;6379/tcp   bitmapist-server
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Install bitmapist4&lt;/h3&gt;
+&lt;p&gt;To install the bitmapist4 library, simply type the following command.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pip install bitmapist4
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Dataset&lt;/h3&gt;
+&lt;p&gt;For this tutorial, I use the dataset from the &lt;em&gt;WSDM - KKBox's Churn Prediction Challenge&lt;/em&gt; competition hosted on kaggle. It can be downloaded &lt;a href="https://www.kaggle.com/c/kkbox-churn-prediction-challenge/data"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This is a good dataset because it contains the logs of the users' activity. I will use the &lt;code&gt;members_v3.csv&lt;/code&gt; and &lt;code&gt;user_logs.csv&lt;/code&gt; files.&lt;/p&gt;
+&lt;p&gt;The data descriptions given by Kaggle are as follow:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;members.csv&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This is the users' information. Note that not every user in the dataset is available. &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;msno&lt;/li&gt;
+&lt;li&gt;city  &lt;/li&gt;
+&lt;li&gt;bd: age. &lt;/li&gt;
+&lt;li&gt;gender    &lt;/li&gt;
+&lt;li&gt;registered_via: registration method&lt;/li&gt;
+&lt;li&gt;registration_init_time: format &lt;code&gt;%Y%m%d&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;expiration_date: format &lt;code&gt;%Y%m%d&lt;/code&gt;, taken as a snapshot at which the member.csv is extracted. Not representing the actual churn behavior.   &lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Let's have a look at the first lines:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ head -n &lt;span class="m"&gt;5&lt;/span&gt; members_v3.csv
+msno,city,bd,gender,registered_via,registration_init_time
+Rb9UwLQTrxzBVwCB6+bCcSQWZ9JiNLC9dXtM1oEsZA8&lt;span class="o"&gt;=&lt;/span&gt;,1,0,,11,20110911
++tJonkh+O1CA796Fm5X60UMOtB6POHAwPjbTRVl/EuU&lt;span class="o"&gt;=&lt;/span&gt;,1,0,,7,20110914
+&lt;span class="nv"&gt;cV358ssn7a0f7jZOwGNWS07wCKVqxyiImJUX6xcIwKw&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;,1,0,,11,20110915
+9bzDeJP6sQodK73K5CBlJ6fgIQzPeLnRl0p5B77XP+g&lt;span class="o"&gt;=&lt;/span&gt;,1,0,,11,20110915
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;msno&lt;/code&gt; is the id of the user. This is a string, however, we need integers to save data in bitmaps as the id is going to be the offset at which we save the user's bit. We'll ignore &lt;code&gt;city&lt;/code&gt;, &lt;code&gt;bd&lt;/code&gt; and &lt;code&gt;gender&lt;/code&gt; to keep things simple.&lt;/p&gt;
+&lt;p&gt;Let's control how many lines the file has:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wc -l members_v3.csv
+&lt;span class="m"&gt;6769474&lt;/span&gt; members_v3.csv
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The file has a little bit less than 6.8 million lines.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;user_logs.csv&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Those are the daily user logs describing listening behavior of a user. The data has been collected until 2/28/2017. &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;msno: user id&lt;/li&gt;
+&lt;li&gt;date: format &lt;code&gt;%Y%m%d&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;num_25: # of songs played less than 25% of the song length&lt;/li&gt;
+&lt;li&gt;num_50: # of songs played between 25% to 50% of the song length&lt;/li&gt;
+&lt;li&gt;num_75: # of songs played between 50% to 75% of of the song length&lt;/li&gt;
+&lt;li&gt;num_985: # of songs played between 75% to 98.5% of the song length&lt;/li&gt;
+&lt;li&gt;num_100: # of songs played over 98.5% of the song length&lt;/li&gt;
+&lt;li&gt;num_unq: # of unique songs played&lt;/li&gt;
+&lt;li&gt;total_secs: total seconds played&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Let's have a look at the first lines&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ head -n &lt;span class="m"&gt;5&lt;/span&gt; user_logs.csv
+msno,date,num_25,num_50,num_75,num_985,num_100,num_unq,total_secs
+rxIP2f2aN0rYNp+toI0Obt/N/FYQX8hcO1fTmmy2h34&lt;span class="o"&gt;=&lt;/span&gt;,20150513,0,0,0,0,1,1,280.3350
+rxIP2f2aN0rYNp+toI0Obt/N/FYQX8hcO1fTmmy2h34&lt;span class="o"&gt;=&lt;/span&gt;,20150709,9,1,0,0,7,11,1658.9480
+&lt;span class="nv"&gt;yxiEWwE9VR5utpUecLxVdQ5B7NysUPfrNtGINaM2zA8&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;,20150105,3,3,0,0,68,36,17364.9560
+&lt;span class="nv"&gt;yxiEWwE9VR5utpUecLxVdQ5B7NysUPfrNtGINaM2zA8&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;,20150306,1,0,1,1,97,27,24667.3170
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Each line represents the activity of a user on a given day. In the following examples, I will ignore the information related to the number of songs played or the duration of the session. I will only record whether on a given day a user had been active, i.e. for each line, I will set the user's bit to 1 for that day. For example, the first line will be saved in &lt;code&gt;active:2015-05-13&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let's control how many lines the file has.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wc -l user_logs.csv
+&lt;span class="m"&gt;47375490&lt;/span&gt; user_logs.csv
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The &lt;code&gt;user_logs.csv&lt;/code&gt; file has over 47 millions lines.&lt;/p&gt;
+&lt;h2&gt;Loading the data&lt;/h2&gt;
+&lt;p&gt;Before starting working on analytics, we need to save the data from the csv files into the bitmapist-server.
+I have two issues to deal with:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The users ids are strings but I need an integer because the id is the offset in the bitmap array.&lt;/li&gt;
+&lt;li&gt;I can't load the entire logs at once because my computer doesn't have enough memory.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So here is how I am going to proceed:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Save data from the &lt;code&gt;members_v3.csv&lt;/code&gt; file. &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;There are no duplicate users (&lt;code&gt;msno&lt;/code&gt;). For each line, I can assign an integer to the &lt;code&gt;msno&lt;/code&gt; and save the pair in a dictionary.  Then, I increment the integer before the next line. I will have an integer id for each user that I can use to mark an event.&lt;/p&gt;
+&lt;p&gt;For each line, I will mark two events: the &lt;em&gt;date of registration&lt;/em&gt; (&lt;code&gt;registration_init_time&lt;/code&gt;) and the &lt;em&gt;registration method&lt;/em&gt; (&lt;code&gt;registered_via&lt;/code&gt;). I can use the &lt;code&gt;transaction()&lt;/code&gt; method to take advantage of &lt;a href="https://redis.io/topics/pipelining"&gt;Redis pipelining&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;members_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;../data/members_v3.csv&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;id_dict&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;members_file&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;r&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+   &lt;span class="nb"&gt;next&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c1"&gt;# skip the headers&lt;/span&gt;
+   &lt;span class="n"&gt;reader&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;csv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    
+   &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;id_int&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+       &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+       &lt;span class="c1"&gt;# add the user id to the id dictionary&lt;/span&gt;
+       &lt;span class="n"&gt;id_dict&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id_int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+       &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;transaction&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+           &lt;span class="c1"&gt;# save registration date for cohort analysis&lt;/span&gt;
+           &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mark_event&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id_dict&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])]),&lt;/span&gt;
+                       &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strptime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;]),&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;%Y%m&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+           &lt;span class="c1"&gt;# save registration method&lt;/span&gt;
+           &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mark_unique&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered_via:{row[4]}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id_dict&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])]))&lt;/span&gt;  
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;I iterate through the &lt;code&gt;user_logs.csv&lt;/code&gt; file and mark an &lt;code&gt;active&lt;/code&gt; event for each line. &lt;/p&gt;
+&lt;p&gt;Because the dataset is quite large and I don't need all the data, I'll load only the rows for 2016.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;log_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;../data/user_logs.csv&amp;#39;&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;log_file&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;r&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;reader&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;csv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;reader&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c1"&gt;# we keep only the logs of users in members dataset and logs for 2016&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;id_dict&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;][:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;2016&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mark_event&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                         &lt;span class="n"&gt;id_dict&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]],&lt;/span&gt; 
+                         &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strptime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;%Y%m&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;b.mark_event() and b.unique()&lt;/h3&gt;
+&lt;p&gt;The interesting part in the loading script are the &lt;code&gt;mark_event()&lt;/code&gt; and &lt;code&gt;mark_unique()&lt;/code&gt; methods. Let's see what they do.&lt;/p&gt;
+&lt;p&gt;b is an instance of the &lt;code&gt;Bitmapist&lt;/code&gt; class. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;bitmapist4&lt;/span&gt;
+
+&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;bitmapist4&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Bitmapist&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;prefix_key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;kkbox__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The prefix key is a string that will be added to the redis key. The default value is &lt;code&gt;bitmapist_&lt;/code&gt;, but if you want to track multiple applications, you could differentiate them with the prefix.&lt;/p&gt;
+&lt;h4&gt;mark_event()&lt;/h4&gt;
+&lt;p&gt;The &lt;code&gt;mark_event()&lt;/code&gt; method let us record that an event has happened at a certain time. It takes the following arguments:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;event_name&lt;/code&gt; (string): the name of the event you are recording (e.g. 'active')&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;uuid&lt;/code&gt; (integer): the id of the user. &lt;/li&gt;
+&lt;li&gt;&lt;code&gt;timestamp&lt;/code&gt; (datetime): the time at which the event happened. If ignored, it will be marked now in UTC timezone (&lt;code&gt;datetime.datetime.utcnow()&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;track_hourly&lt;/code&gt; (boolean): the default is False, but you can set it to True if you want to track hourly events. &lt;/li&gt;
+&lt;li&gt;&lt;code&gt;track_unique&lt;/code&gt; (boolean):  set to True if you want to also mark the unique event. For example, you want to track usage of a feature. Every time someone used that feature, you will mark the event at the day the feature was used (e.g. set the bit to 1 for id 123 for key &lt;code&gt;feature_used:2019-03-01&lt;/code&gt;). That way, you can track who used the feature on any given day. But you may also want to know who ever used this feature. This data is not time specific. In this case, you set &lt;code&gt;track_unique&lt;/code&gt; to &lt;code&gt;True&lt;/code&gt; and the event is also recorded without the timestamp (e.g. set the bit to 1 for id 123 for key &lt;code&gt;feature_used&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;When you mark an event with a timestamp, Bitmapist will automatically save the event for the month, week and day. Which mean that you don't have to aggregate the data later using bit operations. &lt;/p&gt;
+&lt;h4&gt;mark_unique()&lt;/h4&gt;
+&lt;p&gt;The &lt;code&gt;mark_unique()&lt;/code&gt; method only takes the &lt;code&gt;event_name&lt;/code&gt; and &lt;code&gt;uuid&lt;/code&gt; arguments. It is used to save events for which the time is not important. In our example, I marked the registration method as a unique event because all I want to know is how the user registered, I don't care about the date (it was saved with the &lt;em&gt;registered&lt;/em&gt; event).&lt;/p&gt;
+&lt;h2&gt;Analytics&lt;/h2&gt;
+&lt;p&gt;Now that our data is saved in our bitmapist server, we can start the fun part: data analysis!&lt;/p&gt;
+&lt;h3&gt;Users Activity&lt;/h3&gt;
+&lt;h4&gt;Daily Active Users (DAU)&lt;/h4&gt;
+&lt;p&gt;I can get the number of users active on any given day using &lt;code&gt;DayEvents()&lt;/code&gt; with the &lt;code&gt;active&lt;/code&gt; event name.&lt;/p&gt;
+&lt;p&gt;There are two ways to extract the information for a specific date:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# set up the date to April 3rd, 2016&lt;/span&gt;
+&lt;span class="n"&gt;date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# method one&lt;/span&gt;
+&lt;span class="n"&gt;dau&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DayEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dau&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;There were {count:,} users active on April 3rd, 2016.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# method two&lt;/span&gt;
+&lt;span class="n"&gt;dau&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DayEvents&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;from_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dau&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;There were {count:,} users active on April 3rd, 2016.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;There were 62,507 users active on April 3rd, 2016.
+There were 62,507 users active on April 3rd, 2016.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Weekly Active User (WAU)&lt;/h4&gt;
+&lt;p&gt;The same way I could extract the number of users active on a given day, I can also extract the users active on a specific week. Remember that when we marked the event, bitmapist automatically saved the weekly and monthly data. So I just have to use &lt;code&gt;WeekEvents()&lt;/code&gt; with the &lt;code&gt;active&lt;/code&gt; event name.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;wau&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WeekEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c1"&gt;# 14 is the week number&lt;/span&gt;
+&lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;wau&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The &lt;code&gt;WeekEvents&lt;/code&gt; class takes a &lt;code&gt;year&lt;/code&gt; and a &lt;code&gt;week&lt;/code&gt; arguments. If you don't have the week number, you can use the &lt;code&gt;from_date()&lt;/code&gt; classmethod instead of extracting the week number from the date by yourself:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;wau&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WeekEvents&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;from_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;wau&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;There were {count:,} users active on week 13 of 2016.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;There were 156,759 users active on week 13 of 2016.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If we don't provide the date, bitmapist will return the data for now. That means we would have live data about how many users were active today, this week, this month, ...&lt;/p&gt;
+&lt;h4&gt;Retention&lt;/h4&gt;
+&lt;p&gt;As we saw earlier, the retention is the percentage of users active during a period and that were also active the following one. In the example I used, we looked at the retention rate between week 10 and 11. Let's see how we could get this information with bitmapist:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;active_w10&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WeekEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;active_W10_w11&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;active_w10&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WeekEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;retention&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;active_W10_w11&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;active_w10&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{retention * 100:.0f}&lt;/span&gt;&lt;span class="si"&gt;% o&lt;/span&gt;&lt;span class="s1"&gt;f users active in week 10 were still active in week 11.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;47% of users active in week 10 were still active in week 11.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To get the number of users active both week, I used the &lt;code&gt;&amp;amp;&lt;/code&gt; operator. Bitmapist let us use such operators to compare or combine bitmaps. Let's have a look.&lt;/p&gt;
+&lt;h4&gt;Bit operations&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;NOT (~)&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Not active in January&lt;/span&gt;
+&lt;span class="n"&gt;jan_inactives&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{len(jan_inactives):,} users were not active in January 2016.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;6,360,354 users were not active in January 2016.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;AND (&amp;amp;)&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# active in both January and February&lt;/span&gt;
+&lt;span class="n"&gt;jan_and_feb&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{len(jan_and_feb):,} users were active in January and February 2016.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;127,278 users were active in January and February 2016.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We can also combine operators.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# active one month but not the following one&lt;/span&gt;
+&lt;span class="n"&gt;jan_not_feb&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{len(jan_not_feb):,} users were active in January 2016 but not active in February.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;281,840 users were active in January 2016 but not active in February.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;OR (|)&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;We don't have quarters data in Bitmapist. We can use the OR operator to aggregate it ourselves:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# active in quarter 1&lt;/span&gt;
+&lt;span class="n"&gt;actives_q1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; \
+             &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; \
+             &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{len(actives_q1):,} users were active during the first quarter of 2016.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;810,499 users were active during the first quarter of 2016.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Churn&lt;/h4&gt;
+&lt;p&gt;Let's look now at how bitmapist can help us get the churn between Q1 and Q2. The active users in Q1 are all the users that were active during one the three months of the quarter. I'll use the &lt;code&gt;|&lt;/code&gt; (OR) operator. I also need to know which users were not active during the second quarter. Those are the users who were not active in any month of the quarter. I'll use the &lt;code&gt;~&lt;/code&gt; (NOT) operator to get the inactive users of each month and the &lt;code&gt;&amp;amp;&lt;/code&gt; (AND) operator to aggregate the three months activity.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;actives_q1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; \
+             &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; \
+             &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+
+&lt;span class="n"&gt;inactives_q2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; \
+               &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; \
+               &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; 
+
+&lt;span class="n"&gt;churn_q2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;actives_q1&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;inactives_q2&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{len(churn_q2):,} users churned in the second quarter.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;210,409 users churned in the second quarter.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Cohort analysis&lt;/h3&gt;
+&lt;p&gt;Bitmapist also has a &lt;code&gt;cohort&lt;/code&gt; module that does all the heavy work for us. &lt;/p&gt;
+&lt;p&gt;First, I get ready...&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;plt&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;bitmapist4&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Bitmapist&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cohort&lt;/span&gt;
+
+&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Bitmapist&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;key_prefix&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;kkbox_&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then I get my cohort table. The &lt;code&gt;cohort&lt;/code&gt; module has a &lt;code&gt;get_cohort_table()&lt;/code&gt; method.
+We need to provide the cohort and the activity. The cohort is how we group the users (e.g. registration date)  and the activity is what we are tracking (e.g. the active event).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;table_pct&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cohort&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_cohort_table&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                                    &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                                    &lt;span class="n"&gt;rows&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;39&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;table_pct&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CohortTable([
+  CohortRow(&amp;#39;01 Jan 2016&amp;#39;, 253156, [13.738564363475485, 6.1945993774589585, 5.25328256095056, 5.003239109481901, 5.020619696945757, 4.761490938393718, 4.838123528575266, 4.733444990440677, 4.597955410892888, 4.7117192561108565, 4.7373951239551895, 4.634691652577857, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+  CohortRow(&amp;#39;01 Feb 2016&amp;#39;, 208170, [13.772877936302061, 7.072104529951482, 5.54834990632656, 5.474852284190805, 5.145794302733343, 5.092472498438776, 5.010328097228227, 4.960368929240524, 5.049718979680069, 5.022337512609886, 4.959888552625258, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+  CohortRow(&amp;#39;01 Mar 2016&amp;#39;, 195618, [13.599464261979982, 6.271406516782709, 5.1667024506947214, 4.843623797401057, 4.732693310431555, 4.630453230275332, 4.580866791399565, 4.66572605792923, 4.756208528867487, 4.539970759337075, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+ ...
+   CohortRow(&amp;#39;01 Jan 2019&amp;#39;, 0, [0, 0, 0]),
+   CohortRow(&amp;#39;01 Feb 2019&amp;#39;, 0, [0, 0]),
+   CohortRow(&amp;#39;01 Mar 2019&amp;#39;, 0, [0])])
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I am just showing the first  and last three rows. The &lt;code&gt;nrows&lt;/code&gt; arguments set how many rows the table has.  We can see that the last row of the table is March 2019. This is the time at which the table starts. So if I want to make a cohort analysis on my data, I need to set &lt;code&gt;row=39&lt;/code&gt; so that the table has enough rows to include the 2016 cohorts.&lt;/p&gt;
+&lt;p&gt;The data is not easy to read. We can convert it into a DataFrame using the &lt;code&gt;df()&lt;/code&gt; method. I also keep only the useful rows using &lt;code&gt;.iloc[:12]&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;table_pct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[:&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;cohort&lt;/th&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;th&gt;7&lt;/th&gt;
+&lt;th&gt;8&lt;/th&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;th&gt;29&lt;/th&gt;
+&lt;th&gt;30&lt;/th&gt;
+&lt;th&gt;31&lt;/th&gt;
+&lt;th&gt;32&lt;/th&gt;
+&lt;th&gt;33&lt;/th&gt;
+&lt;th&gt;34&lt;/th&gt;
+&lt;th&gt;35&lt;/th&gt;
+&lt;th&gt;36&lt;/th&gt;
+&lt;th&gt;37&lt;/th&gt;
+&lt;th&gt;38&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Jan 2016&lt;/td&gt;
+&lt;td&gt;253156&lt;/td&gt;
+&lt;td&gt;13.738564&lt;/td&gt;
+&lt;td&gt;6.194599&lt;/td&gt;
+&lt;td&gt;5.253283&lt;/td&gt;
+&lt;td&gt;5.003239&lt;/td&gt;
+&lt;td&gt;5.020620&lt;/td&gt;
+&lt;td&gt;4.761491&lt;/td&gt;
+&lt;td&gt;4.838124&lt;/td&gt;
+&lt;td&gt;4.733445&lt;/td&gt;
+&lt;td&gt;4.597955&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Feb 2016&lt;/td&gt;
+&lt;td&gt;208170&lt;/td&gt;
+&lt;td&gt;13.772878&lt;/td&gt;
+&lt;td&gt;7.072105&lt;/td&gt;
+&lt;td&gt;5.548350&lt;/td&gt;
+&lt;td&gt;5.474852&lt;/td&gt;
+&lt;td&gt;5.145794&lt;/td&gt;
+&lt;td&gt;5.092472&lt;/td&gt;
+&lt;td&gt;5.010328&lt;/td&gt;
+&lt;td&gt;4.960369&lt;/td&gt;
+&lt;td&gt;5.049719&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Mar 2016&lt;/td&gt;
+&lt;td&gt;195618&lt;/td&gt;
+&lt;td&gt;13.599464&lt;/td&gt;
+&lt;td&gt;6.271407&lt;/td&gt;
+&lt;td&gt;5.166702&lt;/td&gt;
+&lt;td&gt;4.843624&lt;/td&gt;
+&lt;td&gt;4.732693&lt;/td&gt;
+&lt;td&gt;4.630453&lt;/td&gt;
+&lt;td&gt;4.580867&lt;/td&gt;
+&lt;td&gt;4.665726&lt;/td&gt;
+&lt;td&gt;4.756209&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;That's better, but what do those numbers mean?&lt;/p&gt;
+&lt;p&gt;The index identify the cohort. The first row is for the users who registered in January 2016. 
+The cohort column gives us the size of the cohort (i.e. how many users registered that month):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# registered in January&lt;/span&gt;
+&lt;span class="n"&gt;january&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{len(january):,} users registered in January&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;253,156 users registered in January
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The following columns give us the percentage of users from that cohort who are active for this period. For the January cohort, 0 is January, 1 is February and so on. For the February cohort, 0 is February, 1 is March, ... :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# how many users were active in January&lt;/span&gt;
+&lt;span class="n"&gt;active_jan&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;january&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;year&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;month&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;active_jan_num&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;active_jan&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;active_jan_pct&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;active_jan_num&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;january&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{active_jan_num:,} of those users were active the same month. That is {active_jan_pct:.6f} percents.&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;34,780 of those users were active the same month. That is 13.738564 percents.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This &lt;code&gt;13.738564&lt;/code&gt; percents is the number we can read in the column 1 of the January cohort row.:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;cohort&lt;/th&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Jan 2016&lt;/td&gt;
+&lt;td&gt;253156&lt;/td&gt;
+&lt;td&gt;13.738564&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;If you need users count instead of percentages, you can set the &lt;code&gt;user_percent&lt;/code&gt; parameter to False.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;table_cnt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cohort&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_cohort_table&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                                &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                                &lt;span class="n"&gt;rows&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;39&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                &lt;span class="n"&gt;use_percent&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;table_cnt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;head&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;cohort&lt;/th&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;th&gt;7&lt;/th&gt;
+&lt;th&gt;8&lt;/th&gt;
+&lt;th&gt;...&lt;/th&gt;
+&lt;th&gt;29&lt;/th&gt;
+&lt;th&gt;30&lt;/th&gt;
+&lt;th&gt;31&lt;/th&gt;
+&lt;th&gt;32&lt;/th&gt;
+&lt;th&gt;33&lt;/th&gt;
+&lt;th&gt;34&lt;/th&gt;
+&lt;th&gt;35&lt;/th&gt;
+&lt;th&gt;36&lt;/th&gt;
+&lt;th&gt;37&lt;/th&gt;
+&lt;th&gt;38&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Jan 2016&lt;/td&gt;
+&lt;td&gt;253156&lt;/td&gt;
+&lt;td&gt;34780&lt;/td&gt;
+&lt;td&gt;15682.0&lt;/td&gt;
+&lt;td&gt;13299.0&lt;/td&gt;
+&lt;td&gt;12666.0&lt;/td&gt;
+&lt;td&gt;12710.0&lt;/td&gt;
+&lt;td&gt;12054.0&lt;/td&gt;
+&lt;td&gt;12248.0&lt;/td&gt;
+&lt;td&gt;11983.0&lt;/td&gt;
+&lt;td&gt;11640.0&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Feb 2016&lt;/td&gt;
+&lt;td&gt;208170&lt;/td&gt;
+&lt;td&gt;28671&lt;/td&gt;
+&lt;td&gt;14722.0&lt;/td&gt;
+&lt;td&gt;11550.0&lt;/td&gt;
+&lt;td&gt;11397.0&lt;/td&gt;
+&lt;td&gt;10712.0&lt;/td&gt;
+&lt;td&gt;10601.0&lt;/td&gt;
+&lt;td&gt;10430.0&lt;/td&gt;
+&lt;td&gt;10326.0&lt;/td&gt;
+&lt;td&gt;10512.0&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;01 Mar 2016&lt;/td&gt;
+&lt;td&gt;195618&lt;/td&gt;
+&lt;td&gt;26603&lt;/td&gt;
+&lt;td&gt;12268.0&lt;/td&gt;
+&lt;td&gt;10107.0&lt;/td&gt;
+&lt;td&gt;9475.0&lt;/td&gt;
+&lt;td&gt;9258.0&lt;/td&gt;
+&lt;td&gt;9058.0&lt;/td&gt;
+&lt;td&gt;8961.0&lt;/td&gt;
+&lt;td&gt;9127.0&lt;/td&gt;
+&lt;td&gt;9304.0&lt;/td&gt;
+&lt;td&gt;...&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;0.0&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;td&gt;NaN&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;We can improve the display further using the &lt;code&gt;stylize()&lt;/code&gt; method. It will format the percentages correctly and highlight some data.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;cohort&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stylize&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="stylized df" src="images/bitmapist_stylized_df.png"&gt;&lt;/p&gt;
+&lt;h4&gt;Visualize our cohorts&lt;/h4&gt;
+&lt;p&gt;Now that our cohort data is stored in a dataframe, it is easy to create visualizations from it.&lt;/p&gt;
+&lt;h5&gt;Cohort heatmap&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;months&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1900&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;%b&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subplots&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;figsize&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="n"&gt;im&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;imshow&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[:,&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;cmap&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Blues&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xticks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_yticks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;months&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xticklabels&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;arange&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_yticklabels&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;months&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="n"&gt;color&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;w&amp;#39;&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;dimgrey&amp;#39;&lt;/span&gt;
+        &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{value:.1f}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                      &lt;span class="n"&gt;ha&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;center&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;va&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;center&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;color&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;color&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;top&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;bottom&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;right&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;left&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xlabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;months&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_ylabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;cohorts&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_title&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Cohort Analysis for 2016&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tight_layout&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="cohort heatmap" src="/images/bitmapist_cohort_heatmap.jpg"&gt;&lt;/p&gt;
+&lt;h5&gt;Cohorts Plots&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subplots&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;figsize&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;y&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:]&lt;/span&gt;
+    &lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;months&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xticks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;top&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;right&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xlabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;months&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_ylabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;% o&lt;/span&gt;&lt;span class="s1"&gt;f active users&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_title&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Cohort Analysis for 2016&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tight_layout&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="cohorts plots" src="/images/bitmapist_cohorts_plots.jpg"&gt;&lt;/p&gt;
+&lt;h2&gt;Registration methods cohorts&lt;/h2&gt;
+&lt;p&gt;We are now going to use bitmapist to run a cohort analysis where we group users by registration method. We want to know what method has the highest user retention. &lt;/p&gt;
+&lt;p&gt;First, I need to get all the registration methods. Bitmapist has a method to extract all the events that have been saved: &lt;code&gt;get_event_names()&lt;/code&gt;.  The registration method was saved as a unique event. Getting all the events names will give me the registration methods.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_event_names&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s s-Atom"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:-1&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:1&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:10&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:11&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:13&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:14&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:16&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:17&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:18&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:19&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:2&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:3&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:4&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:5&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:6&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:7&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:8&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s s-Atom"&gt;&amp;#39;registered_via:9&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;All I have to do now is extract the number from the &lt;code&gt;registered_via:#&lt;/code&gt; events.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;registration_methods&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;:&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_event_names&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;:&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[&amp;#39;-1&amp;#39;,
+ &amp;#39;1&amp;#39;,
+ &amp;#39;10&amp;#39;,
+ &amp;#39;11&amp;#39;,
+ &amp;#39;13&amp;#39;,
+ &amp;#39;14&amp;#39;,
+ &amp;#39;16&amp;#39;,
+ &amp;#39;17&amp;#39;,
+ &amp;#39;18&amp;#39;,
+ &amp;#39;19&amp;#39;,
+ &amp;#39;2&amp;#39;,
+ &amp;#39;3&amp;#39;,
+ &amp;#39;4&amp;#39;,
+ &amp;#39;5&amp;#39;,
+ &amp;#39;6&amp;#39;,
+ &amp;#39;7&amp;#39;,
+ &amp;#39;8&amp;#39;,
+ &amp;#39;9&amp;#39;]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Next, as I only saved the activity data for 2016, I am only going to consider the users who registered in 2016. I create a &lt;code&gt;base_users&lt;/code&gt; bitmap:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;base_users&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;YearEvent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Before going further, I want to have a look at how many user used each method to register.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;users_count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;UniqueEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered_via:{m}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;base_users&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;registration_methods&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DataFrame&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;methods&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;registration_methods&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                   &lt;span class="s1"&gt;&amp;#39;users_count&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;users_count&lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;users_count&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ascending&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;methods&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;   
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="methods users count" src="/images/bitmapist_methods_users-count.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;I used the &lt;code&gt;AND&lt;/code&gt; operator to limit the registrations to 2016 : &lt;code&gt;b.UniqueEvents(f'registered_via:{m}') &amp;amp; base_users&lt;/code&gt;. 
+Most users registered via method 4. After that, some users registered via methods 7, 9, 3. I will ignore the other methods in the following analysis. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# I create a matrix where I&amp;#39;ll store the data that&lt;/span&gt;
+&lt;span class="c1"&gt;# I&amp;#39;ll use later to generate a dataframe&lt;/span&gt;
+&lt;span class="n"&gt;matrix&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+
+&lt;span class="c1"&gt;# I&amp;#39;ll add one row per method to the matrix.&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;method&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="c1"&gt;# The first element of the row is the name of the cohort.&lt;/span&gt;
+    &lt;span class="c1"&gt;# Here, I use the registration method.&lt;/span&gt;
+    &lt;span class="n"&gt;row&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;method&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# The next element is the number of users who registered &lt;/span&gt;
+    &lt;span class="c1"&gt;# using this method in 2016. &lt;/span&gt;
+    &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;UniqueEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered_via:{method}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;base_users&lt;/span&gt;
+    &lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;users&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# The following cells are the percentage of users that are active&lt;/span&gt;
+    &lt;span class="c1"&gt;# n months after their registration, n being the period.&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;period&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;actives&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;
+                      &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registered&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;month&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; 
+                      &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MonthEvents&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;active&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;month&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;period&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;month&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; 
+        &lt;span class="n"&gt;pct_active&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;actives&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;actives&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+        &lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;pct_active&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;matrix&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;columns&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;method&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;users_count&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nb"&gt;list&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DataFrame&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;matrix&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;method&lt;/th&gt;
+&lt;th&gt;users_count&lt;/th&gt;
+&lt;th&gt;0&lt;/th&gt;
+&lt;th&gt;1&lt;/th&gt;
+&lt;th&gt;2&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;th&gt;7&lt;/th&gt;
+&lt;th&gt;8&lt;/th&gt;
+&lt;th&gt;9&lt;/th&gt;
+&lt;th&gt;10&lt;/th&gt;
+&lt;th&gt;11&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;84791&lt;/td&gt;
+&lt;td&gt;14.572301&lt;/td&gt;
+&lt;td&gt;8.024437&lt;/td&gt;
+&lt;td&gt;5.762404&lt;/td&gt;
+&lt;td&gt;4.823625&lt;/td&gt;
+&lt;td&gt;4.213891&lt;/td&gt;
+&lt;td&gt;3.515703&lt;/td&gt;
+&lt;td&gt;3.001498&lt;/td&gt;
+&lt;td&gt;2.549799&lt;/td&gt;
+&lt;td&gt;2.171221&lt;/td&gt;
+&lt;td&gt;1.763159&lt;/td&gt;
+&lt;td&gt;1.142810&lt;/td&gt;
+&lt;td&gt;0.622708&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;1890005&lt;/td&gt;
+&lt;td&gt;12.737903&lt;/td&gt;
+&lt;td&gt;2.842638&lt;/td&gt;
+&lt;td&gt;1.521477&lt;/td&gt;
+&lt;td&gt;1.296399&lt;/td&gt;
+&lt;td&gt;1.123172&lt;/td&gt;
+&lt;td&gt;0.987564&lt;/td&gt;
+&lt;td&gt;0.852432&lt;/td&gt;
+&lt;td&gt;0.715871&lt;/td&gt;
+&lt;td&gt;0.588570&lt;/td&gt;
+&lt;td&gt;0.462962&lt;/td&gt;
+&lt;td&gt;0.325766&lt;/td&gt;
+&lt;td&gt;0.154920&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;168888&lt;/td&gt;
+&lt;td&gt;21.171427&lt;/td&gt;
+&lt;td&gt;30.015750&lt;/td&gt;
+&lt;td&gt;26.596324&lt;/td&gt;
+&lt;td&gt;24.227891&lt;/td&gt;
+&lt;td&gt;22.440315&lt;/td&gt;
+&lt;td&gt;19.428852&lt;/td&gt;
+&lt;td&gt;16.647719&lt;/td&gt;
+&lt;td&gt;13.998034&lt;/td&gt;
+&lt;td&gt;11.956445&lt;/td&gt;
+&lt;td&gt;10.514068&lt;/td&gt;
+&lt;td&gt;7.727014&lt;/td&gt;
+&lt;td&gt;4.245417&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;90800&lt;/td&gt;
+&lt;td&gt;18.244493&lt;/td&gt;
+&lt;td&gt;16.658590&lt;/td&gt;
+&lt;td&gt;13.555066&lt;/td&gt;
+&lt;td&gt;11.843612&lt;/td&gt;
+&lt;td&gt;10.251101&lt;/td&gt;
+&lt;td&gt;8.642070&lt;/td&gt;
+&lt;td&gt;7.219163&lt;/td&gt;
+&lt;td&gt;5.938326&lt;/td&gt;
+&lt;td&gt;4.606828&lt;/td&gt;
+&lt;td&gt;3.592511&lt;/td&gt;
+&lt;td&gt;2.359031&lt;/td&gt;
+&lt;td&gt;1.219163&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;I can now create a heatmap from the dataframe to easily visualize the retention rate per registration method.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subplots&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;figsize&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[:,&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;cohorts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;method&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;periods&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+
+&lt;span class="n"&gt;im&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;imshow&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cmap&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Blues&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xticks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_yticks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xticklabels&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;periods&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_yticklabels&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cohorts&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;iloc&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="n"&gt;color&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;w&amp;#39;&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;dimgrey&amp;#39;&lt;/span&gt;
+        &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{value:.1f}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                      &lt;span class="n"&gt;ha&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;center&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;va&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;center&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;color&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;color&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;top&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;bottom&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;right&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;spines&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;left&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_visible&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_xlabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;months&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_ylabel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;cohorts&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ax&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set_title&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Cohort Analysis for 2016&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;fig&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tight_layout&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="methods cohorts heatmap" src="/images/bitmapist_methods_cohorts_heatmap.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;We can see that while method 4 was the most used registration method, it has the worst retention rate. This might be what pulled down the retention rate on all cohorts in the previous analysis. This would require to dig a bit deeper.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;The slowest part of what I have done here was loading the data in the bitmapist server. It took several hours. But in a production environment, the events would be recorded has they happen. In Redis, the &lt;code&gt;SETBIT&lt;/code&gt; operation has a time complexity of O(1). It doesn't matter how large your bitmap get, setting a new bit will always require the same time.&lt;/p&gt;
+&lt;p&gt;Another advantage of using bitmapist server is that I was able to load the data in my computer. Thing that I was not able to do using pandas.&lt;/p&gt;
+&lt;h2&gt;References&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/Doist/bitmapist-server/blob/master/Dockerfile"&gt;bitmap-server repository&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/Doist/bitmapist4"&gt;bitmapist4 repository&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://redis.io/commands"&gt;redis commands&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://redis.io/topics/pipelining"&gt;Using pipelining to speedup Redis queries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://en.wikipedia.org/wiki/Bitmap"&gt;Bitmap - Wikipedia article&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.kaggle.com/c/kkbox-churn-prediction-challenge"&gt;Kaggle's WSDM - KKBox's Churn Prediction Challenge&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.slideshare.net/crashlytics/crashlytics-on-redis-analytics"&gt;Scaling Crashlytics: Building Analytics on Redis 2.6&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;script type="text/javascript"&gt;if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width &lt; 768) ? "left" : align;
+        indent = (screen.width &lt; 768) ? "0em" : indent;
+        linebreak = (screen.width &lt; 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+&lt;/script&gt;</content><category term="python"></category><category term="bitmap"></category><category term="redis"></category><category term="bitmapist"></category></entry><entry><title>How to set environment variables in a conda virtual environment</title><link href="https://guillaume-martin.github.io/blog/saving-environment-variables-in-conda.html" rel="alternate"></link><published>2019-04-10T13:15:00+08:00</published><updated>2019-04-10T16:10:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-04-10:/blog/saving-environment-variables-in-conda.html</id><summary type="html">&lt;p&gt;How to save environment variables in a virtual environment set using conda.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Environment variables are useful to store sensitive data like API keys or passwords when we don't want them to be hard coded in our source code. But we often only use them in some specific circumstances and don't need to have them set all the time. In this short post, I am going to show how to save environment variables in a virtual environment set using conda.&lt;/p&gt;
 &lt;p&gt;First, we need to create the virtual environment using the &lt;code&gt;conda create&lt;/code&gt; command:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ conda create --name my_environment
 &lt;/pre&gt;&lt;/div&gt;
@@ -680,7 +1838,7 @@ I am going to save it as a gif to display it on this post:&lt;/p&gt;
 &lt;p&gt;&lt;img alt="" src="images/best_stat_anim.gif"&gt;&lt;/p&gt;
 &lt;h2&gt;source code&lt;/h2&gt;
 &lt;p&gt;&lt;a href="https://github.com/guillaume-martin/best_stats_ever"&gt;github&lt;/a&gt;&lt;br&gt;
-&lt;a href="https://www.kaggle.com/gemartin/the-best-stats-you-ve-ever-seen-with-matplotlib"&gt;kaggle&lt;/a&gt;&lt;/p&gt;</content><category term="visualization"></category><category term="python"></category><category term="matplotlib"></category></entry><entry><title>RFM Segmentation with Python</title><link href="https://guillaume-martin.github.io/blog/rfm-segmentation-with-python.html" rel="alternate"></link><published>2018-06-01T01:40:00+08:00</published><updated>2018-06-01T01:40:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-06-01:/blog/rfm-segmentation-with-python.html</id><summary type="html">&lt;p&gt;How to segment your customers using RFM analysis with Python&lt;/p&gt;</summary><content type="html">&lt;p&gt;
+&lt;a href="https://www.kaggle.com/gemartin/the-best-stats-you-ve-ever-seen-with-matplotlib"&gt;kaggle&lt;/a&gt;&lt;/p&gt;</content><category term="visualization"></category><category term="python"></category><category term="matplotlib"></category></entry><entry><title>RFM Segmentation with Python</title><link href="https://guillaume-martin.github.io/blog/rfm-segmentation-with-python.html" rel="alternate"></link><published>2018-06-01T01:40:00+08:00</published><updated>2019-05-03T00:00:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-06-01:/blog/rfm-segmentation-with-python.html</id><summary type="html">&lt;p&gt;How to segment your customers using RFM analysis with Python&lt;/p&gt;</summary><content type="html">&lt;p&gt;
 &lt;div class="cell border-box-sizing text_cell rendered"&gt;&lt;div class="prompt input_prompt"&gt;
 &lt;/div&gt;
 &lt;div class="inner_cell"&gt;
@@ -5286,10 +6444,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="abdcb77e-37ee-4cbe-9772-563c0178e3f9"&gt;&lt;/div&gt;
+&lt;div id="04af9dd3-4fc4-4f27-a20a-2fd5b79d5a9e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#abdcb77e-37ee-4cbe-9772-563c0178e3f9');
+var element = $('#04af9dd3-4fc4-4f27-a20a-2fd5b79d5a9e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6130,10 +7288,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="4f7cc20c-0c48-435b-b9d6-1790ef66c7cd"&gt;&lt;/div&gt;
+&lt;div id="f338d2cf-ee8f-485e-a6c3-14c206970e53"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#4f7cc20c-0c48-435b-b9d6-1790ef66c7cd');
+var element = $('#f338d2cf-ee8f-485e-a6c3-14c206970e53');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6970,10 +8128,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="528214dc-38df-4df6-b011-e587ccf533d9"&gt;&lt;/div&gt;
+&lt;div id="ef30f168-7a23-4cab-8016-f522e35ab70b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#528214dc-38df-4df6-b011-e587ccf533d9');
+var element = $('#ef30f168-7a23-4cab-8016-f522e35ab70b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7816,10 +8974,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="feb26b2f-b223-483c-8b87-de29df1059bc"&gt;&lt;/div&gt;
+&lt;div id="d6d0f77c-7a5f-4397-a4e3-56b195a5f7b8"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#feb26b2f-b223-483c-8b87-de29df1059bc');
+var element = $('#d6d0f77c-7a5f-4397-a4e3-56b195a5f7b8');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8656,10 +9814,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="a34551cb-2482-412e-bae4-8ac699890f65"&gt;&lt;/div&gt;
+&lt;div id="5481a32d-b71c-4be4-bf6b-2ed19baee7b5"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#a34551cb-2482-412e-bae4-8ac699890f65');
+var element = $('#5481a32d-b71c-4be4-bf6b-2ed19baee7b5');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9499,10 +10657,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="8705f98a-4337-478e-ad0c-cb1568cdf759"&gt;&lt;/div&gt;
+&lt;div id="a4542f39-86e3-4ab9-97ae-8c2f27c641e8"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#8705f98a-4337-478e-ad0c-cb1568cdf759');
+var element = $('#a4542f39-86e3-4ab9-97ae-8c2f27c641e8');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10348,10 +11506,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="0e073afd-80f3-4ea7-bfb9-83b47bfb63c8"&gt;&lt;/div&gt;
+&lt;div id="f99c8eef-bc37-40bf-b07e-12e87ff3d64a"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0e073afd-80f3-4ea7-bfb9-83b47bfb63c8');
+var element = $('#f99c8eef-bc37-40bf-b07e-12e87ff3d64a');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11191,10 +12349,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="9410a1f9-1c85-46ec-86fd-d2d8f39f1864"&gt;&lt;/div&gt;
+&lt;div id="83fdd88a-0442-4312-a444-9bdf93db8840"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#9410a1f9-1c85-46ec-86fd-d2d8f39f1864');
+var element = $('#83fdd88a-0442-4312-a444-9bdf93db8840');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12068,10 +13226,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="2de982bf-b78d-44e1-9691-34c7ff044cdb"&gt;&lt;/div&gt;
+&lt;div id="f0ca12f8-fed6-4dff-9935-79b093b6c74f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#2de982bf-b78d-44e1-9691-34c7ff044cdb');
+var element = $('#f0ca12f8-fed6-4dff-9935-79b093b6c74f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12912,10 +14070,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="d9fc8e8d-e5b4-4508-bcbd-0f0450d98afe"&gt;&lt;/div&gt;
+&lt;div id="7b9582fd-a228-491c-b62a-e9db2ae118aa"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d9fc8e8d-e5b4-4508-bcbd-0f0450d98afe');
+var element = $('#7b9582fd-a228-491c-b62a-e9db2ae118aa');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13785,10 +14943,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="ab0b3261-8a4d-436d-8dc1-af393fe95bf4"&gt;&lt;/div&gt;
+&lt;div id="d558794b-17e7-453a-8ca5-dbd255b62f7c"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ab0b3261-8a4d-436d-8dc1-af393fe95bf4');
+var element = $('#d558794b-17e7-453a-8ca5-dbd255b62f7c');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14657,10 +15815,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="da93d802-6b13-4fe0-ac51-333e92f80240"&gt;&lt;/div&gt;
+&lt;div id="12672e2f-5923-4989-a925-a69f77ae696e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#da93d802-6b13-4fe0-ac51-333e92f80240');
+var element = $('#12672e2f-5923-4989-a925-a69f77ae696e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -15529,10 +16687,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="10df28ea-adf6-414e-8ab6-bfcfd20d0f5b"&gt;&lt;/div&gt;
+&lt;div id="f3a662a8-5123-497d-ae0b-ed77bdc40455"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#10df28ea-adf6-414e-8ab6-bfcfd20d0f5b');
+var element = $('#f3a662a8-5123-497d-ae0b-ed77bdc40455');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -16362,10 +17520,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="0ea01f97-cf1c-4ec6-b80f-22a21f440a03"&gt;&lt;/div&gt;
+&lt;div id="09a311c0-7cb7-4441-94e7-a053d9bf5c4b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0ea01f97-cf1c-4ec6-b80f-22a21f440a03');
+var element = $('#09a311c0-7cb7-4441-94e7-a053d9bf5c4b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -17236,10 +18394,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="ef0eabe8-fa60-4624-974c-5c58de3cf1c6"&gt;&lt;/div&gt;
+&lt;div id="20405a03-e6bb-41c1-86ff-5cd5d9ffbc3f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ef0eabe8-fa60-4624-974c-5c58de3cf1c6');
+var element = $('#20405a03-e6bb-41c1-86ff-5cd5d9ffbc3f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -18107,10 +19265,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="046c45df-268a-4b06-a0ba-56ee21111970"&gt;&lt;/div&gt;
+&lt;div id="0ff6cf48-b1e6-4d65-94da-e3f080ee6128"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#046c45df-268a-4b06-a0ba-56ee21111970');
+var element = $('#0ff6cf48-b1e6-4d65-94da-e3f080ee6128');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
