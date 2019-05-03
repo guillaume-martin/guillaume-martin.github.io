@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-05-03T00:00:00+08:00</updated><entry><title>Analytics with bitmapist4</title><link href="https://guillaume-martin.github.io/blog/bitmapist.html" rel="alternate"></link><published>2019-05-03T00:00:00+08:00</published><updated>2019-05-03T00:00:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-05-03:/blog/bitmapist.html</id><summary type="html">&lt;p&gt;A memory efficient and fast tool to analyze your users' activity.&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this post, I'll have a look at bitmaps and how they can help us analyzing our users data. I'll also look at a python library that let us take advantage of bitmaps the easy way.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-05-03T00:00:00+08:00</updated><entry><title>Realtime Analytics with bitmapist4</title><link href="https://guillaume-martin.github.io/blog/bitmapist.html" rel="alternate"></link><published>2019-05-03T00:00:00+08:00</published><updated>2019-05-03T00:00:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-05-03:/blog/bitmapist.html</id><summary type="html">&lt;p&gt;A memory efficient and fast tool to analyze your users' activity in real time.&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this post, I'll have a look at bitmaps and how they can help us analyzing our users data. I'll also look at a python library that let us take advantage of bitmaps the easy way.&lt;/p&gt;
 &lt;h2&gt;What is bitmap?&lt;/h2&gt;
 &lt;p&gt;A bitmap, also called bit array, bit set, bit string or bit vector, is an array that stores bits. It is a mapping from a domain (mostly integers) to bits. A position in the array is called an offset.&lt;/p&gt;
 &lt;p&gt;A set of integers {1,2,3,4,5,6,7,8} could be map to the array [0,1,1,0,0,0,1,0].&lt;/p&gt;
@@ -6444,10 +6444,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="04af9dd3-4fc4-4f27-a20a-2fd5b79d5a9e"&gt;&lt;/div&gt;
+&lt;div id="e30ce49c-72cf-456a-b87c-cbd3bd929bcf"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#04af9dd3-4fc4-4f27-a20a-2fd5b79d5a9e');
+var element = $('#e30ce49c-72cf-456a-b87c-cbd3bd929bcf');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7288,10 +7288,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="f338d2cf-ee8f-485e-a6c3-14c206970e53"&gt;&lt;/div&gt;
+&lt;div id="4c0e7bfa-7b66-4cc6-9474-e39c69e95f13"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#f338d2cf-ee8f-485e-a6c3-14c206970e53');
+var element = $('#4c0e7bfa-7b66-4cc6-9474-e39c69e95f13');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8128,10 +8128,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="ef30f168-7a23-4cab-8016-f522e35ab70b"&gt;&lt;/div&gt;
+&lt;div id="a46700ad-fe81-454a-a448-5efae3779a79"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#ef30f168-7a23-4cab-8016-f522e35ab70b');
+var element = $('#a46700ad-fe81-454a-a448-5efae3779a79');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8974,10 +8974,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="d6d0f77c-7a5f-4397-a4e3-56b195a5f7b8"&gt;&lt;/div&gt;
+&lt;div id="acae9852-2acd-4ac0-8e43-192dc9a6d3d4"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d6d0f77c-7a5f-4397-a4e3-56b195a5f7b8');
+var element = $('#acae9852-2acd-4ac0-8e43-192dc9a6d3d4');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9814,10 +9814,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="5481a32d-b71c-4be4-bf6b-2ed19baee7b5"&gt;&lt;/div&gt;
+&lt;div id="cefabfdc-52a7-4bc8-b27c-211d2c42797a"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#5481a32d-b71c-4be4-bf6b-2ed19baee7b5');
+var element = $('#cefabfdc-52a7-4bc8-b27c-211d2c42797a');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10657,10 +10657,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="a4542f39-86e3-4ab9-97ae-8c2f27c641e8"&gt;&lt;/div&gt;
+&lt;div id="8abc2384-073a-4d8b-8fb2-59871f10531d"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#a4542f39-86e3-4ab9-97ae-8c2f27c641e8');
+var element = $('#8abc2384-073a-4d8b-8fb2-59871f10531d');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11506,10 +11506,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="f99c8eef-bc37-40bf-b07e-12e87ff3d64a"&gt;&lt;/div&gt;
+&lt;div id="07c2195b-c00b-4631-a27a-0ef840b800d6"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#f99c8eef-bc37-40bf-b07e-12e87ff3d64a');
+var element = $('#07c2195b-c00b-4631-a27a-0ef840b800d6');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12349,10 +12349,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="83fdd88a-0442-4312-a444-9bdf93db8840"&gt;&lt;/div&gt;
+&lt;div id="90f4efb7-3058-414f-ae6a-e79b0a890ef3"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#83fdd88a-0442-4312-a444-9bdf93db8840');
+var element = $('#90f4efb7-3058-414f-ae6a-e79b0a890ef3');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13226,10 +13226,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="f0ca12f8-fed6-4dff-9935-79b093b6c74f"&gt;&lt;/div&gt;
+&lt;div id="7956a6ec-1c18-4570-9728-17333f159b2e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#f0ca12f8-fed6-4dff-9935-79b093b6c74f');
+var element = $('#7956a6ec-1c18-4570-9728-17333f159b2e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14070,10 +14070,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="7b9582fd-a228-491c-b62a-e9db2ae118aa"&gt;&lt;/div&gt;
+&lt;div id="4d3581a7-27b9-48d0-b3cc-7c3c200e8b08"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#7b9582fd-a228-491c-b62a-e9db2ae118aa');
+var element = $('#4d3581a7-27b9-48d0-b3cc-7c3c200e8b08');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -14943,10 +14943,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="d558794b-17e7-453a-8ca5-dbd255b62f7c"&gt;&lt;/div&gt;
+&lt;div id="55c326c7-caf3-4a58-903e-6e5f74413a2b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d558794b-17e7-453a-8ca5-dbd255b62f7c');
+var element = $('#55c326c7-caf3-4a58-903e-6e5f74413a2b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -15815,10 +15815,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="12672e2f-5923-4989-a925-a69f77ae696e"&gt;&lt;/div&gt;
+&lt;div id="f8a5b706-bbdb-4aac-ba9d-6970fac0f3e2"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#12672e2f-5923-4989-a925-a69f77ae696e');
+var element = $('#f8a5b706-bbdb-4aac-ba9d-6970fac0f3e2');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -16687,10 +16687,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="f3a662a8-5123-497d-ae0b-ed77bdc40455"&gt;&lt;/div&gt;
+&lt;div id="25c451c2-1a9a-4927-be76-ba1cd4bab38f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#f3a662a8-5123-497d-ae0b-ed77bdc40455');
+var element = $('#25c451c2-1a9a-4927-be76-ba1cd4bab38f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -17520,10 +17520,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="09a311c0-7cb7-4441-94e7-a053d9bf5c4b"&gt;&lt;/div&gt;
+&lt;div id="9456a928-53ff-4710-88ae-7aeb30495e8f"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#09a311c0-7cb7-4441-94e7-a053d9bf5c4b');
+var element = $('#9456a928-53ff-4710-88ae-7aeb30495e8f');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -18394,10 +18394,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="20405a03-e6bb-41c1-86ff-5cd5d9ffbc3f"&gt;&lt;/div&gt;
+&lt;div id="ad676ae0-24e1-4fcd-a7fe-d28b58185070"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#20405a03-e6bb-41c1-86ff-5cd5d9ffbc3f');
+var element = $('#ad676ae0-24e1-4fcd-a7fe-d28b58185070');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -19265,10 +19265,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="0ff6cf48-b1e6-4d65-94da-e3f080ee6128"&gt;&lt;/div&gt;
+&lt;div id="6d3c8206-bbbb-42af-9e00-6ce1b432aa7c"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#0ff6cf48-b1e6-4d65-94da-e3f080ee6128');
+var element = $('#6d3c8206-bbbb-42af-9e00-6ce1b432aa7c');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
