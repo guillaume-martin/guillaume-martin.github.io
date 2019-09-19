@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin - Visualization</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/visualization.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-09-16T13:10:00+08:00</updated><entry><title>Interactives data visualizations with Dash</title><link href="https://guillaume-martin.github.io/blog/interactive-data-visualization-with-dash.html" rel="alternate"></link><published>2019-09-16T13:10:00+08:00</published><updated>2019-09-16T13:10:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-09-16:/blog/interactive-data-visualization-with-dash.html</id><summary type="html">&lt;p&gt;A quick introduction to interactive visualizations using Dash.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Introduction&lt;/h1&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin - Visualization</title><link href="https://guillaume-martin.github.io/blog/" rel="alternate"></link><link href="https://guillaume-martin.github.io/blog/feeds/visualization.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/blog/</id><updated>2019-09-19T12:30:00+08:00</updated><entry><title>Interactives data visualizations with Dash</title><link href="https://guillaume-martin.github.io/blog/interactive-data-visualization-with-dash.html" rel="alternate"></link><published>2019-09-16T13:10:00+08:00</published><updated>2019-09-19T12:30:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-09-16:/blog/interactive-data-visualization-with-dash.html</id><summary type="html">&lt;p&gt;A quick introduction to interactive visualizations using Dash.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Introduction&lt;/h1&gt;
 &lt;p&gt;Dash is a data visualization framework built from Flask and React. It is a powerful tool for building interactive dashboards that allow inputs from the user and can handle data streaming.
 Because it is built from Flask, it is also easy to embed analytics applications into other web applications developped with the Flask framework.&lt;/p&gt;
 &lt;p&gt;In this article, I will explore the basic functionalities of Dash that one should know to start making interactive analytic applications.&lt;/p&gt;
@@ -407,12 +407,10 @@ In his post, Oleg shows an example with a fully functionning complexe flask appl
 &lt;p&gt;In this post, I went through the basics of creating interactive data visualizations using the Dash framework. 
 It shows how we can easily create useful dashboards with only a couple of lines of code. &lt;/p&gt;
 &lt;h1&gt;Resources&lt;/h1&gt;
-&lt;p&gt;&lt;a href="https://github.com/plotly/dash-html-components/blob/master/dash_html_components/H1.py"&gt;dash_html_components&lt;/a&gt;
-&lt;a href="https://github.com/plotly/dash-core-components"&gt;dash_core_components&lt;/a&gt;
-&lt;a href="https://github.com/plotly/dash"&gt;dash&lt;/a&gt;
-&lt;a href="https://pythonprogramming.net/data-visualization-application-dash-python-tutorial-introduction/"&gt;Data Visualization Applications with Dash and Python&lt;/a&gt; by Sentdex
-&lt;a href="https://www.youtube.com/watch?v=jO7zyj0fmwE"&gt;Chelsea Douglas: Intro to Dash | PyData Miami 2019 - YouTube&lt;/a&gt;
-&lt;a href="https://medium.com/@olegkomarov_77860/how-to-embed-a-dash-app-into-an-existing-flask-app-ea05d7a2210b"&gt;How to embed a Dash app into an existing Flask app&lt;/a&gt;&lt;/p&gt;</content><category term="visualization"></category><category term="python"></category><category term="dash"></category></entry><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T12:44:00+08:00</published><updated>2018-11-28T12:47:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
+&lt;p&gt;&lt;a href="https://github.com/plotly/dash-html-components/blob/master/dash_html_components/H1.py"&gt;dash_html_components&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://github.com/plotly/dash-core-components"&gt;dash_core_components&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://github.com/plotly/dash"&gt;dash repository&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://medium.com/@olegkomarov_77860/how-to-embed-a-dash-app-into-an-existing-flask-app-ea05d7a2210b"&gt;How to embed a Dash app into an existing Flask app&lt;/a&gt;  &lt;/p&gt;</content><category term="visualization"></category><category term="python"></category><category term="dash"></category></entry><entry><title>Makeover Monday Week 48 - 2018</title><link href="https://guillaume-martin.github.io/blog/makeovermonday-2018wk48.html" rel="alternate"></link><published>2018-11-28T12:44:00+08:00</published><updated>2018-11-28T12:47:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2018-11-28:/blog/makeovermonday-2018wk48.html</id><summary type="html">&lt;p&gt;Compare the cost of a night out around the world&lt;/p&gt;</summary><content type="html">&lt;p&gt;This week's challenge is to improve a data visualization that was published in an article from &lt;a href="https://www.thrillist.com/news/nation/cost-of-a-night-out-cities-around-the-world#"&gt;thrillist&lt;/a&gt;.
 It shows a comparison of the cost of a night out in selected cities around the world. 
 The data is available on &lt;a href="https://data.world/makeovermonday/2018w48/workspace/file?filename=Cost+of+a+night+out+around+the+world.xlsx"&gt;data.world&lt;/a&gt;&lt;/p&gt;
 &lt;h2&gt;The original visualization&lt;/h2&gt;
@@ -936,10 +934,10 @@ We can add &lt;code&gt;Axes&lt;/code&gt; to a &lt;code&gt;Figure&lt;/code&gt; us
 
 
 
-&lt;div id="2659037f-c066-4b8b-ad6d-d49c8c4549b5"&gt;&lt;/div&gt;
+&lt;div id="9d084d5b-e963-4aae-b913-85db7be5c922"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#2659037f-c066-4b8b-ad6d-d49c8c4549b5');
+var element = $('#9d084d5b-e963-4aae-b913-85db7be5c922');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -1780,10 +1778,10 @@ Here's an example for a 2 by 2 layout:&lt;/p&gt;
 
 
 
-&lt;div id="fbc54ddc-e1d9-44d1-b367-886bd1921663"&gt;&lt;/div&gt;
+&lt;div id="9bce11a5-6959-40dd-bee4-e661bfa739d1"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#fbc54ddc-e1d9-44d1-b367-886bd1921663');
+var element = $('#9bce11a5-6959-40dd-bee4-e661bfa739d1');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -2620,10 +2618,10 @@ The function returns a figure and an array of axes.&lt;/p&gt;
 
 
 
-&lt;div id="aaae9834-a769-4f62-bade-5b968158cb27"&gt;&lt;/div&gt;
+&lt;div id="8c6f1a89-3af7-40bf-9dbb-b331e17cb1e2"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#aaae9834-a769-4f62-bade-5b968158cb27');
+var element = $('#8c6f1a89-3af7-40bf-9dbb-b331e17cb1e2');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -3466,10 +3464,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="fe03ea17-dafe-4fae-b477-9c02b8c85e96"&gt;&lt;/div&gt;
+&lt;div id="bc4a89a6-6a55-4e3b-acb7-ded5bd430f47"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#fe03ea17-dafe-4fae-b477-9c02b8c85e96');
+var element = $('#bc4a89a6-6a55-4e3b-acb7-ded5bd430f47');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -4306,10 +4304,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="bc3cadb4-935e-47e3-9799-0c3606ed97b8"&gt;&lt;/div&gt;
+&lt;div id="17149e85-9111-41a8-a4a9-966cd5034ecd"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#bc3cadb4-935e-47e3-9799-0c3606ed97b8');
+var element = $('#17149e85-9111-41a8-a4a9-966cd5034ecd');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -5149,10 +5147,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="8123e25b-cb27-409b-a087-8a3955267b69"&gt;&lt;/div&gt;
+&lt;div id="0e21ba96-2e44-4358-85b5-6c7a7442858b"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#8123e25b-cb27-409b-a087-8a3955267b69');
+var element = $('#0e21ba96-2e44-4358-85b5-6c7a7442858b');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -5998,10 +5996,10 @@ I'll just add that the plotting functions we usually call using pyplot (e.g. &lt
 
 
 
-&lt;div id="e36e0950-c366-4fbd-9400-d0dfed45873d"&gt;&lt;/div&gt;
+&lt;div id="bad310bd-63e0-4f10-963b-19ed0508b9ba"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#e36e0950-c366-4fbd-9400-d0dfed45873d');
+var element = $('#bad310bd-63e0-4f10-963b-19ed0508b9ba');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -6841,10 +6839,10 @@ Each &lt;code&gt;Axis&lt;/code&gt; has &lt;code&gt;Ticks&lt;/code&gt; that can a
 
 
 
-&lt;div id="2f5d36ab-3b43-48a1-85a3-e4b1d9cd260e"&gt;&lt;/div&gt;
+&lt;div id="24b8100d-c9fd-432a-a531-3fbc0e7186f5"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#2f5d36ab-3b43-48a1-85a3-e4b1d9cd260e');
+var element = $('#24b8100d-c9fd-432a-a531-3fbc0e7186f5');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -7718,10 +7716,10 @@ The most useful options are:&lt;/p&gt;
 
 
 
-&lt;div id="29b722f1-d997-4e9f-a721-a4e956a05c66"&gt;&lt;/div&gt;
+&lt;div id="3208ead4-3c9c-46ca-b9a5-30810db07329"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#29b722f1-d997-4e9f-a721-a4e956a05c66');
+var element = $('#3208ead4-3c9c-46ca-b9a5-30810db07329');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -8562,10 +8560,10 @@ We can set bounds to limit the spine length and show or hide a spine.&lt;/p&gt;
 
 
 
-&lt;div id="d92659ee-74e8-4e36-b28d-2efe87743121"&gt;&lt;/div&gt;
+&lt;div id="8ee76dca-341e-43ff-9395-1557ac992908"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#d92659ee-74e8-4e36-b28d-2efe87743121');
+var element = $('#8ee76dca-341e-43ff-9395-1557ac992908');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -9435,10 +9433,10 @@ bars[4]&amp;#39;s height = 4
 
 
 
-&lt;div id="fd90940c-b534-439e-b48a-da61a108b5cf"&gt;&lt;/div&gt;
+&lt;div id="e96fd0e7-f934-4742-a060-31dac343429c"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#fd90940c-b534-439e-b48a-da61a108b5cf');
+var element = $('#e96fd0e7-f934-4742-a060-31dac343429c');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -10307,10 +10305,10 @@ bin 85: 0 passengers
 
 
 
-&lt;div id="84671376-61e7-430d-966e-606789b34fc5"&gt;&lt;/div&gt;
+&lt;div id="d66480b5-4a62-41e6-ad9c-59e9077f328e"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#84671376-61e7-430d-966e-606789b34fc5');
+var element = $('#d66480b5-4a62-41e6-ad9c-59e9077f328e');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -11179,10 +11177,10 @@ We can also add more arguments to customize the arrow:&lt;/p&gt;
 
 
 
-&lt;div id="a51289e7-a61a-4218-ab26-a2b83d37e381"&gt;&lt;/div&gt;
+&lt;div id="c5c2f517-58c5-4ab8-8b9f-ea45a61bc146"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#a51289e7-a61a-4218-ab26-a2b83d37e381');
+var element = $('#c5c2f517-58c5-4ab8-8b9f-ea45a61bc146');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12012,10 +12010,10 @@ Here's the default chart rendered by pyplot.&lt;/p&gt;
 
 
 
-&lt;div id="1d2a2270-a63a-4c3b-aa02-2cbd8ecb3270"&gt;&lt;/div&gt;
+&lt;div id="34182002-b361-4b50-8a54-55e6665e0560"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#1d2a2270-a63a-4c3b-aa02-2cbd8ecb3270');
+var element = $('#34182002-b361-4b50-8a54-55e6665e0560');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -12886,10 +12884,10 @@ I'll add some meaningful information like labels and values on bars and a title.
 
 
 
-&lt;div id="659701b7-c388-4bea-b764-b4c7b289d0fb"&gt;&lt;/div&gt;
+&lt;div id="6606f82b-201e-4bf3-935d-57515e0eb3ad"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#659701b7-c388-4bea-b764-b4c7b289d0fb');
+var element = $('#6606f82b-201e-4bf3-935d-57515e0eb3ad');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
@@ -13757,10 +13755,10 @@ if (IPython.notebook.kernel != null) {
 
 
 
-&lt;div id="9fabf513-a099-4111-af0a-c9b022de81d4"&gt;&lt;/div&gt;
+&lt;div id="a1cbe1e3-9208-4160-8ec1-1b8c649a8c28"&gt;&lt;/div&gt;
 &lt;div class="output_subarea output_javascript "&gt;
 &lt;script type="text/javascript"&gt;
-var element = $('#9fabf513-a099-4111-af0a-c9b022de81d4');
+var element = $('#a1cbe1e3-9208-4160-8ec1-1b8c649a8c28');
 /* Put everything inside the global mpl namespace */
 window.mpl = {};
 
