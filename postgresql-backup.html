@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>PostgreSQL database backup in Linux - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+<style type="text/css">
+
+/*some stuff for output/input prompts*/
+div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}div.cell.selected{border-radius:4px;border:thin #ababab solid}
+div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
+div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
+div.prompt{min-width:11ex;padding:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
+@media (max-width:480px){div.prompt{text-align:left}}div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
+div.prompt:empty{padding-top:0;padding-bottom:0}
+div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
+div.inner_cell{width:90%;}
+div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
+div.input_prompt{color:navy;border-top:1px solid transparent;}
+div.output_wrapper{margin-top:5px;position:relative;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:4px;-webkit-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);-moz-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
+div.output_collapsed{margin:0px;padding:0px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
+div.out_prompt_overlay{height:100%;padding:0px 0.4em;position:absolute;border-radius:4px;}
+div.out_prompt_overlay:hover{-webkit-box-shadow:inset 0 0 1px #000000;-moz-box-shadow:inset 0 0 1px #000000;box-shadow:inset 0 0 1px #000000;background:rgba(240, 240, 240, 0.5);}
+div.output_prompt{color:darkred;}
+
+a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
+h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
+/* end stuff for output/input prompts*/
+
+
+.highlight-ipynb .hll { background-color: #ffffcc }
+.highlight-ipynb  { background: #f8f8f8; }
+.highlight-ipynb .c { color: #408080; font-style: italic } /* Comment */
+.highlight-ipynb .err { border: 1px solid #FF0000 } /* Error */
+.highlight-ipynb .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight-ipynb .o { color: #666666 } /* Operator */
+.highlight-ipynb .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight-ipynb .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight-ipynb .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight-ipynb .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight-ipynb .gd { color: #A00000 } /* Generic.Deleted */
+.highlight-ipynb .ge { font-style: italic } /* Generic.Emph */
+.highlight-ipynb .gr { color: #FF0000 } /* Generic.Error */
+.highlight-ipynb .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight-ipynb .gi { color: #00A000 } /* Generic.Inserted */
+.highlight-ipynb .go { color: #888888 } /* Generic.Output */
+.highlight-ipynb .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight-ipynb .gs { font-weight: bold } /* Generic.Strong */
+.highlight-ipynb .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight-ipynb .gt { color: #0044DD } /* Generic.Traceback */
+.highlight-ipynb .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight-ipynb .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight-ipynb .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight-ipynb .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight-ipynb .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight-ipynb .kt { color: #B00040 } /* Keyword.Type */
+.highlight-ipynb .m { color: #666666 } /* Literal.Number */
+.highlight-ipynb .s { color: #BA2121 } /* Literal.String */
+.highlight-ipynb .na { color: #7D9029 } /* Name.Attribute */
+.highlight-ipynb .nb { color: #008000 } /* Name.Builtin */
+.highlight-ipynb .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight-ipynb .no { color: #880000 } /* Name.Constant */
+.highlight-ipynb .nd { color: #AA22FF } /* Name.Decorator */
+.highlight-ipynb .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight-ipynb .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight-ipynb .nf { color: #0000FF } /* Name.Function */
+.highlight-ipynb .nl { color: #A0A000 } /* Name.Label */
+.highlight-ipynb .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight-ipynb .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight-ipynb .nv { color: #19177C } /* Name.Variable */
+.highlight-ipynb .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight-ipynb .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight-ipynb .mf { color: #666666 } /* Literal.Number.Float */
+.highlight-ipynb .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight-ipynb .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight-ipynb .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight-ipynb .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight-ipynb .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight-ipynb .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight-ipynb .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight-ipynb .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight-ipynb .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight-ipynb .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight-ipynb .sx { color: #008000 } /* Literal.String.Other */
+.highlight-ipynb .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight-ipynb .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight-ipynb .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight-ipynb .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight-ipynb .vc { color: #19177C } /* Name.Variable.Class */
+.highlight-ipynb .vg { color: #19177C } /* Name.Variable.Global */
+.highlight-ipynb .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight-ipynb .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+
+<style type="text/css">
+/* Overrides of notebook CSS for static HTML export */
+div.entry-content {
+  overflow: visible;
+  padding: 8px;
+}
+.input_area {
+  padding: 0.2em;
+}
+
+a.heading-anchor {
+ white-space: normal;
+}
+
+.rendered_html
+code {
+ font-size: .8em;
+}
+
+pre.ipynb {
+  color: black;
+  background: #f7f7f7;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+  margin: 0px;
+  font-size: 13px;
+}
+
+/* remove the prompt div from text cells */
+div.text_cell .prompt {
+    display: none;
+}
+
+/* remove horizontal padding from text cells, */
+/* so it aligns with outer body text */
+div.text_cell_render {
+    padding: 0.5em 0em;
+}
+
+img.anim_icon{padding:0; border:0; vertical-align:middle; -webkit-box-shadow:none; -box-shadow:none}
+
+div.collapseheader {
+    width=100%;
+    padding: 2px;
+    cursor: pointer;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
+<script type="text/javascript">
+init_mathjax = function() {
+    if (window.MathJax) {
+        // MathJax loaded
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+            },
+            displayAlign: 'left', // Change this to 'center' to center equations.
+            "HTML-CSS": {
+                styles: {'.MathJax_Display': {"margin": 0}}
+            }
+        });
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    }
+}
+init_mathjax();
+</script>
+
+<link rel="canonical" href="./postgresql-backup.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="postgresql,sysadmin,linux,bash,cron,database" />
+        <meta name="description" content="How to backup a PostgreSQL database and automate the process." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="PostgreSQL database backup in Linux"/>
+        <meta property="og:url" content="./postgresql-backup.html"/>
+        <meta property="og:description" content="How to backup a PostgreSQL database and automate the process."/>
+        <meta property="article:published_time" content="2019-12-03" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="postgresql" />
+            <meta property="article:tag" content="sysadmin" />
+            <meta property="article:tag" content="linux" />
+            <meta property="article:tag" content="bash" />
+            <meta property="article:tag" content="cron" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./postgresql-backup.html"
+                       rel="bookmark"
+                       title="Permalink to PostgreSQL database backup in Linux">
+                        PostgreSQL database backup in Linux
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2019-12-03T00:00:00+08:00"> Tue 03 December 2019</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/postgresql.html">postgresql</a>
+        /
+	<a href="./tag/sysadmin.html">sysadmin</a>
+        /
+	<a href="./tag/linux.html">linux</a>
+        /
+	<a href="./tag/bash.html">bash</a>
+        /
+	<a href="./tag/cron.html">cron</a>
+        /
+	<a href="./tag/database.html">database</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                    <div>
+                        <section>
+                            <p id="post-share-links">
+                                Share:&nbsp;&nbsp;
+                                <a href="https://twitter.com/intent/tweet?text=PostgreSQL%20database%20backup%20in%20Linux&url=https%3A//guillaume-martin.github.io/postgresql-backup.html" target="_blank" title="Share on Twitter">
+                                    <img src="/static/icons/twitter-4-48.jpg" alt="Twitter">
+                                </a>&nbsp;&nbsp;
+                                <a href="http://www.facebook.com/sharer/sharer.php?u=https%3A//guillaume-martin.github.io/postgresql-backup.html" target="_blank" title="Share on Facebook">
+                                    <img src="/static/icons/facebook-4-48.jpg" alt="Facebook">
+                                </a>&nbsp;&nbsp;
+                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//guillaume-martin.github.io/postgresql-backup.html&title=PostgreSQL%20database%20backup%20in%20Linux&summary=How%20to%20backup%20a%20PostgreSQL%20database%20and%20automate%20the%20process.&source=https%3A//guillaume-martin.github.io/postgresql-backup.html" target="_blank" title="Share on LinkedIn">
+                                    <img src="/static/icons/linkedin-4-48.jpg" alt="Linkedin">
+                                </a>&nbsp;&nbsp;
+                                <!-- <a href="https://news.ycombinator.com/submitlink?t=PostgreSQL%20database%20backup%20in%20Linux&u=https%3A//guillaume-martin.github.io/postgresql-backup.html" target="_blank" title="Share on HackerNews">HackerNews</a> -->
+                                <a href="mailto:?subject=PostgreSQL%20database%20backup%20in%20Linux&amp;body=https%3A//guillaume-martin.github.io/postgresql-backup.html" target="_blank" title="Share via Email">
+                                    <img src="/static/icons/email-14-48.jpg" alt="Email">
+                                </a>&nbsp;&nbsp;
+                            </p>
+                        </section>
+                    </div>
+                </div>
+                <p>In this article, we'll see how to setup an automatic backup of a PostgreSQL database from a linux machine.  </p>
+<p>First, we'll do some setup. We are going to install the required tools and create a demo database we can use to practice.<br>
+Next, we will have a look at the <code>pg_dump</code>, <code>pg_dumpall</code> and <code>pg_restore</code> commands that let us backup and restore our PostgreSQL database.<br>
+Then, we will learn how to automate the backup process with a bash script and a cron job.<br>
+Finally, We will setup an email notification to monitor whether the backup is done correctly and be alerted if there has been any problem during the process.  </p>
+<h1>Setup</h1>
+<p>Before starting, we need to install the tools we are going to use to backup and restore our database. We are also going to create a small demo database we will use in this demo.</p>
+<h2>Postgresql client</h2>
+<p>The postgresql client provides the commands we need to backup and restore databases.
+To test whether the client is installed on your system, use the <code>psql --version</code> command. You should get this output:</p>
+<div class="highlight"><pre><span></span>$ psql --version
+psql <span class="o">(</span>PostgreSQL<span class="o">)</span> <span class="m">10</span>.10 <span class="o">(</span>Ubuntu <span class="m">10</span>.10-0ubuntu0.18.04.1<span class="o">)</span>
+</pre></div>
+
+
+<p>If the postgresql client is not installed, you should get an output that looks like this:</p>
+<div class="highlight"><pre><span></span>$ psql --version
+bash: /usr/bin/psql: No such file or directory
+</pre></div>
+
+
+<p>To install in Debian based systems:</p>
+<div class="highlight"><pre><span></span>$ sudo apt install postgresql-client
+</pre></div>
+
+
+<p>The command should install the <code>postgresql-client-common</code> and <code>postgresql-client-&lt;version&gt;</code>. At the time of writing, version is 10.<br>
+Once the client is installed, you can start using the <code>psql</code> command.</p>
+<p>For other systems, see this <a href="https://www.compose.com/articles/postgresql-tips-installing-the-postgresql-client/">article</a>.</p>
+<h2>Create a demo database</h2>
+<p>We are now going to create a database that we'll use in the following example.</p>
+<p>We have three ways to interact with our PostgreSQL server:</p>
+<ol>
+<li>Enter the server's command line where we can directly type SQL instructions.</li>
+</ol>
+<div class="highlight"><pre><span></span>$ psql -h &lt;host_ip&gt; -p &lt;port&gt; -U &lt;username&gt; -d &lt;database_name&gt;
+<span class="nv">username</span><span class="o">=</span>&gt; 
+</pre></div>
+
+
+<ol>
+<li>Send an SQL command using the <code>-c</code> option</li>
+</ol>
+<div class="highlight"><pre><span></span>$ psql -h &lt;host_ip&gt; -p &lt;port&gt; -U &lt;username&gt; -d &lt;database&gt; -c <span class="s1">&#39;SELECT * FROM table&#39;</span>
+</pre></div>
+
+
+<ol>
+<li>Run an SQL script from a file using the <code>-f</code> command</li>
+</ol>
+<div class="highlight"><pre><span></span>$ psql -h &lt;host_ip&gt; -p &lt;port&gt; -U &lt;username&gt; -d &lt;database&gt; -f myscript.sql
+</pre></div>
+
+
+<p>I will be working on a local PostgreSQL server, that's why I skip the <code>-h</code> option. By default, the client connects to <code>localhost</code>. If your PostgreSQL server is on a remote machine, you need to add the <code>-h &lt;host_ip&gt;</code> option to the commands that follows. The <code>-p</code> command that sets the port can be skipped if the PostgreSQL server is set to listen on the default port (5432).</p>
+<p>First, create the demo database:</p>
+<div class="highlight"><pre><span></span>$ psql -U postgres -c <span class="s1">&#39;CREATE DATABASE my_database;&#39;</span>
+CREATE DATABASE
+</pre></div>
+
+
+<p>Then, we are going to write a script that will create a table in the <code>my_database</code> database and fill it with some data. We will execute the script using the <code>psql</code> command.</p>
+<p>First, create the script.</p>
+<div class="highlight"><pre><span></span>$ vim create_database.sql
+</pre></div>
+
+
+<div class="highlight"><pre><span></span><span class="c1">-- Create a users table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">users</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">serial</span> <span class="k">PRIMARY</span> <span class="k">KEY</span>
+    <span class="p">,</span> <span class="n">username</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span> <span class="k">UNIQUE</span> <span class="k">NOT</span> <span class="k">NULL</span>
+    <span class="p">,</span> <span class="n">email</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="k">UNIQUE</span> <span class="k">NOT</span> <span class="k">NULL</span>
+<span class="p">);</span>
+
+<span class="c1">-- Insert some data in the table</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> 
+    <span class="n">users</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+<span class="k">VALUES</span>
+    <span class="p">(</span><span class="s1">&#39;Alice&#39;</span><span class="p">,</span> <span class="s1">&#39;alice@example.com&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;bob@acme.com&#39;</span><span class="p">)</span>
+    <span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Charlie&#39;</span><span class="p">,</span> <span class="s1">&#39;charlie@some_domain.com&#39;</span><span class="p">)</span>
+<span class="p">;</span>
+</pre></div>
+
+
+<p>Then, we execute the script:</p>
+<div class="highlight"><pre><span></span>$ psql -U postgres -f create_database.sql
+</pre></div>
+
+
+<p>We can control that all is set:</p>
+<div class="highlight"><pre><span></span>$ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
+ id <span class="p">|</span> username <span class="p">|</span>          email
+----+----------+-------------------------
+  <span class="m">1</span> <span class="p">|</span> Alice    <span class="p">|</span> alice@example.com
+  <span class="m">2</span> <span class="p">|</span> Bob      <span class="p">|</span> bob@acme.com
+  <span class="m">3</span> <span class="p">|</span> Charlie  <span class="p">|</span> charlie@some_domain.com
+<span class="o">(</span><span class="m">3</span> rows<span class="o">)</span>
+</pre></div>
+
+
+<p>We're all set! We can now learn how to backup our database.</p>
+<h1>pg_dump, pg_dumpall and pg_restore</h1>
+<p>The <code>pg_dump</code> command lets us extract a database into a backup file. The <code>pg_dumpall</code> extracts an entire cluster.<br>
+The <code>pg_restore</code> reloads an archive file into a database.</p>
+<p>For example, if I want to backup the <em>my_database</em> database, I would run the following commmand:</p>
+<div class="highlight"><pre><span></span>$ pg_dump my_database &gt; backup.sql
+</pre></div>
+
+
+<p>I will then have a local <code>backup.sql</code> file that contains all the SQL instructions needed to create my database objects and fill it with the backed up data.</p>
+<h2>pg_dump options</h2>
+<p>Here are some basic options we can use with the <code>pg_dump</code> command.  </p>
+<ul>
+<li><code>-U</code>: specify which user will connect to the PostgreSQL server.  </li>
+<li><code>-w</code> or <code>--password</code>: will force pg_dump to prompt for a password  </li>
+<li><code>-F</code>: specify the format of the output file  </li>
+<li><code>p</code>: plain-text SQL (default)  </li>
+<li><code>c</code>: custom-format archive  </li>
+<li><code>d</code>: directory-format archive. Will create a directory with one file per table.  </li>
+<li><code>t</code>: tar-format archive.    </li>
+</ul>
+<p><strong>custom</strong>, <strong>directory</strong> and <strong>tar</strong> formats are suitable for input into <code>pg_restore</code> while the plain-text SQL file has to be executed with the <em>pslq</em> command as we will see in the next part on restoring databases.</p>
+<ul>
+<li><code>-a</code>: dumps only the data, not the schema.</li>
+<li><code>-s</code>: dumps only the schema, not the data.</li>
+<li><code>-n &lt;schema&gt;</code>: will dump only the specified schema. To dump multiple schema, type <code>-n schema_1 -n schema_2</code></li>
+</ul>
+<h2>Dumping a remote database</h2>
+<p>If the database is stored on a remote server, we can specify the host and the user as options.</p>
+<div class="highlight"><pre><span></span>$ pg_dump -h &lt;host_ip&gt; -U &lt;username&gt; my_database &gt; my_database_backup.sql
+</pre></div>
+
+
+<p>We will be prompted to enter the password after hitting enter.</p>
+<h2>Restoring a database from a backup file</h2>
+<h3>Restoring from plaintext backup.</h3>
+<p>If you used the default settings to backup your database, you now have a plain-text <code>.sql</code> file.</p>
+<p>We are now going to restore <code>my_database</code> in a new database called <code>new_db</code>.</p>
+<div class="highlight"><pre><span></span>$ psql -U postgres -c <span class="s1">&#39;CREATE DATABASE new_db&#39;</span>
+CREATE DATABASE
+psql -U postgres -d new_db &lt; my_database_backup.sql
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+
+<span class="o">(</span><span class="m">1</span> row<span class="o">)</span>
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+COMMENT
+SET
+SET
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER TABLE
+ALTER SEQUENCE
+ALTER TABLE
+COPY <span class="m">3</span>
+ setval 
+--------
+      <span class="m">3</span>
+<span class="o">(</span><span class="m">1</span> row<span class="o">)</span>
+
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+</pre></div>
+
+
+<p>We control that the data is there:</p>
+<div class="highlight"><pre><span></span>$ psql -U postgres -d new_db -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
+ id <span class="p">|</span> username <span class="p">|</span>          email          
+----+----------+-------------------------
+  <span class="m">1</span> <span class="p">|</span> Alice    <span class="p">|</span> alice@example.com
+  <span class="m">2</span> <span class="p">|</span> Bob      <span class="p">|</span> bob@acme.com
+  <span class="m">3</span> <span class="p">|</span> Charlie  <span class="p">|</span> charlie@some_domain.com
+<span class="o">(</span><span class="m">3</span> rows<span class="o">)</span>
+</pre></div>
+
+
+<p>Here, we used the <code>psql</code> command to restore the database instead of the <code>pg_restore</code> one. When creating a backup without specifying the backup format, the format option defaults to plain-text SQL (<code>-F p</code>). This will generate a plain-text file with SQL commands. <code>pg_restore</code> cannot process those files.<br>
+To get a file that can be processed by <code>pg_restore</code>, we have to save our backup using the <code>-F</code> option with the <code>c</code>, <code>d</code>, or <code>t</code> values.</p>
+<h3>Restoring with <code>pg_restore</code></h3>
+<p>When the backup was done with the <em>custom</em>, <em>directory</em> or <em>archive</em> formats, you will have to use the <code>pg_restore</code> command to restore your database.</p>
+<h4>pg_restore options</h4>
+<p>Here are some basic options that can be used with <code>pg_restore</code>:</p>
+<ul>
+<li><code>-a</code>: restore only the data.  </li>
+<li><code>-c</code>: drop the database objects before recreating them.  </li>
+<li><code>-C</code>: creates the database before restoring into it.  </li>
+<li><code>-d dbname</code>: connects to the database dbname and restore into it.  </li>
+<li><code>-t table</code>: restore only the named table.  </li>
+</ul>
+<p>Backup the databases</p>
+<div class="highlight"><pre><span></span>$ pg_dump -U postgres -F t my_database &gt; my_database_backup.tar
+</pre></div>
+
+
+<p>To demonstrate the command, we are going to delete a record from the users table, restore from the backup file and control that the record is back.</p>
+<p>Delete the record:</p>
+<div class="highlight"><pre><span></span>$ psql -U postgres -d my_database -c <span class="s1">&#39;DELETE FROM users WHERE id = 2;&#39;</span>
+DELETE <span class="m">1</span>
+$ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
+ id <span class="p">|</span> username <span class="p">|</span>          email
+----+----------+-------------------------
+  <span class="m">1</span> <span class="p">|</span> Alice    <span class="p">|</span> alice@example.com
+  <span class="m">3</span> <span class="p">|</span> Charlie  <span class="p">|</span> charlie@some_domain.com
+<span class="o">(</span><span class="m">2</span> rows<span class="o">)</span>
+</pre></div>
+
+
+<p>Restore the data from the backup file:</p>
+<div class="highlight"><pre><span></span>$ pg_restore -U postgres -d my_database -c my_database_backup.tar
+$ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
+ id <span class="p">|</span> username <span class="p">|</span>          email
+----+----------+-------------------------
+  <span class="m">1</span> <span class="p">|</span> Alice    <span class="p">|</span> alice@example.com
+  <span class="m">2</span> <span class="p">|</span> Bob      <span class="p">|</span> bob@acme.com
+  <span class="m">3</span> <span class="p">|</span> Charlie  <span class="p">|</span> charlie@some_domain.com
+<span class="o">(</span><span class="m">3</span> rows<span class="o">)</span>
+</pre></div>
+
+
+<h1>Automate this!</h1>
+<p>So far, we have seen how to backup our database manually. But a useful backup should be done on a regular basis and we don't want to have to do it manually.
+In the last part of this post, I am going to explain how to automate the process. First, we are going to write a script that will backup the database. Then, we will create a <code>.pgpass</code> file that will allow connections to the database without having to type the password. Finaly, we will create a cron job that will run our backup script at a specific time.</p>
+<h2>Writing a bash script</h2>
+<p>Some scripts for automated backup on linux have been made available <a href="https://wiki.postgresql.org/wiki/Automated_Backup_on_Linux">here</a> by the PostgreSQL community.<br>
+We are however going to write a simpler script following their example. The script will backup one database defined in the configuration file. We want to have a rotated backup that will run daily but will only keep the last n days of backups.</p>
+<h3>Configuration file</h3>
+<p>First we create a <code>pg_backup.config</code> file where we can set up what and how we want to backup.</p>
+<div class="highlight"><pre><span></span>############################
+# POSTGRESQL BACKUP CONFIG #
+############################
+
+### CONNECTION SETTINGS ####
+
+# The hostname or ip address of the database host
+HOSTNAME=&lt;host_ip&gt;
+
+# The user name used to connect to the database. Will default to &quot;postgres&quot;
+USERNAME=&lt;user_name&gt;
+
+
+### BACKUP SETTINGS ###
+
+# Name of the database we want to backup
+DATABASE=my_database
+
+# The directory where the backup files will be saved. Will be created if it doesn&#39;t exist.
+# Must be writable by the user the script is running as
+BACKUP_DIR=/path/to/backups/
+
+# Set to &quot;yes&quot; to produce custom-format backup files
+ENABLE_TAR_BACKUPS=yes
+
+# Set to &quot;yes&quot; to produce gziped plain-text format files
+ENABLE_PLAIN_BACKUPS=yes
+
+
+### SETTINGS FOR ROTATED BACKUPS ###
+
+# Which day to take the weekly backup from (1-7 = Monday-Sunday)
+DAY_OF_WEEK_TO_KEEP=5
+
+# Number of days to keep daily backups
+DAYS_TO_KEEP=7
+
+# How many week to keep weekly backups
+WEEKS_TO_KEEP=5
+</pre></div>
+
+
+<h3>Backup script</h3>
+<p>First, we need to get the path to the configuration file that will be passed with the <code>-c</code> option when calling our script.</p>
+<h4>Load the configuration file</h4>
+<div class="highlight"><pre><span></span><span class="c1"># Get the path to the configuration file from the option passed</span>
+<span class="k">while</span> <span class="o">[</span> <span class="nv">$#</span> -gt <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">do</span>
+        <span class="c1"># Look at the value of the first argument. It should be the option &quot;-c&quot;</span>
+        <span class="k">case</span> <span class="nv">$1</span> in 
+                -c<span class="o">)</span>
+                        <span class="c1"># If the option passed is -c, then we set the value that follows</span>
+                        <span class="c1"># as the variable that stores the path to the configuration file.</span>
+                        <span class="nv">CONFIG_FILE_PATH</span><span class="o">=</span><span class="nv">$2</span>
+                        <span class="nb">shift</span> <span class="m">2</span>
+                        <span class="p">;;</span>
+                *<span class="o">)</span>
+                        <span class="c1"># Any other option will raise an error and stop the script</span>
+                        <span class="nb">echo</span> <span class="s2">&quot;Unknown option </span><span class="nv">$1</span><span class="s2">&quot;</span> <span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+                        <span class="nb">exit</span> <span class="m">2</span>
+                        <span class="p">;;</span>
+        <span class="k">esac</span>
+<span class="k">done</span>
+
+<span class="c1"># Load the configuration</span>
+<span class="nb">source</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">CONFIG_FILE_PATH</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+
+
+<p>Then we create a function called <code>backup_database()</code> that will actually do the backup.
+It will first create a directory where the backup files will be stores:</p>
+<div class="highlight"><pre><span></span><span class="c1"># The SUFFIX is set with the value of the first parameter passed to the function</span>
+<span class="c1"># it can be &quot;-daily&quot;, &quot;-weekly&quot; or &quot;-monthly&quot;</span>
+<span class="nv">SUFFIX</span><span class="o">=</span><span class="nv">$1</span>
+
+<span class="c1"># Build the name of the directory from the base name set in the configuration file</span>
+<span class="c1"># with the current date and the suffix</span>
+<span class="nv">FINAL_BACKUP_DIR</span><span class="o">=</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;`date +\%Y-\%m-\%d`</span><span class="nv">$SUFFIX</span><span class="s2">/&quot;</span>
+
+<span class="c1"># Try to create the directory. If it fails, show an error message and stop the script.</span>
+<span class="k">if</span> ! mkdir -p <span class="nv">$FINAL_BACKUP_DIR</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nb">echo</span> <span class="s2">&quot;Cannot create backup directory in </span><span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span>
+        <span class="nb">exit</span> <span class="m">1</span><span class="p">;</span>
+<span class="k">fi</span>
+</pre></div>
+
+
+<p>Then we check the values of the different backup types and run the <code>pg_dump</code> for each one set to yes. We'll look at the backup in tar format.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Control whether the option is set to &quot;yes&quot;</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nv">$ENABLE_TAR_BACKUPS</span> <span class="o">=</span> <span class="s2">&quot;yes&quot;</span> <span class="o">]</span> 
+<span class="k">then</span> 
+        <span class="c1"># Try to run the pg_dump command with the -Ft option</span>
+        <span class="k">if</span> ! pg_dump -h <span class="s2">&quot;</span><span class="nv">$HOSTNAME</span><span class="s2">&quot;</span> -U <span class="s2">&quot;</span><span class="nv">$USERNAME</span><span class="s2">&quot;</span> -Ft <span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span> -f <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.tar.in_progress<span class="p">;</span> <span class="k">then</span>
+                <span class="c1"># If the attempt failed, show an error message and continue</span>
+                <span class="nb">echo</span> <span class="s2">&quot;Failed to produce custom backup of the </span><span class="nv">$DATABASE</span><span class="s2"> database&quot;</span>
+        <span class="k">else</span>
+                <span class="c1"># If the backup succeed, remove the &quot;.in_progress&quot; extension from the file name.</span>
+                mv <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.tar.in_progress <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.tar
+        <span class="k">fi</span>
+<span class="k">fi</span>
+</pre></div>
+
+
+<p>The <code>backup_database()</code> function will be called for daily, weekly and monthly backups. The Monthly backups are made on the first day of the month.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Get what day of the month is the current day.</span>
+DAY_OF <span class="nv">MONTH</span><span class="o">=</span><span class="sb">`</span>date +%d<span class="sb">`</span>
+
+<span class="c1"># Control if today is the first day of the month.</span>
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$DAY_OF_MONTH</span><span class="s2">&quot;</span> -eq <span class="m">1</span><span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="c1"># Delete expired monthly backups</span>
+        find <span class="nv">$BACKUP_DIR</span> -maxdepth <span class="m">1</span> -name <span class="s2">&quot;*-monthly&quot;</span> -exec rm -rf <span class="s1">&#39;{}&#39;</span> <span class="s1">&#39;;&#39;</span>
+
+        <span class="c1"># Create a new monthly backup</span>
+        backup_database <span class="s2">&quot;-monthly&quot;</span>
+
+        <span class="c1"># Stop the script</span>
+        <span class="nb">exit</span> <span class="m">0</span><span class="p">;</span>
+<span class="k">fi</span>
+</pre></div>
+
+
+<p>Let's put all of this together to get our backup script. We can add some <code>echo</code> statements to log what the script is doing.</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+
+<span class="c1">## LOAD CONFIGURATION ##</span>
+
+<span class="c1"># get the path to the configuration file from the option passed</span>
+<span class="k">while</span> <span class="o">[</span> <span class="nv">$#</span> -gt <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">do</span>
+        <span class="k">case</span> <span class="nv">$1</span> in 
+                -c<span class="o">)</span>
+                        <span class="nv">CONFIG_FILE_PATH</span><span class="o">=</span><span class="nv">$2</span>
+                        <span class="nb">shift</span> <span class="m">2</span>
+                        <span class="p">;;</span>
+                *<span class="o">)</span>
+                        <span class="nb">echo</span> <span class="s2">&quot;Unknown option </span><span class="nv">$1</span><span class="s2">&quot;</span> <span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+                        <span class="nb">exit</span> <span class="m">2</span>
+                        <span class="p">;;</span>
+        <span class="k">esac</span>
+<span class="k">done</span>
+
+<span class="c1"># load configurations</span>
+<span class="nb">source</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">CONFIG_FILE_PATH</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1">## DATABASE BACKUP ##</span>
+
+<span class="k">function</span> backup_database<span class="o">()</span>
+<span class="o">{</span>
+        <span class="c1"># Create the directory where the backup file will be saved</span>
+        <span class="nv">SUFFIX</span><span class="o">=</span><span class="nv">$1</span>
+        <span class="nv">FINAL_BACKUP_DIR</span><span class="o">=</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;`date +\%Y-\%m-\%d`</span><span class="nv">$SUFFIX</span><span class="s2">/&quot;</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;Creating the backup directory in </span><span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="se">\n</span>
+        <span class="k">if</span> ! mkdir -p <span class="nv">$FINAL_BACKUP_DIR</span><span class="p">;</span> <span class="k">then</span>
+                <span class="nb">echo</span> <span class="s2">&quot;Cannot create backup directory in </span><span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span>
+                <span class="nb">exit</span> <span class="m">1</span><span class="p">;</span>
+        <span class="k">fi</span>
+
+        <span class="k">if</span> <span class="o">[</span> <span class="nv">$ENABLE_TAR_BACKUPS</span> <span class="o">=</span> <span class="s2">&quot;yes&quot;</span> <span class="o">]</span> 
+        <span class="k">then</span>
+                <span class="nb">echo</span> <span class="s2">&quot;Starting tar format backup of the </span><span class="nv">$DATABASE</span><span class="s2"> database&quot;</span>
+                <span class="k">if</span> ! pg_dump -h <span class="s2">&quot;</span><span class="nv">$HOSTNAME</span><span class="s2">&quot;</span> -U <span class="s2">&quot;</span><span class="nv">$USERNAME</span><span class="s2">&quot;</span> -Ft <span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span> -f <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.tar.in_progress<span class="p">;</span> <span class="k">then</span>
+                        <span class="nb">echo</span> <span class="s2">&quot;Failed to produce custom backup of the </span><span class="nv">$DATABASE</span><span class="s2"> database&quot;</span>
+                <span class="k">else</span>
+                        mv <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.tar.in_progress <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.tar
+                <span class="k">fi</span>
+        <span class="k">fi</span>
+
+        <span class="k">if</span> <span class="o">[</span> <span class="nv">$ENABLE_PLAIN_BACKUPS</span> <span class="o">=</span> <span class="s2">&quot;yes&quot;</span> <span class="o">]</span>
+        <span class="k">then</span>
+                <span class="nb">echo</span> <span class="s2">&quot;Starting plain format backup of the </span><span class="nv">$DATABASE</span><span class="s2"> database&quot;</span>
+                <span class="k">if</span> ! pg_dump -h <span class="s2">&quot;</span><span class="nv">$HOSTNAME</span><span class="s2">&quot;</span> -U <span class="s2">&quot;</span><span class="nv">$USERNAME</span><span class="s2">&quot;</span> -Fc <span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span> <span class="p">|</span> gzip &gt; <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.sql.gz.in_progress<span class="p">;</span> <span class="k">then</span>
+                        <span class="nb">echo</span> <span class="s2">&quot;Failed to produce plain backup of the </span><span class="nv">$DATABASE</span><span class="s2"> database&quot;</span>
+                <span class="k">else</span>
+                        mv <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.sql.gz.in_progress <span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">&quot;</span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>.sql.gz
+                <span class="k">fi</span>
+        <span class="k">fi</span>
+
+        <span class="c1"># Display the files saved in the backup directory</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;\n--------------------------------------------------&quot;</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;Showing files in </span><span class="nv">$FINAL_BACKUP_DIR</span><span class="s2">\n&quot;</span>
+        ls -lh <span class="nv">$FINAL_BACKUP_DIR</span>
+
+<span class="o">}</span>
+
+<span class="nv">START_TIME</span><span class="o">=</span><span class="nv">$SECONDS</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;##################################################&quot;</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;##          BACKUP LOG FOR `date +\%Y-\%m-\%d`           ##&quot;</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;##################################################\n&quot;</span>
+
+<span class="nb">echo</span> -e <span class="s2">&quot;Start time: `date +\%H:\%M`\n&quot;</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;Database: </span><span class="nv">$DATABASE</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;Backup Directory: </span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span>
+
+<span class="c1">## MONTHLY BACKUPS</span>
+
+<span class="nv">DAY_OF_MONTH</span><span class="o">=</span><span class="sb">`</span>date +%d<span class="sb">`</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$DAY_OF_MONTH</span><span class="s2">&quot;</span> -eq <span class="m">1</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;\n--------------------------------------------------&quot;</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;Creating monthly backup\n&quot;</span>
+
+        <span class="c1"># Delete expired monthly directories</span>
+        find <span class="nv">$BACKUP_DIR</span> -maxdepth <span class="m">1</span> -name <span class="s2">&quot;*-monthly&quot;</span> -exec rm -rf <span class="s1">&#39;{}&#39;</span> <span class="s1">&#39;;&#39;</span>
+
+        <span class="c1"># Create a new monthly backup</span>
+        backup_database <span class="s2">&quot;-monthly&quot;</span>
+
+        <span class="nb">exit</span> <span class="m">0</span><span class="p">;</span>
+<span class="k">fi</span>
+
+<span class="c1">## WEEKLY BACKUPS</span>
+
+<span class="nv">DAY_OF_WEEK</span><span class="o">=</span><span class="sb">`</span>date +%u<span class="sb">`</span> <span class="c1"># 1-7 (Monday-Sunday)</span>
+<span class="nv">EXPIRED_DAYS</span><span class="o">=</span><span class="sb">`</span>expr <span class="k">$((</span><span class="o">(</span><span class="nv">$WEEKS_TO_KEEP</span> <span class="o">*</span> <span class="m">7</span><span class="o">)</span> <span class="o">+</span> <span class="m">1</span><span class="k">))</span><span class="sb">`</span>
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$DAYS_OF_WEEK</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="nv">$DAY_OF_WEEK_TO_KEEP</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span>
+<span class="k">then</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;\n--------------------------------------------------&quot;</span>
+        <span class="nb">echo</span> -e <span class="s2">&quot;Creating weekly backup\n&quot;</span>
+
+        <span class="c1"># Delete expired weekly directories</span>
+        find <span class="nv">$BACKUP_DIR</span> -maxdepth <span class="m">1</span> -mtime +<span class="nv">$EXPIRED_DAYS</span> -name <span class="s2">&quot;*-weekly&quot;</span> -exec rm -rf <span class="s1">&#39;{}&#39;</span> <span class="s1">&#39;;&#39;</span>
+
+        <span class="c1"># Create a new weekly backup</span>
+        backup_database <span class="s2">&quot;-weekly&quot;</span>
+
+        <span class="nb">exit</span> <span class="m">0</span><span class="p">;</span>
+<span class="k">fi</span>
+
+<span class="c1">## DAILY BACKUPS</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;\n--------------------------------------------------&quot;</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;Creating daily backups\n&quot;</span>
+
+<span class="c1"># Delete expired daily backups </span>
+find <span class="nv">$BACKUP_DIR</span> -maxdepth <span class="m">1</span> -mtime +<span class="nv">$DAYS_TO_KEEP</span> -name <span class="s2">&quot;*-daily&quot;</span> -exec rm -rf <span class="s1">&#39;{}&#39;</span> <span class="s1">&#39;;&#39;</span>
+
+<span class="c1"># Create a new daily backup</span>
+backup_database <span class="s2">&quot;-daily&quot;</span>
+
+<span class="nb">echo</span> -e <span class="s2">&quot;\n--------------------------------------------------&quot;</span>
+<span class="nv">ELAPSED_TIME</span><span class="o">=</span><span class="k">$((</span><span class="nv">$SECONDS</span> <span class="o">-</span> <span class="nv">$START_TIMES</span><span class="k">))</span>
+<span class="nb">echo</span> <span class="s2">&quot;The backup took </span><span class="k">$((</span><span class="nv">$ELAPSED_TIME</span><span class="o">/</span><span class="m">60</span><span class="k">))</span><span class="s2"> min </span><span class="k">$((</span><span class="nv">$ELAPSED_TIME</span><span class="o">%</span><span class="m">60</span><span class="k">))</span><span class="s2"> sec&quot;</span>
+</pre></div>
+
+
+<p>We can now test the script by running it manually.</p>
+<div class="highlight"><pre><span></span>$ scripts/pg_backup.sh -c scripts/pg_backup.config
+Configuration file: scripts/pg_backup.config
+
+--------------------------
+Creating daily backups
+
+Making backup directory in /tmp/2019-10-24-daily/
+Starting tar format backup of the my_database database
+Starting plain format backup of the my_database database
+</pre></div>
+
+
+<h2>.pgpass</h2>
+<p>When the connection to the database requires a password, we can create a <code>.pgpass</code> file in our home directory to store the credentials. The file will contain one line per connection.
+Each line must have the following format:</p>
+<div class="highlight"><pre><span></span><span class="n">hostname</span><span class="o">:</span><span class="n">port</span><span class="o">:</span><span class="n">database</span><span class="o">:</span><span class="n">username</span><span class="o">:</span><span class="n">password</span>
+</pre></div>
+
+
+<p>For security reasons, we must disallow access to the file to world or group.</p>
+<div class="highlight"><pre><span></span>$ chmod <span class="m">0600</span> ~/.pgpass
+</pre></div>
+
+
+<p>The permissions should look like this</p>
+<div class="highlight"><pre><span></span>$ ls -al
+...
+-rw------- <span class="m">1</span> user user   <span class="m">45</span> Oct <span class="m">24</span> <span class="m">02</span>:39 .pgpass
+...
+</pre></div>
+
+
+<h2>Create a cron job</h2>
+<p>At this point, we should be able to backup our database by just running the <code>pg_backup.sh</code> script. This is already less work than typing the backup commands manually.
+The next step is to create a cron job to have the script executed by our system automatically at a given time.</p>
+<p>First, we have to make our script executable:</p>
+<div class="highlight"><pre><span></span>$ chmod +x /path/to/pg_backup.sh
+</pre></div>
+
+
+<p>Then, to create a cron job, run the <code>crontab -e</code> command. This will open the user crontab file in your favorite editor. All we have to do is add a line that define the job we want done.
+The line needs to follow this format:</p>
+<div class="highlight"><pre><span></span>minutes hours day_of_month month day_of_week  command
+</pre></div>
+
+
+<p>We can use the following operators:</p>
+<ul>
+<li><strong>The asterisk (*)</strong>: all possible values for the field.</li>
+<li><strong>The comma (,)</strong>: specifies a list of values (e.g. "1,5,10,15,20,25").</li>
+<li><strong>The dash (-)</strong>: specifies a range of values. (e.g. "5-15" == "5,6,7,...,13,14,15").</li>
+<li><strong>The separator (/)</strong>: specifies a step value. "0-23/" can be used in hours field to run the command every other hour. Steps are also permitted after an asterisk: "*/2" == every two hours.</li>
+</ul>
+<p>Let say that we want our database to be backed up every day at 11pm. We would add the following line:</p>
+<div class="highlight"><pre><span></span>00 23 * * * /path/to/pg_backup.sh -c /path/to/pg_backup.config
+</pre></div>
+
+
+<p>If the hour of the backup is not important, we can use the <code>@daily</code> special string. This will execute our script every day at midnight.</p>
+<div class="highlight"><pre><span></span>@daily /path/to/pg_backup.sh -c /path/to/pg_backup.config
+</pre></div>
+
+
+<p>Or, as another example, if nobody is working on weekends and no changes are made to the database during those days, we may want to backup our database only on weekdays. In this case, we would add this line</p>
+<div class="highlight"><pre><span></span>00 23 * * 1-5 /path/to/pg_backup.sh -c /path/to/pg_backup.config
+</pre></div>
+
+
+<p>where <code>1-5</code> tells the system to run the job only from Monday (1) to Friday (5).</p>
+<h2>Get a notification email</h2>
+<p>We're all set! The database should be backed up every day. But we still need to monitor the process to be sure that the backup is done. Don't wait the day you need your backup file to find out that the backup didn't run correctly and that you don't have any usable backup file.
+In this last step, we are going to send an email with the output from the backup script.</p>
+<p>First, we need to install mailutils</p>
+<div class="highlight"><pre><span></span>$ sudo apt install mailutils
+</pre></div>
+
+
+<p>We can now easily send emails from the command line using the <code>mailx</code> command:</p>
+<div class="highlight"><pre><span></span>$ mailx -s <span class="s2">&quot;my subject&quot;</span> recipient@example.com <span class="o">&lt;&lt;&lt;</span> <span class="s2">&quot;Some text goes there&quot;</span>
+</pre></div>
+
+
+<p>If we want to send the content of a file, we can use the <code>cat</code> command with a pipe <code>|</code>:</p>
+<div class="highlight"><pre><span></span>$ cat filename.txt <span class="p">|</span> mailx -s <span class="s2">&quot;content of filename.txt&quot;</span> recipient@example.com
+</pre></div>
+
+
+<p>Knowing this, we can modify our cron job command to have the output sent by email.
+Return in the crontab with <code>crontab -e</code> and modify the job as follow.</p>
+<div class="highlight"><pre><span></span>00 23 * * * /path/to/pg_backup.sh -c /path/to/pg_backup.config 2&gt;&amp;1 | tee /path/to/pg_backup.log | mailx -s &quot;database backup for `date +\%Y-\%m-\%d&quot; recipient@example.com
+</pre></div>
+
+
+<p>In this cron job, the <code>2&gt;&amp;1</code> redirects errors (2 is the file descriptor for <code>stderr</code>) to the standard output (1 is the file descriptor for <code>stdout</code>). The output is then passed to the <code>tee</code> command that reads from a standard input and write to our pg_backup.log file. The file is finally passed to the <code>mailx</code> command that will send an email with our job's log as the body.</p>
+<h1>Conclusion</h1>
+<p>Et voila! Our database is now backed up every day automatically. All we have to do is check our email to see if everything went smoothly.<br>
+The script we wrote in this article will only backup one database at a time. We can create a new script and a new cron job for each database we want to backup. This may not be the most efficient way in some settings. Writing our own script is a good way to learn how it works, but I recommend using the scripts made available on the <a href="https://wiki.postgresql.org/wiki/Automated_Backup_on_Linux">PostgreSQL wiki</a>.</p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
+    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-0">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2019 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    $("div.collapseheader").click(function () {
+    $header = $(this).children("span").first();
+    $codearea = $(this).children(".input_area");
+    console.log($(this).children());
+    $codearea.slideToggle(500, function () {
+        $header.text(function () {
+            return $codearea.is(":visible") ? "Collapse Code" : "Expand Code";
+        });
+    });
+});
+});
+</script>
+</body>
+</html>
