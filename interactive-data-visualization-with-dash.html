@@ -9,170 +9,6 @@
 
 
 
-
-<style type="text/css">
-
-/*some stuff for output/input prompts*/
-div.cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch}div.cell.selected{border-radius:4px;border:thin #ababab solid}
-div.cell.edit_mode{border-radius:4px;border:thin #008000 solid}
-div.cell{width:100%;padding:5px 5px 5px 0;margin:0;outline:none}
-div.prompt{min-width:11ex;padding:.4em;margin:0;font-family:monospace;text-align:right;line-height:1.21429em}
-@media (max-width:480px){div.prompt{text-align:left}}div.inner_cell{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;display:flex;flex-direction:column;align-items:stretch;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;flex:1}
-div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;line-height:1.21429em}
-div.prompt:empty{padding-top:0;padding-bottom:0}
-div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
-div.inner_cell{width:90%;}
-div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
-div.input_prompt{color:navy;border-top:1px solid transparent;}
-div.output_wrapper{margin-top:5px;position:relative;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
-div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:4px;-webkit-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);-moz-box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
-div.output_collapsed{margin:0px;padding:0px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
-div.out_prompt_overlay{height:100%;padding:0px 0.4em;position:absolute;border-radius:4px;}
-div.out_prompt_overlay:hover{-webkit-box-shadow:inset 0 0 1px #000000;-moz-box-shadow:inset 0 0 1px #000000;box-shadow:inset 0 0 1px #000000;background:rgba(240, 240, 240, 0.5);}
-div.output_prompt{color:darkred;}
-
-a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
-h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
-/* end stuff for output/input prompts*/
-
-
-.highlight-ipynb .hll { background-color: #ffffcc }
-.highlight-ipynb  { background: #f8f8f8; }
-.highlight-ipynb .c { color: #408080; font-style: italic } /* Comment */
-.highlight-ipynb .err { border: 1px solid #FF0000 } /* Error */
-.highlight-ipynb .k { color: #008000; font-weight: bold } /* Keyword */
-.highlight-ipynb .o { color: #666666 } /* Operator */
-.highlight-ipynb .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.highlight-ipynb .cp { color: #BC7A00 } /* Comment.Preproc */
-.highlight-ipynb .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.highlight-ipynb .cs { color: #408080; font-style: italic } /* Comment.Special */
-.highlight-ipynb .gd { color: #A00000 } /* Generic.Deleted */
-.highlight-ipynb .ge { font-style: italic } /* Generic.Emph */
-.highlight-ipynb .gr { color: #FF0000 } /* Generic.Error */
-.highlight-ipynb .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.highlight-ipynb .gi { color: #00A000 } /* Generic.Inserted */
-.highlight-ipynb .go { color: #888888 } /* Generic.Output */
-.highlight-ipynb .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.highlight-ipynb .gs { font-weight: bold } /* Generic.Strong */
-.highlight-ipynb .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.highlight-ipynb .gt { color: #0044DD } /* Generic.Traceback */
-.highlight-ipynb .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.highlight-ipynb .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.highlight-ipynb .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.highlight-ipynb .kp { color: #008000 } /* Keyword.Pseudo */
-.highlight-ipynb .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.highlight-ipynb .kt { color: #B00040 } /* Keyword.Type */
-.highlight-ipynb .m { color: #666666 } /* Literal.Number */
-.highlight-ipynb .s { color: #BA2121 } /* Literal.String */
-.highlight-ipynb .na { color: #7D9029 } /* Name.Attribute */
-.highlight-ipynb .nb { color: #008000 } /* Name.Builtin */
-.highlight-ipynb .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.highlight-ipynb .no { color: #880000 } /* Name.Constant */
-.highlight-ipynb .nd { color: #AA22FF } /* Name.Decorator */
-.highlight-ipynb .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.highlight-ipynb .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.highlight-ipynb .nf { color: #0000FF } /* Name.Function */
-.highlight-ipynb .nl { color: #A0A000 } /* Name.Label */
-.highlight-ipynb .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.highlight-ipynb .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.highlight-ipynb .nv { color: #19177C } /* Name.Variable */
-.highlight-ipynb .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.highlight-ipynb .w { color: #bbbbbb } /* Text.Whitespace */
-.highlight-ipynb .mf { color: #666666 } /* Literal.Number.Float */
-.highlight-ipynb .mh { color: #666666 } /* Literal.Number.Hex */
-.highlight-ipynb .mi { color: #666666 } /* Literal.Number.Integer */
-.highlight-ipynb .mo { color: #666666 } /* Literal.Number.Oct */
-.highlight-ipynb .sb { color: #BA2121 } /* Literal.String.Backtick */
-.highlight-ipynb .sc { color: #BA2121 } /* Literal.String.Char */
-.highlight-ipynb .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.highlight-ipynb .s2 { color: #BA2121 } /* Literal.String.Double */
-.highlight-ipynb .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.highlight-ipynb .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.highlight-ipynb .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.highlight-ipynb .sx { color: #008000 } /* Literal.String.Other */
-.highlight-ipynb .sr { color: #BB6688 } /* Literal.String.Regex */
-.highlight-ipynb .s1 { color: #BA2121 } /* Literal.String.Single */
-.highlight-ipynb .ss { color: #19177C } /* Literal.String.Symbol */
-.highlight-ipynb .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.highlight-ipynb .vc { color: #19177C } /* Name.Variable.Class */
-.highlight-ipynb .vg { color: #19177C } /* Name.Variable.Global */
-.highlight-ipynb .vi { color: #19177C } /* Name.Variable.Instance */
-.highlight-ipynb .il { color: #666666 } /* Literal.Number.Integer.Long */
-</style>
-
-<style type="text/css">
-/* Overrides of notebook CSS for static HTML export */
-div.entry-content {
-  overflow: visible;
-  padding: 8px;
-}
-.input_area {
-  padding: 0.2em;
-}
-
-a.heading-anchor {
- white-space: normal;
-}
-
-.rendered_html
-code {
- font-size: .8em;
-}
-
-pre.ipynb {
-  color: black;
-  background: #f7f7f7;
-  border: none;
-  box-shadow: none;
-  margin-bottom: 0;
-  padding: 0;
-  margin: 0px;
-  font-size: 13px;
-}
-
-/* remove the prompt div from text cells */
-div.text_cell .prompt {
-    display: none;
-}
-
-/* remove horizontal padding from text cells, */
-/* so it aligns with outer body text */
-div.text_cell_render {
-    padding: 0.5em 0em;
-}
-
-img.anim_icon{padding:0; border:0; vertical-align:middle; -webkit-box-shadow:none; -box-shadow:none}
-
-div.collapseheader {
-    width=100%;
-    padding: 2px;
-    cursor: pointer;
-    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
-}
-
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
-<script type="text/javascript">
-init_mathjax = function() {
-    if (window.MathJax) {
-        // MathJax loaded
-        MathJax.Hub.Config({
-            tex2jax: {
-                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
-            },
-            displayAlign: 'left', // Change this to 'center' to center equations.
-            "HTML-CSS": {
-                styles: {'.MathJax_Display': {"margin": 0}}
-            }
-        });
-        MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-    }
-}
-init_mathjax();
-</script>
-
 <link rel="canonical" href="./interactive-data-visualization-with-dash.html">
 
         <meta name="author" content="Guillaume Martin" />
@@ -200,8 +36,6 @@ init_mathjax();
     <link href="./theme/css/pygments/vs.css" rel="stylesheet">
     <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
         <link href="./static/css/custom.css" rel="stylesheet">
-
-
 
 
 
@@ -284,26 +118,6 @@ Guillaume Martin            </a>
 	<a href="./tag/dash.html">dash</a>
     
 </footer><!-- /.post-info -->                    </div>
-                    <div>
-                        <section>
-                            <p id="post-share-links">
-                                Share:&nbsp;&nbsp;
-                                <a href="https://twitter.com/intent/tweet?text=Interactives%20data%20visualizations%20with%20Dash&url=https%3A//guillaume-martin.github.io/interactive-data-visualization-with-dash.html" target="_blank" title="Share on Twitter">
-                                    <img src="/static/icons/twitter-4-48.jpg" alt="Twitter">
-                                </a>&nbsp;&nbsp;
-                                <a href="http://www.facebook.com/sharer/sharer.php?u=https%3A//guillaume-martin.github.io/interactive-data-visualization-with-dash.html" target="_blank" title="Share on Facebook">
-                                    <img src="/static/icons/facebook-4-48.jpg" alt="Facebook">
-                                </a>&nbsp;&nbsp;
-                                <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//guillaume-martin.github.io/interactive-data-visualization-with-dash.html&title=Interactives%20data%20visualizations%20with%20Dash&summary=A%20quick%20introduction%20to%20interactive%20visualizations%20using%20Dash.&source=https%3A//guillaume-martin.github.io/interactive-data-visualization-with-dash.html" target="_blank" title="Share on LinkedIn">
-                                    <img src="/static/icons/linkedin-4-48.jpg" alt="Linkedin">
-                                </a>&nbsp;&nbsp;
-                                <!-- <a href="https://news.ycombinator.com/submitlink?t=Interactives%20data%20visualizations%20with%20Dash&u=https%3A//guillaume-martin.github.io/interactive-data-visualization-with-dash.html" target="_blank" title="Share on HackerNews">HackerNews</a> -->
-                                <a href="mailto:?subject=Interactives%20data%20visualizations%20with%20Dash&amp;body=https%3A//guillaume-martin.github.io/interactive-data-visualization-with-dash.html" target="_blank" title="Share via Email">
-                                    <img src="/static/icons/email-14-48.jpg" alt="Email">
-                                </a>&nbsp;&nbsp;
-                            </p>
-                        </section>
-                    </div>
                 </div>
                 <h1>Introduction</h1>
 <p>Dash is a data visualization framework built from Flask and React. It is a powerful tool for building interactive dashboards that allow inputs from the user and can handle data streaming.
@@ -311,14 +125,13 @@ Because it is built from Flask, it is also easy to embed analytics applications 
 <p>In this article, I will explore the basic functionalities of Dash that one should know to start making interactive analytic applications.</p>
 <h1>Initializing the application</h1>
 <p>The application is initialized in about the same way as a Flask application:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dash</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dash</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-
+    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 
 <p>Set <code>debug</code> to true when developping so you don't have to restart the server to see the changes you made.</p>
 <p>The Dash application can be split in two parts: <strong>layout</strong> and <strong>interactivity</strong>.
@@ -339,7 +152,7 @@ The main attributes are:
 - <strong>style</strong>: inline styling of the component.</p>
 <p>Example:
 In this example, we are going to create a simple page. There is a main division that contains a headline and another division. The second division contains a praragraph. So, to build this page in HTML, we would use the <code>&lt;div&gt;</code>, <code>&lt;h1&gt;</code> and <code>&lt;p&gt;</code> tags. In Dash, we just have to use the <code>Div()</code>, <code>H1()</code> and <code>P()</code> components from the <code>dash_html_components</code> library.</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="kn">as</span> <span class="nn">html</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="k">as</span> <span class="nn">html</span>
 
 <span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
                 <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="s1">&#39;This is my title&#39;</span><span class="p">),</span>
@@ -352,11 +165,10 @@ In this example, we are going to create a simple page. There is a main division 
                 <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;another-div&#39;</span><span class="p">)</span>
             <span class="p">],</span>      
             <span class="n">className</span><span class="o">=</span><span class="s1">&#39;container&#39;</span><span class="p">)</span>        
-</pre></div>
-
+</code></pre></div>
 
 <p>The above script will render the following HTML code:</p>
-<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;container&quot;</span><span class="p">&gt;</span>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;container&quot;</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>This is my title<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;another-div&quot;</span><span class="p">&gt;</span>
         <span class="p">&lt;</span><span class="nt">p</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;my-paragraph&quot;</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;my-class&quot;</span> <span class="na">style</span><span class="o">=</span><span class="s">&quot;color: red; font-size: 14px;&quot;</span><span class="p">&gt;</span>
@@ -364,57 +176,51 @@ In this example, we are going to create a simple page. There is a main division 
         <span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-</pre></div>
-
+</code></pre></div>
 
 <p><img alt="bacae28d19656e48a5c454f912a580f9.png" src="/images/c3803539002342ebba29724ca1e49ba1.png"></p>
 <h2>Styling</h2>
 <h3>Adding style in html component</h3>
 <p>We can add styling by passing a dictionary as the <code>style</code> argument to the html component:</p>
-<div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
                 <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="s1">&#39;a div&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;fontSize&#39;</span><span class="p">:</span><span class="mi">14</span><span class="p">})</span>
             <span class="p">])</span>      
-</pre></div>
-
+</code></pre></div>
 
 <p>Output:</p>
-<div class="highlight"><pre><span></span><span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;color: red; font-size: 14px;&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;color: red; font-size: 14px;&quot;</span><span class="nt">&gt;</span>
     a div
 <span class="nt">&lt;/div&gt;</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3>Adding style from a local <code>.css</code> file</h3>
 <p>We can save our <code>.css</code> files in an <code>assets/</code> directory that we create in our project.
 The css files in assets/ will be automatically included when we run our application. </p>
-<div class="highlight"><pre><span></span>project/
-    |_ app.py
-    |_assets/
-        |_ styles.css 
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="err">project/</span>
+<span class="err">    |_ app.py</span>
+<span class="err">    |_assets/</span>
+<span class="err">        |_ styles.css </span>
+</code></pre></div>
 
 <p>Any <code>.js</code> file and one <code>favicon.ico</code> file saved in the assets/ directory will also be included.
 The files are included in alphanumerical order. It is recommended to prefix the files names with numbers to ensure their orders (e.g. 10_first_file.css, 20_second_file.css, ...).</p>
 <h3>Adding style from a remote <code>.css</code> file</h3>
 <p>If the assets are on internet, then we pass the <code>assets_url_path</code> argument to our dash application:</p>
-<div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">assets_url_path</span><span class="o">=</span><span class="s1">&#39;http://your-external-assets-folder-url/&#39;</span><span class="p">)</span>
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">assets_url_path</span><span class="o">=</span><span class="s1">&#39;http://your-external-assets-folder-url/&#39;</span><span class="p">)</span>
+</code></pre></div>
 
 <h3>Adding external css</h3>
 <p>We can also include resources that are not hosted with our Dash application. To do so, we create a list of stylesheets. Each stylesheet is saved as a dictionary which keys are the attributes we would add to a <code>&lt;link&gt;</code> tag in HTML.</p>
 <p>For example, to use Bootsrap from BootstrapCDN, we would add the following tag in HTML:</p>
-<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span>
       <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css&quot;</span>
       <span class="na">integrity</span><span class="o">=</span><span class="s">&quot;sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T&quot;</span> 
       <span class="na">crossorigin</span><span class="o">=</span><span class="s">&quot;anonymous&quot;</span><span class="p">&gt;</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>We can see that the <code>rel</code>, <code>href</code>, <code>integrity</code> and <code>crossorigin</code> attributes were added to the tag.
 In dash, we would declare the <code>external_stylesheet</code> as like this:</p>
-<div class="highlight"><pre><span></span><span class="n">external_stylesheets</span> <span class="o">=</span> <span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="n">external_stylesheets</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">{</span>
         <span class="s1">&#39;rel&#39;</span><span class="p">:</span><span class="s1">&#39;stylesheet&#39;</span><span class="p">,</span>
         <span class="s1">&#39;href&#39;</span><span class="p">:</span><span class="s1">&#39;https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css&#39;</span><span class="p">,</span>
@@ -422,18 +228,16 @@ In dash, we would declare the <code>external_stylesheet</code> as like this:</p>
         <span class="s1">&#39;crossorigin&#39;</span><span class="p">:</span><span class="s1">&#39;anonymous&#39;</span>
     <span class="p">}</span>
 <span class="p">]</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>The stylesheets are then passed to the dash application:</p>
-<div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">external_stylesheets</span><span class="o">=</span><span class="n">external_stylesheets</span><span class="p">)</span>
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">external_stylesheets</span><span class="o">=</span><span class="n">external_stylesheets</span><span class="p">)</span>
+</code></pre></div>
 
 <p>Finally, we add bootstrap classes to our html elements. 
 Here is a small example that shows how we can style our layout using Bootstrap:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dash</span>
-<span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="kn">as</span> <span class="nn">html</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dash</span>
+<span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="k">as</span> <span class="nn">html</span>
 
 <span class="n">external_stylesheets</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">{</span>
@@ -456,18 +260,17 @@ Here is a small example that shows how we can style our layout using Bootstrap:<
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-
+    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 
 <p><img alt="dash-bootstrap.png" src="/images/8cc25b7cd4eb470388fb0bcbdd36b3e4.png"></p>
 <h2>Core Components</h2>
 <p>The <code>dash_core_components</code> (dcc) library provides the elements for interactive user interfaces.
 Some common input components that can be found in the library are text input, dropdown, slide, checkbox, radio item, button, date picker, ... 
 The dcc components are added inside the application layout in the same way the HTML components are:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dash</span>
-<span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="kn">as</span> <span class="nn">html</span>
-<span class="kn">import</span> <span class="nn">dash_core_components</span> <span class="kn">as</span> <span class="nn">dcc</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dash</span>
+<span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="k">as</span> <span class="nn">html</span>
+<span class="kn">import</span> <span class="nn">dash_core_components</span> <span class="k">as</span> <span class="nn">dcc</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">()</span>
 
@@ -483,14 +286,13 @@ The dcc components are added inside the application layout in the same way the H
 <span class="p">])</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-
+    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 
 <p><img alt="9ed96c7d2e6f1cff6b15683c4ff4781e.png" src="/images/c9c76bc709f64fcc800e2640d3d93224.png"></p>
 <h1>Graph</h1>
 <p>Graphs are set as a <code>dcc.Graph</code> component in the layout. </p>
-<div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
     <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
         <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my-graph&#39;</span><span class="p">,</span>
         <span class="n">figure</span><span class="o">=</span><span class="p">{</span>
@@ -503,12 +305,11 @@ The dcc components are added inside the application layout in the same way the H
         <span class="p">}</span>
     <span class="p">)</span>
 <span class="p">])</span>
-</pre></div>
-
+</code></pre></div>
 
 <p><img alt="simple-bar-chart.png" src="/images/3ffe3f9d84a2411a83ec6205cb8cc7e2.png"></p>
 <p>We can also use the same syntax as the plotly library:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="kn">as</span> <span class="nn">go</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 
 
 <span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
@@ -526,7 +327,7 @@ The dcc components are added inside the application layout in the same way the H
             <span class="p">],</span>
             <span class="n">layout</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;A bar chart using plotly&#39;</span><span class="p">,</span>
-                <span class="n">showlegend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">showlegend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">legend</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Legend</span><span class="p">(</span>
                     <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                     <span class="n">y</span><span class="o">=</span><span class="mf">1.0</span>
@@ -535,35 +336,32 @@ The dcc components are added inside the application layout in the same way the H
         <span class="p">)</span>
     <span class="p">)</span>
 <span class="p">])</span>
-</pre></div>
-
+</code></pre></div>
 
 <p><img alt="plotly-graph.png" src="/images/ab4686d63edf48578d54f320f8c61a89.png"></p>
 <h1>Callback</h1>
 <p>The <code>@app.callback</code> decorator is where the interactivity happens.</p>
 <p>In the layout, we define an input which is going to be a dcc component like a text field or a dropdown and an output which is going to be an html component where the result is displayed.</p>
-<div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
     <span class="n">dcc</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my-input&#39;</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="s1">&#39;type something&#39;</span><span class="p">),</span>
     <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my-output&#39;</span><span class="p">)</span>
 <span class="p">])</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Then we define a function that is going to process our input and return an output. We also use the <code>@app.callback</code> decorator where we define our inputs and outputs. Whenever an input property changes, the function will be called.</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dash.dependencies</span> <span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">dash.dependencies</span> <span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span>
 
-<span class="nd">@app.callback</span><span class="p">(</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
     <span class="n">Output</span><span class="p">(</span><span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;my-output&#39;</span><span class="p">,</span> <span class="n">component_property</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">),</span>
     <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;my-input&#39;</span><span class="p">,</span> <span class="n">component_property</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)]</span>
 <span class="p">)</span>
 <span class="k">def</span> <span class="nf">update_output</span><span class="p">(</span><span class="n">input_value</span><span class="p">):</span>
-    <span class="n">retun</span> <span class="n">f</span><span class="s2">&quot;You&#39;ve entered {input_value)&quot;</span>
-</pre></div>
-
+    <span class="n">retun</span> <span class="sa">f</span><span class="s2">&quot;You&#39;ve entered </span><span class="si">{</span><span class="n">input_value</span><span class="p">)</span><span class="s2">&quot;</span>
+</code></pre></div>
 
 <p>What the above code does is that whenever you type something in the text field, the <code>update_output()</code> method will be called. The decorator set that the input is the value of the component with the <code>my-input</code> id. What the function returns will be sent to the output which is the component with the <code>my-output</code> id.</p>
 <p>Let's see another example. We're going to have two dropdowns that will let us set the background and foreground colors of a <code>&lt;div&gt;</code>.</p>
-<div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
     <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
         <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
             <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;background-color&#39;</span><span class="p">,</span>
@@ -593,7 +391,7 @@ The dcc components are added inside the application layout in the same way the H
 <span class="p">])</span>
 
 
-<span class="nd">@app.callback</span><span class="p">(</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
     <span class="p">[</span><span class="n">Output</span><span class="p">(</span><span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;my-output&#39;</span><span class="p">,</span> <span class="n">component_property</span><span class="o">=</span><span class="s1">&#39;style&#39;</span><span class="p">)],</span>
     <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;background-color&#39;</span><span class="p">,</span> <span class="n">component_property</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">),</span>
      <span class="n">Input</span><span class="p">(</span><span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;text-color&#39;</span><span class="p">,</span> <span class="n">component_property</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)]</span>
@@ -601,8 +399,7 @@ The dcc components are added inside the application layout in the same way the H
 <span class="k">def</span> <span class="nf">update_output</span><span class="p">(</span><span class="n">backgroud_color</span><span class="p">,</span> <span class="n">text_color</span><span class="p">):</span>
     <span class="n">style</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;background-color&#39;</span><span class="p">:</span><span class="n">backgroud_color</span><span class="p">,</span><span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="n">text_color</span><span class="p">}]</span>
     <span class="k">return</span> <span class="n">style</span>
-</pre></div>
-
+</code></pre></div>
 
 <p><img alt="div-color-change.png" src="/images/d5766458ddd945e4926db2e3c3a089a3.png"></p>
 <p>In the layout, we define two divisions that contain the dropdowns. A third division with some text will be formatted with the values set in the two dropdowns.
@@ -619,7 +416,7 @@ We'll set three attributes:
 - <strong>n_intervals</strong>: this is the number of the interval. It is incremented at each update.</p>
 <p>As an example, we'll create a small app that draws the distribution of a variable with a normal distribution.</p>
 <p>First, we add the interval component to our layout:</p>
-<div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
     <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
         <span class="n">html</span><span class="o">.</span><span class="n">H1</span><span class="p">(</span><span class="s1">&#39;This is a live Graph&#39;</span><span class="p">),</span>
         <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;live-graph&#39;</span><span class="p">),</span>
@@ -630,41 +427,37 @@ We'll set three attributes:
         <span class="p">)</span>
     <span class="p">])</span>
 <span class="p">])</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>The interval becomes the input of our update method:</p>
-<div class="highlight"><pre><span></span><span class="nd">@app.callback</span><span class="p">(</span><span class="n">Output</span><span class="p">(</span><span class="s1">&#39;live-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+<div class="highlight"><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">Output</span><span class="p">(</span><span class="s1">&#39;live-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
               <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="s1">&#39;interval-component&#39;</span><span class="p">,</span> <span class="s1">&#39;n_intervals&#39;</span><span class="p">)])</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Then in the update method, we generate a new value for x ...</p>
-<div class="highlight"><pre><span></span>    <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>    <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div>
 
 <p>... and create a new graph that we'll send to the output.</p>
-<div class="highlight"><pre><span></span>    <span class="n">figure</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><code>    <span class="n">figure</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">)],</span>
         <span class="s1">&#39;layout&#39;</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
-            <span class="n">title</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;Distribution of x ({n:,} values)&#39;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Distribution of x (</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> values)&#39;</span><span class="p">,</span>
             <span class="n">xaxis</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span><span class="s1">&#39;X&#39;</span><span class="p">},</span>
             <span class="n">yaxis</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span><span class="s1">&#39;count of X&#39;</span><span class="p">}</span>
         <span class="p">)</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">figure</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Let's put it all together</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dash</span>
-<span class="kn">import</span> <span class="nn">dash_core_components</span> <span class="kn">as</span> <span class="nn">dcc</span> 
-<span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="kn">as</span> <span class="nn">html</span>
-<span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="kn">as</span> <span class="nn">go</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dash</span>
+<span class="kn">import</span> <span class="nn">dash_core_components</span> <span class="k">as</span> <span class="nn">dcc</span> 
+<span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="k">as</span> <span class="nn">html</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">dash.dependencies</span> <span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
@@ -682,7 +475,7 @@ We'll set three attributes:
 <span class="p">])</span>
 
 
-<span class="nd">@app.callback</span><span class="p">(</span><span class="n">Output</span><span class="p">(</span><span class="s1">&#39;live-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">Output</span><span class="p">(</span><span class="s1">&#39;live-graph&#39;</span><span class="p">,</span> <span class="s1">&#39;figure&#39;</span><span class="p">),</span>
               <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="s1">&#39;interval-component&#39;</span><span class="p">,</span> <span class="s1">&#39;n_intervals&#39;</span><span class="p">)])</span>
 <span class="k">def</span> <span class="nf">update_histogram</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
@@ -690,7 +483,7 @@ We'll set three attributes:
     <span class="n">figure</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Histogram</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">)],</span>
         <span class="s1">&#39;layout&#39;</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
-            <span class="n">title</span><span class="o">=</span><span class="n">f</span><span class="s1">&#39;Distribution of X ({n:,} values)&#39;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Distribution of X (</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> values)&#39;</span><span class="p">,</span>
             <span class="n">xaxis</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span><span class="s1">&#39;X&#39;</span><span class="p">},</span>
         <span class="p">)</span>
     <span class="p">}</span>
@@ -699,9 +492,8 @@ We'll set three attributes:
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-
+    <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 
 <p>Here is our small application in action:</p>
 <p><img alt="Peek 2019-09-05 16-25.gif" src="/images/3b87cd3da44b4a60ae97802e75713bd0.gif"></p>
@@ -753,16 +545,19 @@ It shows how we can easily create useful dashboards with only a couple of lines 
       <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
-    </li>
-    <li class="list-group-item tag-2">
-      <a href="./tag/postgresql.html">postgresql</a>
-    </li>
-    <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/tableau.html">tableau</a>
@@ -771,61 +566,58 @@ It shows how we can easily create useful dashboards with only a couple of lines 
       <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/sql.html">sql</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/scipy.html">scipy</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmap.html">bitmap</a>
-    </li>
-    <li class="list-group-item tag-4">
       <a href="./tag/sysadmin.html">sysadmin</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/virtual-environments.html">virtual environments</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/redis.html">redis</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/json.html">json</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/environment-variables.html">environment variables</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/segmentation.html">segmentation</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
     </li>
   </ul>
 </li>
@@ -842,7 +634,7 @@ It shows how we can easily create useful dashboards with only a couple of lines 
    <div class="container">
       <hr>
       <div class="row">
-         <div class="col-xs-10">&copy; 2019 Guillaume Martin
+         <div class="col-xs-10">&copy; 2020 Guillaume Martin
             &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
             <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
             <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
@@ -861,19 +653,6 @@ It shows how we can easily create useful dashboards with only a couple of lines 
     <script src="./static/js/custom.js"></script>
 
 
-<script type="text/javascript">
-jQuery(document).ready(function($) {
-    $("div.collapseheader").click(function () {
-    $header = $(this).children("span").first();
-    $codearea = $(this).children(".input_area");
-    console.log($(this).children());
-    $codearea.slideToggle(500, function () {
-        $header.text(function () {
-            return $codearea.is(":visible") ? "Collapse Code" : "Expand Code";
-        });
-    });
-});
-});
-</script>
+
 </body>
 </html>
