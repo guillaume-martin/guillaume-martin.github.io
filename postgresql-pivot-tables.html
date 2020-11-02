@@ -217,88 +217,89 @@ employee.  </p>
 We have a datetime value stored in <em>payment.payment_date</em>.
 I'd like to have a month in letters to make it easier to read.
 I'll use the <code>to_char()</code> to convert the timestamp into a string. </p>
-<div class="highlight"><pre><span></span><code><span class="err">to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
+<div class="highlight"><pre><span></span><code><span></span>to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
 </code></pre></div>
 
 <p><strong>Employee:</strong><br>
 I will concatenate the first and last names to get a full name. This will be our columns headers.</p>
-<div class="highlight"><pre><span></span><code><span class="err">staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
+<div class="highlight"><pre><span></span><code><span>staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
 </code></pre></div>
 
 <p><strong>Total amount:</strong><br>
 The total amount is simply the sum of all the amounts from the payment table grouped by staff and month.</p>
-<div class="highlight"><pre><span></span><code><span class="err">sum(payment.amount)</span>
+<div class="highlight"><pre><span></span><code><span>sum(payment.amount)</span>
 </code></pre></div>
 
 <p>My query is as follow:</p>
-<div class="highlight"><pre><span></span><code><span class="err">SELECT </span>
-<span class="err">    to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
-<span class="err">    , staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
-<span class="err">    , sum(payment.amount) AS total</span>
-<span class="err">FROM </span>
-<span class="err">    payment</span>
-<span class="err">        LEFT JOIN staff</span>
-<span class="err">            ON payment.staff_id = staff.staff_id</span>
-<span class="err">GROUP BY</span>
-<span class="err">    staff_name</span>
-<span class="err">    , month </span>
-<span class="err">    ,  date_part(&#39;month&#39;, payment.payment_date)</span>
-<span class="err">ORDER BY </span>
-<span class="err">    staff_name</span>
-<span class="err">    , date_part(&#39;month&#39;, payment.payment_date);</span>
+<div class="highlight"><pre><span></span><code>
+<span>SELECT </span>
+<span>    to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
+<span>    , staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
+<span>    , sum(payment.amount) AS total</span>
+<span>FROM </span>
+<span>    payment</span>
+<span>        LEFT JOIN staff</span>
+<span>            ON payment.staff_id = staff.staff_id</span>
+<span>GROUP BY</span>
+<span>    staff_name</span>
+<span>    , month </span>
+<span>    ,  date_part(&#39;month&#39;, payment.payment_date)</span>
+<span>ORDER BY </span>
+<span>    staff_name</span>
+<span>    , date_part(&#39;month&#39;, payment.payment_date);</span>
 </code></pre></div>
 
 <p>And the output looks like this</p>
-<div class="highlight"><pre><span></span><code><span class="err">   month   |  staff_name  |  total</span>
-<span class="err">-----------+--------------+----------</span>
-<span class="err"> February  | Jon Stephens |  4191.00</span>
-<span class="err"> March     | Jon Stephens | 12109.73</span>
-<span class="err"> April     | Jon Stephens | 14479.10</span>
-<span class="err"> May       | Jon Stephens |   280.09</span>
-<span class="err"> February  | Mike Hillyer |  4160.84</span>
-<span class="err"> March     | Mike Hillyer | 11776.83</span>
-<span class="err"> April     | Mike Hillyer | 14080.36</span>
-<span class="err"> May       | Mike Hillyer |   234.09</span>
-<span class="err">(8 rows)</span>
+<div class="highlight"><pre><span></span><code><span>   month   |  staff_name  |  total</span>
+<span>-----------+--------------+----------</span>
+<span> February  | Jon Stephens |  4191.00</span>
+<span> March     | Jon Stephens | 12109.73</span>
+<span> April     | Jon Stephens | 14479.10</span>
+<span> May       | Jon Stephens |   280.09</span>
+<span> February  | Mike Hillyer |  4160.84</span>
+<span> March     | Mike Hillyer | 11776.83</span>
+<span> April     | Mike Hillyer | 14080.36</span>
+<span> May       | Mike Hillyer |   234.09</span>
+<span>(8 rows)</span>
 </code></pre></div>
 
 <h2>Generate the pivot table</h2>
 <p>Now, to generate the pivot table, I just have to append the <code>crosstabview</code> command to my query.<br>
 The order of the selected columns in the query is important as it will determine which is used for rows, columns or values (cells).<br>
 The order should be as follow:  </p>
-<div class="highlight"><pre><span></span><code><span class="err">SELECT</span>
-<span class="err">    rows</span>
-<span class="err">    , columns</span>
-<span class="err">    , values</span>
+<div class="highlight"><pre><span></span><code><span>SELECT</span>
+<span>    rows</span>
+<span>    , columns</span>
+<span>    , values</span>
 </code></pre></div>
 
 <p>So the final query is like this:</p>
-<div class="highlight"><pre><span></span><code><span class="err">SELECT </span>
-<span class="err">    to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
-<span class="err">    , staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
-<span class="err">    , sum(payment.amount) AS total</span>
-<span class="err">FROM </span>
-<span class="err">    payment</span>
-<span class="err">        LEFT JOIN staff</span>
-<span class="err">            ON payment.staff_id = staff.staff_id</span>
-<span class="err">GROUP BY</span>
-<span class="err">    staff_name</span>
-<span class="err">    , month </span>
-<span class="err">    ,  date_part(&#39;month&#39;, payment.payment_date)</span>
-<span class="err">ORDER BY </span>
-<span class="err">    staff_name</span>
-<span class="err">    , date_part(&#39;month&#39;, payment.payment_date)</span>
-<span class="err">\crosstabview</span>
+<div class="highlight"><pre><span></span><code><span>SELECT </span>
+<span>    to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
+<span>    , staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
+<span>    , sum(payment.amount) AS total</span>
+<span>FROM </span>
+<span>    payment</span>
+<span>        LEFT JOIN staff</span>
+<span>            ON payment.staff_id = staff.staff_id</span>
+<span>GROUP BY</span>
+<span>    staff_name</span>
+<span>    , month </span>
+<span>    ,  date_part(&#39;month&#39;, payment.payment_date)</span>
+<span>ORDER BY </span>
+<span>    staff_name</span>
+<span>    , date_part(&#39;month&#39;, payment.payment_date)</span>
+<span>\crosstabview</span>
 </code></pre></div>
 
 <p>It outputs the pivot table I wanted:</p>
-<div class="highlight"><pre><span></span><code><span class="err">   month   | Jon Stephens | Mike Hillyer</span>
-<span class="err">-----------+--------------+--------------</span>
-<span class="err"> February  |      4191.00 |      4160.84</span>
-<span class="err"> March     |     12109.73 |     11776.83</span>
-<span class="err"> April     |     14479.10 |     14080.36</span>
-<span class="err"> May       |       280.09 |       234.09</span>
-<span class="err">(4 rows)</span>
+<div class="highlight"><pre><span></span><code><span>   month   | Jon Stephens | Mike Hillyer</span>
+<span>-----------+--------------+--------------</span>
+<span> February  |      4191.00 |      4160.84</span>
+<span> March     |     12109.73 |     11776.83</span>
+<span> April     |     14479.10 |     14080.36</span>
+<span> May       |       280.09 |       234.09</span>
+<span>(4 rows)</span>
 </code></pre></div>
             </div>
             <!-- /.entry-content -->
