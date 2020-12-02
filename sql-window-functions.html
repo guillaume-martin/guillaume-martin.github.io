@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>SQL window functions - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="./sql-window-functions.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="database,sql" />
+        <meta name="description" content="An introduction to window functions in SQL." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="SQL window functions"/>
+        <meta property="og:url" content="./sql-window-functions.html"/>
+        <meta property="og:description" content="An introduction to window functions in SQL."/>
+        <meta property="article:published_time" content="2020-12-02" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:tag" content="sql" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./sql-window-functions.html"
+                       rel="bookmark"
+                       title="Permalink to SQL window functions">
+                        SQL window functions
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2020-12-02T12:20:00+08:00"> Wed 02 December 2020</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/database.html">database</a>
+        /
+	<a href="./tag/sql.html">sql</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>This article is an introduction to the basics of window functions in SQL.
+First, in the introduction, I will explain what is a window function and what it does. Then, I will show you how to write window functions. Finally, I will go through the different types of window functions we can use.
+At the end of the article, I will link to some practical examples of how we can use those functions. More examples will be added later as I write more articles on the topic.</p>
+<h1>Introduction</h1>
+<p>A window function performs calculations against a partition of the data.
+The two main characteristics of window functions are:
+- They don't collapse rows of a group
+- They can run calculations on a set of rows related to the current row.</p>
+<p>Let's see what it means.</p>
+<ol>
+<li>Window functions don't collapse rows of a group.
+The difference with aggregation functions using the <code>GROUP BY</code> clause is that the result is not grouped into single rows. Instead, the resultset contains every row of each group.
+To illustrate, we'll write queries that sum the salaries of each department of a company.</li>
+</ol>
+<p>Aggregation functions return a single result per group, hiding the rows of each group.</p>
+<div class="highlight"><pre><span></span><code> <span class="n">department_name</span>  <span class="o">|</span>   <span class="k">sum</span>    
+<span class="c1">------------------+----------</span>
+ <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Finance</span>          <span class="o">|</span> <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Human</span> <span class="n">Resources</span>  <span class="o">|</span>  <span class="mi">6500</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">IT</span>               <span class="o">|</span> <span class="mi">28800</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Marketing</span>        <span class="o">|</span> <span class="mi">19000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="k">Public</span> <span class="n">Relations</span> <span class="o">|</span> <span class="mi">10000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Purchasing</span>       <span class="o">|</span> <span class="mi">24900</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Sales</span>            <span class="o">|</span> <span class="mi">57700</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">(</span><span class="mi">11</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+<p>When using a window function, all the rows of each group are returned.</p>
+<div class="highlight"><pre><span></span><code> <span class="n">department_name</span>  <span class="o">|</span>   <span class="k">sum</span>    
+<span class="c1">------------------+----------</span>
+ <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">[...]</span>
+ <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+<ol>
+<li>Window functions can run calculations on a set of rows related to the current row.
+Window functions can run their calculation on a window that 'slides' along the dataset. It can include a number of rows before and/or after the current row.
+A common example of such operation is how we calculate a moving average. For example, a 5 periods moving average will only include the last five rows:
+In the example below, <span class="math">\(60 = \frac{85+97+39+49+30}{5}\)</span>.
+<img alt="" src="images/5be3beb5e83742d386080ddbb7bb4125.png"></li>
+</ol>
+<h1>Syntax</h1>
+<p>A window function call always contains an <code>OVER</code> clause. The <code>OVER</code> clause is what defines the window partitions.</p>
+<div class="highlight"><pre><span></span><code><span class="k">function</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="n">OVER</span><span class="p">([</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">expression_list</span><span class="p">]</span>
+                          <span class="p">[</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">order_list</span><span class="p">]</span>
+                          <span class="p">[</span><span class="k">ROWS</span> <span class="n">frame_clause</span><span class="p">])</span>
+</code></pre></div>
+
+<h2>The OVER() clause</h2>
+<p>The <code>OVER()</code> clause is where the partitionning of the window function is set. It contains three clauses:
+- <code>PARTITION BY</code>
+- <code>ORDER BY</code>
+- <code>ROWS</code> or <code>RANGE</code></p>
+<h3><code>PARTITION BY</code></h3>
+<p>Splits the table into partitions based on a column's unique values.</p>
+<p>Let's have a look at salaries:</p>
+<p>If I write the following query,</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> <span class="k">MAX</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">salaries</span><span class="p">;</span>
+</code></pre></div>
+
+<p>I get a unique row with the highest of all salaries:</p>
+<div class="highlight"><pre><span></span><code>   <span class="k">max</span>    
+<span class="c1">----------</span>
+ <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">(</span><span class="mi">1</span> <span class="k">row</span><span class="p">)</span>
+</code></pre></div>
+
+<p>If I want to get the maximum salary for each department, I can use the <code>PARTITION BY department</code> clause:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="k">MAX</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span><span class="p">)</span> <span class="k">AS</span> <span class="n">department_max</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span> <span class="n">department_max</span> 
+<span class="c1">-------------------+------------------+----------+----------------</span>
+ <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">...</span>
+</code></pre></div>
+
+<p>For each row, I get the maximum salary for that department. For example, we can see that Shelley Higgins has the highest salary in the Accounting department.</p>
+<h3><code>ORDER BY</code></h3>
+<p>Specifies the order of rows in a partition.
+From the previous example, we can order the rows by employee:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="k">MAX</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">employee</span><span class="p">)</span> <span class="k">AS</span> <span class="n">department_max</span>
+<span class="k">FROM</span>
+    <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span> <span class="n">department_max</span> 
+<span class="c1">-------------------+------------------+----------+----------------</span>
+ <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Daniel</span> <span class="n">Faviet</span>     <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Ismael</span> <span class="n">Sciarra</span>    <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">John</span> <span class="n">Chen</span>         <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">8200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Jose</span> <span class="n">Manuel</span> <span class="n">Urman</span> <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span>
+</code></pre></div>
+
+<p>We now have the departments that are grouped together and all employees of a department are sorted alphabetically.</p>
+<h3><code>ROWS</code> or <code>RANGE</code></h3>
+<p>The last clause defines the frame. This is a subset of rows against which the function is run.</p>
+<p>It can either specify where the frame starts only:</p>
+<div class="highlight"><pre><span></span><code><span class="err">{</span><span class="n">RANGE</span> <span class="o">|</span> <span class="k">ROWS</span><span class="err">}</span> <span class="n">frame_start</span>
+</code></pre></div>
+
+<p>Or it can specify where the frame starts and where it ends:</p>
+<div class="highlight"><pre><span></span><code><span class="err">{</span><span class="n">RANGE</span> <span class="o">|</span> <span class="k">ROWS</span><span class="err">}</span> <span class="k">BETWEEN</span> <span class="n">frame_start</span> <span class="k">AND</span> <span class="n">frame_end</span>
+</code></pre></div>
+
+<p><code>frame_start</code> is one of the following options:
+- N PRECEDING: N rows before the current row.
+- UNBOUNDED PRECEDING: all the rows preceding the current row.
+- CURRENT ROW</p>
+<p><code>frame_end</code> is one of the following options:
+- CURRENT ROW
+- N FOLLOWING: N rows after the current row.
+- UNBOUNDED FOLLOWING: all the rows following the current row.</p>
+<p>Setting up the frame start only:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">unbounded</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="mi">3</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">nrows</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="k">CURRENT</span> <span class="k">ROW</span><span class="p">)</span> <span class="k">AS</span> <span class="n">current_row</span>
+<span class="k">FROM</span> 
+    <span class="n">daily_sales</span>
+<span class="p">;</span>
+</code></pre></div>
+
+<p><img alt="" src="images/74b0172cbc574c4d96e82b4a597cc6e7.png"></p>
+<p>Let's look at some example using <code>BETWEEN ... AND ...</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="mi">2</span> <span class="n">FOLLOWING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">all_til_next_two</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">3</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="mi">2</span> <span class="n">FOLLOWING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">six_rows</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="k">CURRENT</span> <span class="k">ROW</span> <span class="k">AND</span> <span class="n">UNBOUNDED</span> <span class="n">FOLLOWING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">all_following</span>
+<span class="k">FROM</span> 
+    <span class="n">daily_sales</span>
+<span class="p">;</span>
+</code></pre></div>
+
+<p><img alt="" src="images/df5de973fc864cc88b447eac83fa73a9.png"></p>
+<p>The <code>BETWEEN UNBOUNDED PRECEDING AND 2 FOLLOWING</code> clause will sum all the amounts from the beginning (UNBOUNDED PRECEDING) until two rows after the current row (2 FOLLOWING) as shown by the red frame.</p>
+<p>The <code>BETWEEN 3 PRECEDING AND 2 FOLLOWING</code> clause  will sum all the amounts from three rows before the current row (3 PRECEDING) until two rows after the current row (2 FOLLOWING) as shown by the green frame.</p>
+<p>Finally, the <code>BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</code> clause will sum all the amounts from the current row to the last row (UNBOUNDED FOLLOWING) as shown by the blue frame.</p>
+<p><strong>What is the difference between ROWS and RANGE</strong>
+To check the difference between ROWS and RANGE, I am going to write a query that sums the salaries using each of the frames keywords:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">salary</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span> <span class="k">ROWS</span> <span class="k">CURRENT</span> <span class="k">ROW</span><span class="p">)</span> <span class="k">AS</span> <span class="k">rows</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span> <span class="n">RANGE</span> <span class="k">CURRENT</span> <span class="k">ROW</span><span class="p">)</span> <span class="k">AS</span> <span class="n">range</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+</code></pre></div>
+
+<p><img alt="" src="images/5977e81bf968489e857403669d2cf016.png"></p>
+<p>We can see there's a difference when there are duplicate values. RANGE returns all rows with the same value as a unique current row. In our example, there are two employees with a salary of 4800. When using ROWS, the sum returns 4800 for each of the rows. When using RANGE, the sum returns 9600 (4800 + 4800) on both rows.</p>
+<h1>Window functions types</h1>
+<h2>Value window functions</h2>
+<p>The value window functions return the value of a column or expression at a specified row of a resultset.</p>
+<h3>FIRST_VALUE()</h3>
+<p>The <code>FIRST_VALUE()</code> function returns the first value in a sorted partition.</p>
+<p><strong>syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">FIRST_VALUE</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example:</strong>
+Let's write a query that gives us the name of the employee who has the lowest salary of each department. We'll build the window function as follow:
+- partition the data by department: <code>PARTITION BY department</code>.
+- order the salaries to get the lowest one in the first row of the partition: <code>ORDER BY salary</code>.
+- get the name of the employee in the first row of the partition: <code>FIRST_VALUE(employee)</code>.</p>
+<p>The final query will look like this:</p>
+<div class="highlight"><pre><span></span><code>    <span class="k">SELECT</span>
+        <span class="n">employee_id</span>
+        <span class="p">,</span> <span class="n">employee</span>
+        <span class="p">,</span> <span class="n">department</span>
+        <span class="p">,</span> <span class="n">salary</span>
+        <span class="p">,</span> <span class="n">FIRST_VALUE</span><span class="p">(</span><span class="n">employee</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span>
+    <span class="k">FROM</span> 
+        <span class="n">salaries</span>
+    <span class="p">;</span>
+ <span class="n">employee_id</span> <span class="o">|</span>     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span>    <span class="n">first_value</span>    
+<span class="c1">-------------+-------------------+------------------+----------+-------------------</span>
+         <span class="mi">206</span> <span class="o">|</span> <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">William</span> <span class="n">Gietz</span>
+         <span class="mi">205</span> <span class="o">|</span> <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">William</span> <span class="n">Gietz</span>
+         <span class="mi">200</span> <span class="o">|</span> <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Jennifer</span> <span class="n">Whalen</span>
+         <span class="mi">102</span> <span class="o">|</span> <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>
+         <span class="mi">101</span> <span class="o">|</span> <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>
+         <span class="mi">100</span> <span class="o">|</span> <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>
+         <span class="mi">113</span> <span class="o">|</span> <span class="n">Luis</span> <span class="n">Popp</span>         <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Luis</span> <span class="n">Popp</span>
+         <span class="mi">111</span> <span class="o">|</span> <span class="n">Ismael</span> <span class="n">Sciarra</span>    <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Luis</span> <span class="n">Popp</span>
+         <span class="mi">112</span> <span class="o">|</span> <span class="n">Jose</span> <span class="n">Manuel</span> <span class="n">Urman</span> <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Luis</span> <span class="n">Popp</span>
+<span class="p">...</span>
+</code></pre></div>
+
+<h3>LAST_VALUE()</h3>
+<p>The <code>LAST_VALUE()</code> function returns the value of the last row of the partition.
+Unlike the <code>FIRST_VALUE()</code> function, it requires that the frame is specified in the OVER() clause.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">LAST_VALUE</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong>
+We can use the same example we used for the <em>first_value()</em> function. This time, we want to see who has the highest salary in each department:
+- partition the data by department: <code>PARTITION BY department</code>.
+- order the salaries to get the highest one in the last row of the partition: <code>ORDER BY salary</code>.
+- get the name of the employee in the last row of the partition: <code>LAST_VALUE(employee)</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="n">employee_id</span>
+    <span class="p">,</span> <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="n">LAST_VALUE</span><span class="p">(</span><span class="n">employee</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span> <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span> <span class="k">AND</span> <span class="n">UNBOUNDED</span> <span class="n">FOLLOWING</span><span class="p">)</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+ <span class="n">employee_id</span> <span class="o">|</span>     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span>    <span class="n">last_value</span>     
+<span class="c1">-------------+-------------------+------------------+----------+-------------------</span>
+         <span class="mi">206</span> <span class="o">|</span> <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Shelley</span> <span class="n">Higgins</span>
+         <span class="mi">205</span> <span class="o">|</span> <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Shelley</span> <span class="n">Higgins</span>
+         <span class="mi">200</span> <span class="o">|</span> <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Jennifer</span> <span class="n">Whalen</span>
+         <span class="mi">102</span> <span class="o">|</span> <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Steven</span> <span class="n">King</span>
+         <span class="mi">101</span> <span class="o">|</span> <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Steven</span> <span class="n">King</span>
+         <span class="mi">100</span> <span class="o">|</span> <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Steven</span> <span class="n">King</span>
+         <span class="mi">113</span> <span class="o">|</span> <span class="n">Luis</span> <span class="n">Popp</span>         <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>
+         <span class="mi">111</span> <span class="o">|</span> <span class="n">Ismael</span> <span class="n">Sciarra</span>    <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>
+         <span class="mi">112</span> <span class="o">|</span> <span class="n">Jose</span> <span class="n">Manuel</span> <span class="n">Urman</span> <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>
+         <span class="mi">110</span> <span class="o">|</span> <span class="n">John</span> <span class="n">Chen</span>         <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">8200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>
+         <span class="mi">109</span> <span class="o">|</span> <span class="n">Daniel</span> <span class="n">Faviet</span>     <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>
+         <span class="mi">108</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>   <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="n">Nancy</span> <span class="n">Greenberg</span>
+<span class="p">...</span>
+</code></pre></div>
+
+<h3>LAG()</h3>
+<p>The <code>LAG()</code> funciton accesses the row that is n rows before the current row. We can also set a default value that will be returned when the row does not exist.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">LAG</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="k">offset</span><span class="p">,</span> <span class="k">default</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p>where <strong>offset</strong> is the number of rows before the current row from which we want the data.</p>
+<p><strong>Example:</strong> 
+We can use the LAG() function to compare daily sales with the previous week sales. To do so, we:
+- order the sales by date: <code>ORDER BY payment_date</code>.
+- get the amount from 7 days before: <code>LAG(amount, 7)</code>.
+- we can add a default value for the first 7 rows: <code>LAG(amount, 7, 0::numeric</code>).</p>
+<p>The final query looks like this:</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_sales</span> <span class="k">AS</span><span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">as</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="n">LAG</span><span class="p">(</span><span class="n">amount</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">::</span><span class="nb">numeric</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">payment_date</span><span class="p">)</span> <span class="k">AS</span> <span class="n">previous_week_amount</span>
+<span class="k">FROM</span> 
+    <span class="n">daily_sales</span>
+<span class="p">;</span>
+ <span class="n">payment_date</span> <span class="o">|</span> <span class="n">amount</span>  <span class="o">|</span> <span class="n">previous_week_amount</span> 
+<span class="c1">--------------+---------+----------------------</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">16</span>   <span class="o">|</span> <span class="mi">1154</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">17</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">17</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">18</span>   <span class="o">|</span> <span class="mi">1275</span><span class="p">.</span><span class="mi">98</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>                    <span class="mi">0</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">21</span>   <span class="o">|</span>  <span class="mi">917</span><span class="p">.</span><span class="mi">87</span> <span class="o">|</span>               <span class="mi">116</span><span class="p">.</span><span class="mi">73</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">01</span>   <span class="o">|</span> <span class="mi">2808</span><span class="p">.</span><span class="mi">24</span> <span class="o">|</span>              <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">02</span>   <span class="o">|</span> <span class="mi">2550</span><span class="p">.</span><span class="mi">05</span> <span class="o">|</span>              <span class="mi">1154</span><span class="p">.</span><span class="mi">18</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">16</span>   <span class="o">|</span>  <span class="mi">299</span><span class="p">.</span><span class="mi">28</span> <span class="o">|</span>              <span class="mi">1188</span><span class="p">.</span><span class="mi">17</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">17</span>   <span class="o">|</span> <span class="mi">2442</span><span class="p">.</span><span class="mi">16</span> <span class="o">|</span>              <span class="mi">1275</span><span class="p">.</span><span class="mi">98</span>
+ <span class="p">...</span>
+</code></pre></div>
+
+<h3>LEAD()</h3>
+<p>The <code>LEAD()</code> function is similar to the <code>LAG()</code> but it returns the value of the nth row following the current row.</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">LEAD</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="k">offset</span><span class="p">,</span> <span class="k">default</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong>
+We can write a query that gives us the sales of the next week:
+- order the sales by date: <code>ORDER BY payment_date</code>.
+- get the amount 7 days after the date of the current row: <code>LEAD(amount, 7)</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_sales</span> <span class="k">AS</span><span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">as</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="n">LEAD</span><span class="p">(</span><span class="n">amount</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">payment_date</span><span class="p">)</span> <span class="k">AS</span> <span class="n">next_week_amount</span>
+<span class="k">FROM</span> 
+    <span class="n">daily_sales</span>
+<span class="p">;</span>
+ <span class="n">payment_date</span> <span class="o">|</span> <span class="n">amount</span>  <span class="o">|</span> <span class="n">next_week_amount</span> 
+<span class="c1">--------------+---------+------------------</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>           <span class="mi">917</span><span class="p">.</span><span class="mi">87</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span>          <span class="mi">2808</span><span class="p">.</span><span class="mi">24</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">16</span>   <span class="o">|</span> <span class="mi">1154</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span>          <span class="mi">2550</span><span class="p">.</span><span class="mi">05</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">17</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">17</span> <span class="o">|</span>           <span class="mi">299</span><span class="p">.</span><span class="mi">28</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">18</span>   <span class="o">|</span> <span class="mi">1275</span><span class="p">.</span><span class="mi">98</span> <span class="o">|</span>          <span class="mi">2442</span><span class="p">.</span><span class="mi">16</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>          <span class="mi">2701</span><span class="p">.</span><span class="mi">76</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>          <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">21</span>   <span class="o">|</span>  <span class="mi">917</span><span class="p">.</span><span class="mi">87</span> <span class="o">|</span>          <span class="mi">2669</span><span class="p">.</span><span class="mi">89</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">01</span>   <span class="o">|</span> <span class="mi">2808</span><span class="p">.</span><span class="mi">24</span> <span class="o">|</span>          <span class="mi">2868</span><span class="p">.</span><span class="mi">27</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">02</span>   <span class="o">|</span> <span class="mi">2550</span><span class="p">.</span><span class="mi">05</span> <span class="o">|</span>          <span class="mi">2586</span><span class="p">.</span><span class="mi">79</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">16</span>   <span class="o">|</span>  <span class="mi">299</span><span class="p">.</span><span class="mi">28</span> <span class="o">|</span>          <span class="mi">2342</span><span class="p">.</span><span class="mi">43</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">17</span>   <span class="o">|</span> <span class="mi">2442</span><span class="p">.</span><span class="mi">16</span> <span class="o">|</span>           <span class="mi">273</span><span class="p">.</span><span class="mi">36</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">18</span>   <span class="o">|</span> <span class="mi">2701</span><span class="p">.</span><span class="mi">76</span> <span class="o">|</span>          <span class="mi">2077</span><span class="p">.</span><span class="mi">14</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span> <span class="o">|</span>          <span class="mi">1984</span><span class="p">.</span><span class="mi">28</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span> <span class="mi">2669</span><span class="p">.</span><span class="mi">89</span> <span class="o">|</span>          <span class="mi">2227</span><span class="p">.</span><span class="mi">84</span>
+ <span class="p">...</span>
+</code></pre></div>
+
+<h3>NTH_VALUE()</h3>
+<p>The <code>NTH_VALUE()</code> returns the value from the Nth row of a partition.</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">NTH_VALUE</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="k">offset</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<ul>
+<li>expression: the target column or an expression.</li>
+<li>offset: integer that determines the row number relative to the first row of the partition.</li>
+</ul>
+<p><strong>Example</strong>
+For this example, I'll simply write a query that gives the third salary from the lowest one for each department:
+- Group the salaries per department: <code>PARTITION BY department</code>.
+- Order the salaries: <code>ORDER BY salary</code>.
+- Get the third salary: <code>NTH_VALUE(salary, 3)</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="n">NTH_VALUE</span><span class="p">(</span><span class="n">salary</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">third_salary</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span> <span class="n">third_salary</span> 
+<span class="c1">-------------------+------------------+----------+--------------</span>
+ <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">[...]</span>
+ <span class="n">Irene</span> <span class="n">Mikkilineni</span> <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">2700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Britney</span> <span class="n">Everett</span>   <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">3900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>             
+ <span class="n">Sarah</span> <span class="n">Bell</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Shanta</span> <span class="n">Vollman</span>    <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">6500</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Payam</span> <span class="n">Kaufling</span>    <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">7900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Matthew</span> <span class="n">Weiss</span>     <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">8000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span>
+ <span class="n">Adam</span> <span class="n">Fripp</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">8200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span>
+<span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+<p>When the total number of rows of a partition is less than the offset, the NTH_VALUE() function returns a Null value.</p>
+<h2>Ranking window functions</h2>
+<h3>ROW_NUMBER()</h3>
+<p>the <code>ROW_NUMBER()</code> function returns the number of the current row within its partition.</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+        <span class="n">employee</span>
+        <span class="p">,</span> <span class="n">department</span>
+        <span class="p">,</span> <span class="n">salary</span>
+        <span class="p">,</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">department</span><span class="p">,</span><span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">row_number</span>
+        <span class="p">,</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">department</span><span class="p">,</span><span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">row_number_per_department</span>
+<span class="k">FROM</span> 
+        <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span> <span class="n">row_number</span> <span class="o">|</span> <span class="n">row_number_per_department</span> 
+<span class="c1">-------------------+------------------+----------+------------+---------------------------</span>
+ <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>          <span class="mi">1</span> <span class="o">|</span>                         <span class="mi">1</span>
+ <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>          <span class="mi">2</span> <span class="o">|</span>                         <span class="mi">2</span>
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>          <span class="mi">3</span> <span class="o">|</span>                         <span class="mi">1</span>
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>          <span class="mi">4</span> <span class="o">|</span>                         <span class="mi">1</span>
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>          <span class="mi">5</span> <span class="o">|</span>                         <span class="mi">2</span>
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>          <span class="mi">6</span> <span class="o">|</span>                         <span class="mi">3</span>
+<span class="p">[...]</span>
+ <span class="n">Shanta</span> <span class="n">Vollman</span>    <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">6500</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">37</span> <span class="o">|</span>                         <span class="mi">4</span>
+ <span class="n">Payam</span> <span class="n">Kaufling</span>    <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">7900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">38</span> <span class="o">|</span>                         <span class="mi">5</span>
+ <span class="n">Mattlhew</span> <span class="n">Weiss</span>     <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">8000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">39</span> <span class="o">|</span>                         <span class="mi">6</span>
+ <span class="n">Adam</span> <span class="n">Fripp</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">8200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">40</span> <span class="o">|</span>                         <span class="mi">7</span>
+<span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>CUME_DIST()</h3>
+<p>The <code>CUME_DIST()</code> function calculate the cumulative distribution of a value. This is the number of rows with values less or equal to the value of the current row divided by the total number of rows.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">CUME_DIST</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="n">CUME_DIST</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span> <span class="n">cume_dist</span> 
+<span class="c1">-------------------+------------------+----------+-----------</span>
+ <span class="n">Karen</span> <span class="n">Colmenares</span>  <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2500</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">0</span><span class="p">.</span><span class="mi">025</span>
+ <span class="n">Guy</span> <span class="n">Himuro</span>        <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">0</span><span class="p">.</span><span class="mi">05</span>
+ <span class="n">Irene</span> <span class="n">Mikkilineni</span> <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">2700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">0</span><span class="p">.</span><span class="mi">075</span>
+ <span class="n">Sigal</span> <span class="n">Tobias</span>      <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">0</span><span class="p">.</span><span class="mi">1</span>
+ <span class="n">Shelli</span> <span class="n">Baida</span>      <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">0</span><span class="p">.</span><span class="mi">125</span>
+ <span class="n">Alexander</span> <span class="n">Khoo</span>    <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">3100</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>      <span class="mi">0</span><span class="p">.</span><span class="mi">15</span>
+ <span class="n">Britney</span> <span class="n">Everett</span>   <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">3900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">0</span><span class="p">.</span><span class="mi">175</span>
+ <span class="n">Sarah</span> <span class="n">Bell</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">0</span><span class="p">.</span><span class="mi">2</span>
+ <span class="n">Diana</span> <span class="n">Lorentz</span>     <span class="o">|</span> <span class="n">IT</span>               <span class="o">|</span>  <span class="mi">4200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">0</span><span class="p">.</span><span class="mi">225</span>
+ <span class="p">...</span>
+</code></pre></div>
+
+<p>In the example above, we can see that 20% of employees have a salary that is less or equal to 4000.</p>
+<h3>RANK and DENSE_RANK()</h3>
+<p>The <code>RANK()</code> and the <code>DENSE_RANK()</code> functions return the rank of the current row. The difference is that the <code>DENSE_RANK()</code> function result has no gap while the <code>RANK()</code> function will skip ranks when rows have the same values.</p>
+<p><strong>Syntax</strong>
+- DENSE_RANK()</p>
+<div class="highlight"><pre><span></span><code><span class="n">DENSE_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<ul>
+<li>RANK()</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="n">RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span>
+    <span class="p">,</span> <span class="n">DENSE_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+</code></pre></div>
+
+<p><img alt="" src="images/d904290142f04415a22cae467840494b.png"></p>
+<p>In the example above, we can see that there are two employees with a salary of 4,800. Both of them get the rank 11 in the rank and the dense_rank columns. 
+However, the following employee's rank is 13 in the rank column and 12 in the dense_rank columns.
+The <code>DENSE_RANK()</code> function didn't skip any value. The <code>RANK()</code> returns the actual row number of the first row with a given value. </p>
+<h3>PERCENT_RANK()</h3>
+<p>The <code>PERCENT_RANK()</code> function returns the relative rank of the current row:
+</p>
+<div class="math">$$\frac{rank - 1}{total\ partition\ rows -1}$$</div>
+<p>
+The values range from 0 to 1.</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">PERCENT_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="n">PERCENT_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">department</span><span class="p">,</span><span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">pct_rank</span>
+    <span class="p">,</span> <span class="n">PERCENT_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">department</span><span class="p">,</span><span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">department_pct_rank</span>
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span>      <span class="n">pct_rank</span>       <span class="o">|</span> <span class="n">department_pct_rank</span> 
+<span class="c1">-------------------+------------------+----------+---------------------+---------------------</span>
+ <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>                   <span class="mi">0</span> <span class="o">|</span>                   <span class="mi">0</span>
+ <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">0</span><span class="p">.</span><span class="mi">02564102564102564</span> <span class="o">|</span>                   <span class="mi">1</span>
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">0</span><span class="p">.</span><span class="mi">05128205128205128</span> <span class="o">|</span>                   <span class="mi">0</span>
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">0</span><span class="p">.</span><span class="mi">07692307692307693</span> <span class="o">|</span>                   <span class="mi">0</span>
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">0</span><span class="p">.</span><span class="mi">07692307692307693</span> <span class="o">|</span>                   <span class="mi">0</span>
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">1282051282051282</span> <span class="o">|</span>                   <span class="mi">1</span>
+<span class="p">[...]</span>
+ <span class="n">Irene</span> <span class="n">Mikkilineni</span> <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">2700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">8461538461538461</span> <span class="o">|</span>                   <span class="mi">0</span>
+ <span class="n">Britney</span> <span class="n">Everett</span>   <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">3900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">8717948717948718</span> <span class="o">|</span> <span class="mi">0</span><span class="p">.</span><span class="mi">16666666666666666</span>
+ <span class="n">Sarah</span> <span class="n">Bell</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">8974358974358975</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">3333333333333333</span>
+ <span class="n">Shanta</span> <span class="n">Vollman</span>    <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">6500</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">9230769230769231</span> <span class="o">|</span>                 <span class="mi">0</span><span class="p">.</span><span class="mi">5</span>
+ <span class="n">Payam</span> <span class="n">Kaufling</span>    <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">7900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">9487179487179487</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">6666666666666666</span>
+ <span class="n">Matthew</span> <span class="n">Weiss</span>     <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">8000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">9743589743589743</span> <span class="o">|</span>  <span class="mi">0</span><span class="p">.</span><span class="mi">8333333333333334</span>
+ <span class="n">Adam</span> <span class="n">Fripp</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">8200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>                   <span class="mi">1</span> <span class="o">|</span>                   <span class="mi">1</span>
+<span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>NTILE()</h3>
+<p>The <code>NTILE()</code> function breaks a resultset into a specified number of buckets. All the buckets have about the same number of rows.</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">NTILE</span><span class="p">(</span><span class="n">number_buckets</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
+</code></pre></div>
+
+<p><strong>Example</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+        <span class="n">employee</span>
+        <span class="p">,</span> <span class="n">department</span>
+        <span class="p">,</span> <span class="n">salary</span>
+        <span class="p">,</span> <span class="n">NTILE</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">four_buckets</span>
+        <span class="p">,</span> <span class="n">NTILE</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">salary</span><span class="p">)</span> <span class="k">AS</span> <span class="n">ten_buckets</span>
+<span class="k">FROM</span> 
+        <span class="n">salaries</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span> <span class="n">four_buckets</span> <span class="o">|</span> <span class="n">ten_buckets</span> 
+<span class="c1">-------------------+------------------+----------+--------------+-------------</span>
+ <span class="n">Karen</span> <span class="n">Colmenares</span>  <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2500</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">1</span>
+ <span class="n">Guy</span> <span class="n">Himuro</span>        <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">1</span>
+ <span class="n">Irene</span> <span class="n">Mikkilineni</span> <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">2700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">1</span>
+ <span class="n">Sigal</span> <span class="n">Tobias</span>      <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">1</span>
+ <span class="n">Shelli</span> <span class="n">Baida</span>      <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">2900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">2</span>
+ <span class="n">Alexander</span> <span class="n">Khoo</span>    <span class="o">|</span> <span class="n">Purchasing</span>       <span class="o">|</span>  <span class="mi">3100</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">2</span>
+ <span class="n">Britney</span> <span class="n">Everett</span>   <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">3900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">2</span>
+ <span class="n">Sarah</span> <span class="n">Bell</span>        <span class="o">|</span> <span class="n">Shipping</span>         <span class="o">|</span>  <span class="mi">4000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">2</span>
+ <span class="n">Diana</span> <span class="n">Lorentz</span>     <span class="o">|</span> <span class="n">IT</span>               <span class="o">|</span>  <span class="mi">4200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">3</span>
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">1</span> <span class="o">|</span>           <span class="mi">3</span>
+ <span class="n">David</span> <span class="n">Austin</span>      <span class="o">|</span> <span class="n">IT</span>               <span class="o">|</span>  <span class="mi">4800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">2</span> <span class="o">|</span>           <span class="mi">3</span>
+ <span class="n">Valli</span> <span class="n">Pataballa</span>   <span class="o">|</span> <span class="n">IT</span>               <span class="o">|</span>  <span class="mi">4800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">2</span> <span class="o">|</span>           <span class="mi">3</span>
+<span class="p">[...]</span>
+ <span class="n">Karen</span> <span class="n">Partners</span>    <span class="o">|</span> <span class="n">Sales</span>            <span class="o">|</span> <span class="mi">13500</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">4</span> <span class="o">|</span>           <span class="mi">9</span>
+ <span class="n">John</span> <span class="n">Russell</span>      <span class="o">|</span> <span class="n">Sales</span>            <span class="o">|</span> <span class="mi">14000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">4</span> <span class="o">|</span>          <span class="mi">10</span>
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">4</span> <span class="o">|</span>          <span class="mi">10</span>
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">4</span> <span class="o">|</span>          <span class="mi">10</span>
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">4</span> <span class="o">|</span>          <span class="mi">10</span>
+<span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+<p>We have 40 employees. The <code>NTILE(4)</code> columns returns four buckets numbered 1 to 4 and containing ten employees each. The <code>NTILE(10)</code> column returns 10 buckets numbered 1 to 10 and containing four employees each.</p>
+<h2>Aggregate window functions</h2>
+<p>Those are the usual aggregate functions we would use with a <code>GROUP BY</code> clause:
+- AVG(): average.
+- SUM(): sum.
+- MIN(): minimum value. 
+- MAX(): maximum value.
+- COUNT(): rows count.</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="n">employee</span>
+    <span class="p">,</span> <span class="n">department</span>
+    <span class="p">,</span> <span class="n">salary</span>
+    <span class="p">,</span> <span class="k">AVG</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dpt_avg_salary</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dpt_total_salary</span>
+    <span class="p">,</span> <span class="k">MIN</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dpt_min_salary</span>
+    <span class="p">,</span> <span class="k">MAX</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dpt_max_salary</span>
+    <span class="p">,</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">department</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dpt_count</span>    
+<span class="k">FROM</span> 
+    <span class="n">salaries</span>
+<span class="k">ORDER</span> <span class="k">BY</span> 
+    <span class="n">department</span>
+    <span class="p">,</span><span class="n">salary</span>
+<span class="p">;</span>
+     <span class="n">employee</span>      <span class="o">|</span>    <span class="n">department</span>    <span class="o">|</span>  <span class="n">salary</span>  <span class="o">|</span>     <span class="n">dpt_avg_salary</span>     <span class="o">|</span> <span class="n">dpt_total_salary</span> <span class="o">|</span> <span class="n">dpt_min_salary</span> <span class="o">|</span> <span class="n">dpt_max_salary</span> <span class="o">|</span> <span class="n">dpt_count</span> 
+<span class="c1">-------------------+------------------+----------+------------------------+------------------+----------------+----------------+-----------</span>
+ <span class="n">William</span> <span class="n">Gietz</span>     <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span>  <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">10150</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">2</span>
+ <span class="n">Shelley</span> <span class="n">Higgins</span>   <span class="o">|</span> <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">10150</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">8300</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">2</span>
+ <span class="n">Jennifer</span> <span class="n">Whalen</span>   <span class="o">|</span> <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>          <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">1</span>
+ <span class="n">Lex</span> <span class="n">De</span> <span class="n">Haan</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">19333</span><span class="p">.</span><span class="mi">333333333333</span> <span class="o">|</span>         <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">3</span>
+ <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">19333</span><span class="p">.</span><span class="mi">333333333333</span> <span class="o">|</span>         <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">3</span>
+ <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>     <span class="mi">19333</span><span class="p">.</span><span class="mi">333333333333</span> <span class="o">|</span>         <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">3</span>
+ <span class="n">Luis</span> <span class="n">Popp</span>         <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
+ <span class="n">Ismael</span> <span class="n">Sciarra</span>    <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7700</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
+ <span class="n">Jose</span> <span class="n">Manuel</span> <span class="n">Urman</span> <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
+ <span class="n">John</span> <span class="n">Chen</span>         <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">8200</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
+ <span class="n">Daniel</span> <span class="n">Faviet</span>     <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
+ <span class="n">Nancy</span> <span class="n">Greenberg</span>   <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
+       <span class="mi">6</span>
+</code></pre></div>
+
+<h1>Examples</h1>
+<p><a href="https://guillaume-martin.github.io/sql-moving-average">How to calculate a moving average in SQL</a></p>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
+    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-0">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2020 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+
+</body>
+</html>

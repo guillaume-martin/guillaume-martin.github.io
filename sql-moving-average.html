@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Calculate a moving average in SQL - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="./sql-moving-average.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="database,sql,analytics" />
+        <meta name="description" content="How to use SQL window functions to calculate a moving average" />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Calculate a moving average in SQL"/>
+        <meta property="og:url" content="./sql-moving-average.html"/>
+        <meta property="og:description" content="How to use SQL window functions to calculate a moving average"/>
+        <meta property="article:published_time" content="2020-12-02" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:tag" content="sql" />
+            <meta property="article:tag" content="analytics" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./sql-moving-average.html"
+                       rel="bookmark"
+                       title="Permalink to Calculate a moving average in SQL">
+                        Calculate a moving average in SQL
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2020-12-02T12:40:00+08:00"> Wed 02 December 2020</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/database.html">database</a>
+        /
+	<a href="./tag/sql.html">sql</a>
+        /
+	<a href="./tag/analytics.html">analytics</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>In this post, I am going to demonstrate how to calculate a moving average in SQL.</p>
+<p>You also need to know a bout SQL Window Functions. If you don't, you should read my article <a href="https://guillaume-martin.github.io/sql-window-functions">here</a></p>
+<p>To illustrate how to calculate a moving average, I'll use the DVDrental database that can be downloaded <a href="https://www.postgresqltutorial.com/postgresql-sample-database/">here</a></p>
+<p>We have a payment table storing all the payments made by our customers.</p>
+<div class="highlight"><pre><span></span><code><span class="o">#</span> <span class="err">\</span><span class="n">d</span><span class="o">+</span> <span class="n">payment</span>
+          <span class="k">Table</span> <span class="ss">&quot;public.payment&quot;</span>
+    <span class="k">Column</span>    <span class="o">|</span>            <span class="k">Type</span>             <span class="o">|</span>
+<span class="c1">--------------+-----------------------------+</span>
+ <span class="n">payment_id</span>   <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span>
+ <span class="n">customer_id</span>  <span class="o">|</span> <span class="nb">smallint</span>                    <span class="o">|</span>
+ <span class="n">staff_id</span>     <span class="o">|</span> <span class="nb">smallint</span>                    <span class="o">|</span>
+ <span class="n">rental_id</span>    <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span>
+ <span class="n">amount</span>       <span class="o">|</span> <span class="nb">numeric</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>                <span class="o">|</span>
+ <span class="n">payment_date</span> <span class="o">|</span> <span class="k">timestamp</span> <span class="k">without</span> <span class="k">time</span> <span class="k">zone</span> <span class="o">|</span>
+</code></pre></div>
+
+<p>I want to calculate the moving average of the amount over a 5 days period.</p>
+<p>First, I calculate the total amount per day in a Common Table Expression (CTE) using a <code>WITH</code> statement.</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span> <span class="k">AS</span> <span class="n">payment_date</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span>
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>Next, I calculate the moving average on the amount using a window function:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">AVG</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="mi">5</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">MA5</span>
+<span class="k">FROM</span> 
+    <span class="n">daily_amount</span>
+<span class="p">;</span>
+ <span class="n">payment_date</span> <span class="o">|</span> <span class="n">amount</span>  <span class="o">|</span>          <span class="n">ma5</span>          
+<span class="c1">--------------+---------+-----------------------</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">7300000000000000</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>  <span class="mi">703</span><span class="p">.</span><span class="mi">8150000000000000</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>  <span class="mi">875</span><span class="p">.</span><span class="mi">5733333333333333</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span> <span class="o">|</span> <span class="mi">1311</span><span class="p">.</span><span class="mi">1025000000000000</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">26</span>   <span class="o">|</span>  <span class="mi">347</span><span class="p">.</span><span class="mi">21</span> <span class="o">|</span> <span class="mi">1118</span><span class="p">.</span><span class="mi">3240000000000000</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">08</span>   <span class="o">|</span> <span class="mi">2227</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span> <span class="mi">1303</span><span class="p">.</span><span class="mi">2433333333333333</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span> <span class="mi">1481</span><span class="p">.</span><span class="mi">9416666666666667</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">28</span>   <span class="o">|</span> <span class="mi">2622</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">1703</span><span class="p">.</span><span class="mi">9133333333333333</span>
+</code></pre></div>
+
+<p>SQL returns an average for the first four rows. When we calculate a moving average, the first rows should be empty because we don't have enough values to calculate the average.
+In my example, I need to return Null for the first four rows. To do so, I'll use a <code>CASE WHEN ELSE</code> statement. This statement is the SQL equivalent of <code>if then else</code>.
+I also use the <code>ROW_NUMBER()</code> window function to get the number of each row of the result set. Then if <code>ROW_NUMBER()</code> is more than 4 then the query should return the average  of the amount of the last 5 rows. If the <code>ROW_NUMBER()</code> is less than 4, the query should return <code>Null</code>.
+Finaly, I round the average to two decimals using the <a href="https://www.postgresql.org/docs/13/functions-math.html"><code>ROUND()</code></a> function.
+This is how I write the <code>CASE</code> statement:</p>
+<div class="highlight"><pre><span></span><code><span class="k">CASE</span> 
+    <span class="k">WHEN</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">THEN</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="mi">5</span> <span class="n">PRECEDING</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">ELSE</span> <span class="k">Null</span>
+<span class="k">END</span> <span class="k">AS</span> <span class="n">MA5</span> 
+</code></pre></div>
+
+<p>The Final query looks like this:</p>
+<div class="highlight"><pre><span></span><code>  <span class="k">WITH</span> <span class="n">cte_daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span> <span class="k">AS</span> <span class="n">payment_date</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span>
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+<span class="p">)</span>
+ <span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">CASE</span> 
+        <span class="k">WHEN</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="k">THEN</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ROWS</span> <span class="mi">5</span> <span class="n">PRECEDING</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">ELSE</span> <span class="k">Null</span>
+      <span class="k">END</span> <span class="k">AS</span> <span class="n">MA5</span> 
+ <span class="k">FROM</span> 
+    <span class="n">cte_daily_amount</span>
+ <span class="p">;</span>
+  <span class="n">payment_date</span> <span class="o">|</span> <span class="n">amount</span>  <span class="o">|</span>   <span class="n">ma5</span>   
+<span class="c1">--------------+---------+---------</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">26</span>   <span class="o">|</span>  <span class="mi">347</span><span class="p">.</span><span class="mi">21</span> <span class="o">|</span> <span class="mi">1118</span><span class="p">.</span><span class="mi">32</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">08</span>   <span class="o">|</span> <span class="mi">2227</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span> <span class="mi">1303</span><span class="p">.</span><span class="mi">24</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span> <span class="mi">1481</span><span class="p">.</span><span class="mi">94</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">28</span>   <span class="o">|</span> <span class="mi">2622</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">1703</span><span class="p">.</span><span class="mi">91</span>
+<span class="p">[...]</span>
+</code></pre></div>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
+    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-0">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2020 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+
+</body>
+</html>
