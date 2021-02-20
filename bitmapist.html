@@ -169,6 +169,7 @@ Guillaume Martin            </a>
 <span class="s2">&quot;\x00\b&quot;</span>
 </code></pre></div>
 
+
 <p>Let's use an example with 8 bits: 11101010</p>
 <p>For each offset where the value is one, we run the command <code>SETBIT bitmap &lt;offset&gt; 1</code>.
 Our bit array is now stored with the key <code>bitmap</code>.</p>
@@ -179,72 +180,80 @@ Our bit array is now stored with the key <code>bitmap</code>.</p>
 <span class="o">(</span>integer<span class="o">)</span> <span class="m">0</span>
 </code></pre></div>
 
+
 <p>To know how many bits are set to 1, we can use the <a href="https://redis.io/commands/bitcount"><code>BITCOUNT key [start end]</code></a> command:</p>
 <div class="highlight"><pre><span></span><code>&gt; BITCOUNT bitmap
 <span class="o">(</span>integer<span class="o">)</span> <span class="m">5</span>
 </code></pre></div>
 
+
 <p>Finally, we can do bit operations with <a href="https://redis.io/commands/bitop"><code>BITOP operation destkey key [key...]</code></a> where <code>destkey</code> is the destination key where the result is stored.
 As an example, we are going to set two bitmaps and then find how many bits are set to 1 in both of them.</p>
 <p><code>bitmap1:10011</code></p>
 <p><code>bitmap2:01001</code></p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; SETBIT bitmap1 1 1</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; SETBIT bitmap1 4 1</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; SETBIT bitmap1 5 1</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; SETBIT bitmap2 2 1</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; SETBIT bitmap2 5 1</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; BITOP AND both bitmap1 bitmap2</span>
-<span class="err">(integer) 1</span>
-<span class="err">&gt; BITCOUNT both</span>
-<span class="err">(integer) 1</span>
+<div class="highlight"><pre><span></span><code>&gt; SETBIT bitmap1 1 1
+(integer) 0
+&gt; SETBIT bitmap1 4 1
+(integer) 0
+&gt; SETBIT bitmap1 5 1
+(integer) 0
+&gt; SETBIT bitmap2 2 1
+(integer) 0
+&gt; SETBIT bitmap2 5 1
+(integer) 0
+&gt; BITOP AND both bitmap1 bitmap2
+(integer) 1
+&gt; BITCOUNT both
+(integer) 1
 </code></pre></div>
+
 
 <h3>Use in Analytics</h3>
 <p>Well, this looks nice, but what are we supposed to do with this?</p>
 <p>Using bit operations on Redis is very fast. As a consequence, bitmaps are often used in real time analytics.</p>
 <p>I'll show how it is used with an example. We are a SaaS business and we want to track our users activity. Each of our users is going to have a number as an id (1, 2, 3,...).  We can use that id as the offset in the bitmap. The key in which we store the bitmap would be the activity we are tracking. For example, users' activity for March 1st will be stored in <code>active:2019-03-01</code>.</p>
 <p>I have five users with ids going from 0 to 4. On March 1st, users 1 and 4 have been active. We record their activity by setting he bit at their offset to 1:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; SETBIT active:2019-03-01 1 1</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; SETBIT active:2019-03-01 4 1</span>
-<span class="err">(integer) 0</span>
+<div class="highlight"><pre><span></span><code>&gt; SETBIT active:2019-03-01 1 1
+(integer) 0
+&gt; SETBIT active:2019-03-01 4 1
+(integer) 0
 </code></pre></div>
 
+
 <p>Our bitmap should look like this: <code>01001</code>. Now if I want to get the number of active users for March 1st, I get the bit count for that day:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITCOUNT active:2019-03-01</span>
-<span class="err">(integer) 2</span>
+<div class="highlight"><pre><span></span><code>&gt; BITCOUNT active:2019-03-01
+(integer) 2
 </code></pre></div>
+
 
 <p>Two users were active that day.</p>
 <p>If I want to know whether a user had been active on a given day, I just need to get the value of the bit at the offset that matches her id:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; GETBIT active:2019-03-01 2</span>
-<span class="err">(integer) 0</span>
-<span class="err">&gt; GETBIT active:2019-03-01 4</span>
-<span class="err">(integer) 1</span>
+<div class="highlight"><pre><span></span><code>&gt; GETBIT active:2019-03-01 2
+(integer) 0
+&gt; GETBIT active:2019-03-01 4
+(integer) 1
 </code></pre></div>
+
 
 <p>User 2 didn't connect on March 1st, whereas user 4 did.</p>
 <h4>Weekly Active Users (WAU)</h4>
 <p>We've been tracking the activity of our users for quite some times so we have bitmaps for every day. Now, we want to get the WAU which is the number of active users in a given week. A weekly active user is a user who has been active at least one day during the week we're interested in. We need to use the <code>OR</code> operator on activity on all days of that week. The command will look something like <code>BITOP OR &lt;destination_key&gt; &lt;monday_key&gt; &lt;tuesday_key&gt;...&lt;sunday_key&gt;</code>.</p>
 <p>For this example, I'll show how to get the WAU for week 10 (March 4th to March 10th). I'll store the active users of the week in the <code>active:2019-w10</code> key</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITOP OR active:2019-w10 \</span>
-<span class="err">    active:2019-03-04 \</span>
-<span class="err">    active:2019-03-05 \</span>
-<span class="err">    active:2019-03-06 \</span>
-<span class="err">    active:2019-03-07 \</span>
-<span class="err">    active:2019-03-08 \</span>
-<span class="err">    active:2019-03-09 \</span>
-<span class="err">    active:2019-03-10</span>
+<div class="highlight"><pre><span></span><code>&gt; BITOP OR active:2019-w10 \
+    active:2019-03-04 \
+    active:2019-03-05 \
+    active:2019-03-06 \
+    active:2019-03-07 \
+    active:2019-03-08 \
+    active:2019-03-09 \
+    active:2019-03-10
 </code></pre></div>
 
+
 <p>I now have a bitmap for week 10 of 2019. If a user has been active at least once during that week, her bit is set to 1. To get the total number of active users for the week (WAU), I use the <code>BITCOUNT</code> command.</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BICOUNT active:2019-w10</span>
+<div class="highlight"><pre><span></span><code>&gt; BITCOUNT active:2019-w10
 </code></pre></div>
+
 
 <h4>Retention</h4>
 <p>Let say we want the retention rate over two periods of time, period 1 and period 2:
@@ -254,12 +263,14 @@ Retention\ Rate = \frac{\#\ of\ users\ active\ in\ period\ 1\ AND\ period\ 2 }{\
 $$</div>
 <p>
 So if we want to get the retention rate between week 10 and week 11, we first need to get the users who were active in both weeks. Assuming we've already aggregated our weekly data: </p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITOP AND active:w10+w11 active:w10 active:w11</span>
+<div class="highlight"><pre><span></span><code>&gt; BITOP AND active:w10+w11 active:w10 active:w11
 </code></pre></div>
 
+
 <p>The number of users active during both weeks is:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITCOUNT active:w10+w11</span>
+<div class="highlight"><pre><span></span><code>&gt; BITCOUNT active:w10+w11
 </code></pre></div>
+
 
 <p>We just need to divide this number by the number of users active during week 10 (<code>BITCOUNT active:w10</code>) and we have our retention rate.</p>
 <p>Note that the Redis CLI does not support arithmetic operations. I cannot type <code>BITCOUNT active:w10+w11 / BITCOUNT active:w10</code>. </p>
@@ -272,29 +283,33 @@ $$</div>
 <p>
 As an example, we're going to say that a customer has churned if she's not active for three months, let's say Q2 of 2019. We are also going to take into account only the users that were active in Q1. Those who were not active in Q1 churned long ago. I'll assume that we already have aggregated our monthly data.</p>
 <p>First, I get the users active during Q1:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITOP OR active:2019-Q1 \</span>
-<span class="err">    active:2019-01 \</span>
-<span class="err">    active:2019-02 \</span>
-<span class="err">    active:2019:03</span>
+<div class="highlight"><pre><span></span><code>&gt; BITOP OR active:2019-Q1 \
+    active:2019-01 \
+    active:2019-02 \
+    active:2019:03
 </code></pre></div>
+
 
 <p>I do the same  to get users active during Q2:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITOP OR active:2019-Q2 \</span>
-<span class="err">    active:2019-04 \</span>
-<span class="err">    active:2019-05 \</span>
-<span class="err">    active:2019-06</span>
+<div class="highlight"><pre><span></span><code>&gt; BITOP OR active:2019-Q2 \
+    active:2019-04 \
+    active:2019-05 \
+    active:2019-06
 </code></pre></div>
+
 
 <p>Then, I invert all the bits of <code>active:2019-Q2</code> to get users that were inactive:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITOP NOT inactive:2019-Q2 active:2019-Q2</span>
+<div class="highlight"><pre><span></span><code>&gt; BITOP NOT inactive:2019-Q2 active:2019-Q2
 </code></pre></div>
 
+
 <p>Finaly, I find users that were active in Q1 AND inactive in Q2:</p>
-<div class="highlight"><pre><span></span><code><span class="err">&gt; BITOP AND churned:2019-Q2 \</span>
-<span class="err">    active:2019-Q1 \</span>
-<span class="err">    inactive:2019-Q2</span>
-<span class="err">&gt; BITCOUNT churned:2019-Q2</span>
+<div class="highlight"><pre><span></span><code>&gt; BITOP AND churned:2019-Q2 \
+    active:2019-Q1 \
+    inactive:2019-Q2
+&gt; BITCOUNT churned:2019-Q2
 </code></pre></div>
+
 
 <p>We saw how we can do analytics with bitmaps, but using the Redis command line is not convenient. If we want to do some arithmetic, or generate nice reports, we will have to use another language. </p>
 <p>For those using Python, there is the <a href="https://pypi.org/project/redis/">redis package</a> that would let us interface with our Redis database. But there are also a python library and a server developed by the <a href="doist.com">Doist</a> team. </p>
@@ -321,9 +336,11 @@ $ <span class="nb">cd</span> bitmapist-server
 $ docker build -t bitmapist-server:latest ./
 </code></pre></div>
 
+
 <p>Run the container:</p>
 <div class="highlight"><pre><span></span><code>$ docker container run -d -p <span class="m">6379</span>:6379 --name bitmapist-server bitmapist-server
 </code></pre></div>
+
 
 <p>Control that the container is running</p>
 <div class="highlight"><pre><span></span><code>$ docker container ps
@@ -331,10 +348,12 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 8fc1ab9d39f1        bitmapist-server    <span class="s2">&quot;./bitmapist-server …&quot;</span>   <span class="m">20</span> hours ago        Up <span class="m">5</span> minutes        <span class="m">0</span>.0.0.0:6379-&gt;6379/tcp   bitmapist-server
 </code></pre></div>
 
+
 <h3>Install bitmapist4</h3>
 <p>To install the bitmapist4 library, simply type the following command.</p>
 <div class="highlight"><pre><span></span><code>$ pip install bitmapist4
 </code></pre></div>
+
 
 <h3>Dataset</h3>
 <p>For this tutorial, I use the dataset from the <em>WSDM - KKBox's Churn Prediction Challenge</em> competition hosted on kaggle. It can be downloaded <a href="https://www.kaggle.com/c/kkbox-churn-prediction-challenge/data">here</a>.</p>
@@ -360,11 +379,13 @@ Rb9UwLQTrxzBVwCB6+bCcSQWZ9JiNLC9dXtM1oEsZA8<span class="o">=</span>,1,0,,11,2011
 9bzDeJP6sQodK73K5CBlJ6fgIQzPeLnRl0p5B77XP+g<span class="o">=</span>,1,0,,11,20110915
 </code></pre></div>
 
+
 <p><code>msno</code> is the id of the user. This is a string, however, we need integers to save data in bitmaps as the id is going to be the offset at which we save the user's bit. We'll ignore <code>city</code>, <code>bd</code> and <code>gender</code> to keep things simple.</p>
 <p>Let's control how many lines the file has:</p>
 <div class="highlight"><pre><span></span><code>$ wc -l members_v3.csv
 <span class="m">6769474</span> members_v3.csv
 </code></pre></div>
+
 
 <p>The file has a little bit less than 6.8 million lines.</p>
 <p><strong>user_logs.csv</strong></p>
@@ -389,11 +410,13 @@ rxIP2f2aN0rYNp+toI0Obt/N/FYQX8hcO1fTmmy2h34<span class="o">=</span>,20150709,9,1
 <span class="nv">yxiEWwE9VR5utpUecLxVdQ5B7NysUPfrNtGINaM2zA8</span><span class="o">=</span>,20150306,1,0,1,1,97,27,24667.3170
 </code></pre></div>
 
+
 <p>Each line represents the activity of a user on a given day. In the following examples, I will ignore the information related to the number of songs played or the duration of the session. I will only record whether on a given day a user had been active, i.e. for each line, I will set the user's bit to 1 for that day. For example, the first line will be saved in <code>active:2015-05-13</code>.</p>
 <p>Let's control how many lines the file has.</p>
 <div class="highlight"><pre><span></span><code>$ wc -l user_logs.csv
 <span class="m">47375490</span> user_logs.csv
 </code></pre></div>
+
 
 <p>The <code>user_logs.csv</code> file has over 47 millions lines.</p>
 <h2>Loading the data</h2>
@@ -430,6 +453,7 @@ I have two issues to deal with:</p>
                        <span class="nb">str</span><span class="p">(</span><span class="n">id_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])]))</span>  
 </code></pre></div>
 
+
 <ol>
 <li>
 <p>I iterate through the <code>user_logs.csv</code> file and mark an <code>active</code> event for each line. </p>
@@ -447,6 +471,7 @@ I have two issues to deal with:</p>
                          <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">))</span>
 </code></pre></div>
 
+
 <h3>b.mark_event() and b.unique()</h3>
 <p>The interesting part in the loading script are the <code>mark_event()</code> and <code>mark_unique()</code> methods. Let's see what they do.</p>
 <p>b is an instance of the <code>Bitmapist</code> class. </p>
@@ -454,6 +479,7 @@ I have two issues to deal with:</p>
 
 <span class="n">b</span> <span class="o">=</span> <span class="n">bitmapist4</span><span class="o">.</span><span class="n">Bitmapist</span><span class="p">(</span><span class="n">prefix_key</span><span class="o">=</span><span class="s1">&#39;kkbox__&#39;</span><span class="p">)</span>
 </code></pre></div>
+
 
 <p>The prefix key is a string that will be added to the redis key. The default value is <code>bitmapist_</code>, but if you want to track multiple applications, you could differentiate them with the prefix.</p>
 <h4>mark_event()</h4>
@@ -488,9 +514,11 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There were </span><span class="si">{</span><span class="n">count</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users active on April 3rd, 2016.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">There were 62,507 users active on April 3rd, 2016.</span>
-<span class="err">There were 62,507 users active on April 3rd, 2016.</span>
+
+<div class="highlight"><pre><span></span><code>There were 62,507 users active on April 3rd, 2016.
+There were 62,507 users active on April 3rd, 2016.
 </code></pre></div>
+
 
 <h4>Weekly Active User (WAU)</h4>
 <p>The same way I could extract the number of users active on a given day, I can also extract the users active on a specific week. Remember that when we marked the event, bitmapist automatically saved the weekly and monthly data. So I just have to use <code>WeekEvents()</code> with the <code>active</code> event name.</p>
@@ -498,14 +526,17 @@ I have two issues to deal with:</p>
 <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wau</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>The <code>WeekEvents</code> class takes a <code>year</code> and a <code>week</code> arguments. If you don't have the week number, you can use the <code>from_date()</code> classmethod instead of extracting the week number from the date by yourself:</p>
 <div class="highlight"><pre><span></span><code><span class="n">wau</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">WeekEvents</span><span class="o">.</span><span class="n">from_date</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span>
 <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wau</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;There were </span><span class="si">{</span><span class="n">count</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users active on week 13 of 2016.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">There were 156,759 users active on week 13 of 2016.</span>
+
+<div class="highlight"><pre><span></span><code>There were 156,759 users active on week 13 of 2016.
 </code></pre></div>
+
 
 <p>If we don't provide the date, bitmapist will return the data for now. That means we would have live data about how many users were active today, this week, this month, ...</p>
 <h4>Retention</h4>
@@ -516,8 +547,10 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">retention</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">% of users active in week 10 were still active in week 11.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">47% of users active in week 10 were still active in week 11.</span>
+
+<div class="highlight"><pre><span></span><code>47% of users active in week 10 were still active in week 11.
 </code></pre></div>
+
 
 <p>To get the number of users active both week, I used the <code>&amp;</code> operator. Bitmapist let us use such operators to compare or combine bitmaps. Let's have a look.</p>
 <h4>Bit operations</h4>
@@ -527,8 +560,10 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jan_inactives</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users were not active in January 2016.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">6,360,354 users were not active in January 2016.</span>
+
+<div class="highlight"><pre><span></span><code>6,360,354 users were not active in January 2016.
 </code></pre></div>
+
 
 <p><strong>AND (&amp;)</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># active in both January and February</span>
@@ -536,8 +571,10 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jan_and_feb</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users were active in January and February 2016.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">127,278 users were active in January and February 2016.</span>
+
+<div class="highlight"><pre><span></span><code>127,278 users were active in January and February 2016.
 </code></pre></div>
+
 
 <p>We can also combine operators.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># active one month but not the following one</span>
@@ -545,8 +582,10 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">jan_not_feb</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users were active in January 2016 but not active in February.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">281,840 users were active in January 2016 but not active in February.</span>
+
+<div class="highlight"><pre><span></span><code>281,840 users were active in January 2016 but not active in February.
 </code></pre></div>
+
 
 <p><strong>OR (|)</strong></p>
 <p>We don't have quarters data in Bitmapist. We can use the OR operator to aggregate it ourselves:</p>
@@ -557,8 +596,10 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">actives_q1</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users were active during the first quarter of 2016.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">810,499 users were active during the first quarter of 2016.</span>
+
+<div class="highlight"><pre><span></span><code>810,499 users were active during the first quarter of 2016.
 </code></pre></div>
+
 
 <h4>Churn</h4>
 <p>Let's look now at how bitmapist can help us get the churn between Q1 and Q2. The active users in Q1 are all the users that were active during one the three months of the quarter. I'll use the <code>|</code> (OR) operator. I also need to know which users were not active during the second quarter. Those are the users who were not active in any month of the quarter. I'll use the <code>~</code> (NOT) operator to get the inactive users of each month and the <code>&amp;</code> (AND) operator to aggregate the three months activity.</p>
@@ -575,8 +616,10 @@ I have two issues to deal with:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">churn_q2</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users churned in the second quarter.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">210,409 users churned in the second quarter.</span>
+
+<div class="highlight"><pre><span></span><code>210,409 users churned in the second quarter.
 </code></pre></div>
+
 
 <h3>Cohort analysis</h3>
 <p>Bitmapist also has a <code>cohort</code> module that does all the heavy work for us. </p>
@@ -589,6 +632,7 @@ I have two issues to deal with:</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">Bitmapist</span><span class="p">(</span><span class="n">key_prefix</span><span class="o">=</span><span class="s1">&#39;kkbox_&#39;</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>Then I get my cohort table. The <code>cohort</code> module has a <code>get_cohort_table()</code> method.
 We need to provide the cohort and the activity. The cohort is how we group the users (e.g. registration date)  and the activity is what we are tracking (e.g. the active event).</p>
 <div class="highlight"><pre><span></span><code><span class="n">table_pct</span> <span class="o">=</span> <span class="n">cohort</span><span class="o">.</span><span class="n">get_cohort_table</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">MonthEvents</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">),</span>
@@ -597,21 +641,24 @@ We need to provide the cohort and the activity. The cohort is how we group the u
 <span class="n">table_pct</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">CohortTable([</span>
-<span class="err">  CohortRow(&#39;01 Jan 2016&#39;, 253156, [13.738564363475485, 6.1945993774589585, 5.25328256095056, 5.003239109481901, 5.020619696945757, 4.761490938393718, 4.838123528575266, 4.733444990440677, 4.597955410892888, 4.7117192561108565, 4.7373951239551895, 4.634691652577857, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),</span>
-<span class="err">  CohortRow(&#39;01 Feb 2016&#39;, 208170, [13.772877936302061, 7.072104529951482, 5.54834990632656, 5.474852284190805, 5.145794302733343, 5.092472498438776, 5.010328097228227, 4.960368929240524, 5.049718979680069, 5.022337512609886, 4.959888552625258, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),</span>
-<span class="err">  CohortRow(&#39;01 Mar 2016&#39;, 195618, [13.599464261979982, 6.271406516782709, 5.1667024506947214, 4.843623797401057, 4.732693310431555, 4.630453230275332, 4.580866791399565, 4.66572605792923, 4.756208528867487, 4.539970759337075, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),</span>
-<span class="err"> ...</span>
-<span class="err">   CohortRow(&#39;01 Jan 2019&#39;, 0, [0, 0, 0]),</span>
-<span class="err">   CohortRow(&#39;01 Feb 2019&#39;, 0, [0, 0]),</span>
-<span class="err">   CohortRow(&#39;01 Mar 2019&#39;, 0, [0])])</span>
+
+<div class="highlight"><pre><span></span><code>CohortTable([
+  CohortRow(&#39;01 Jan 2016&#39;, 253156, [13.738564363475485, 6.1945993774589585, 5.25328256095056, 5.003239109481901, 5.020619696945757, 4.761490938393718, 4.838123528575266, 4.733444990440677, 4.597955410892888, 4.7117192561108565, 4.7373951239551895, 4.634691652577857, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+  CohortRow(&#39;01 Feb 2016&#39;, 208170, [13.772877936302061, 7.072104529951482, 5.54834990632656, 5.474852284190805, 5.145794302733343, 5.092472498438776, 5.010328097228227, 4.960368929240524, 5.049718979680069, 5.022337512609886, 4.959888552625258, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+  CohortRow(&#39;01 Mar 2016&#39;, 195618, [13.599464261979982, 6.271406516782709, 5.1667024506947214, 4.843623797401057, 4.732693310431555, 4.630453230275332, 4.580866791399565, 4.66572605792923, 4.756208528867487, 4.539970759337075, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+ ...
+   CohortRow(&#39;01 Jan 2019&#39;, 0, [0, 0, 0]),
+   CohortRow(&#39;01 Feb 2019&#39;, 0, [0, 0]),
+   CohortRow(&#39;01 Mar 2019&#39;, 0, [0])])
 </code></pre></div>
+
 
 <p>I am just showing the first  and last three rows. The <code>nrows</code> arguments set how many rows the table has.  We can see that the last row of the table is March 2019. This is the time at which the table starts. So if I want to make a cohort analysis on my data, I need to set <code>row=39</code> so that the table has enough rows to include the 2016 cohorts.</p>
 <p>The data is not easy to read. We can convert it into a DataFrame using the <code>df()</code> method. I also keep only the useful rows using <code>.iloc[:12]</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">table_pct</span><span class="o">.</span><span class="n">df</span><span class="p">()</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span>
 <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 </code></pre></div>
+
 
 <table>
 <thead>
@@ -723,8 +770,10 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">january</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> users registered in January&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">253,156 users registered in January</span>
+
+<div class="highlight"><pre><span></span><code>253,156 users registered in January
 </code></pre></div>
+
 
 <p>The following columns give us the percentage of users from that cohort who are active for this period. For the January cohort, 0 is January, 1 is February and so on. For the February cohort, 0 is February, 1 is March, ... :</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># how many users were active in January</span>
@@ -734,8 +783,10 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">active_jan_num</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> of those users were active the same month. That is </span><span class="si">{</span><span class="n">active_jan_pct</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> percents.&#39;</span><span class="p">)</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">34,780 of those users were active the same month. That is 13.738564 percents.</span>
+
+<div class="highlight"><pre><span></span><code>34,780 of those users were active the same month. That is 13.738564 percents.
 </code></pre></div>
+
 
 <p>This <code>13.738564</code> percents is the number we can read in the column 1 of the January cohort row.:</p>
 <table>
@@ -761,6 +812,7 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
                                 <span class="n">use_percent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">table_cnt</span><span class="o">.</span><span class="n">df</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 </code></pre></div>
+
 
 <table>
 <thead>
@@ -868,6 +920,7 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
 <div class="highlight"><pre><span></span><code><span class="n">cohort</span><span class="o">.</span><span class="n">stylize</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p><img alt="stylized df" src="images/bitmapist_stylized_df.png"></p>
 <h4>Visualize our cohorts</h4>
 <p>Now that our cohort data is stored in a dataframe, it is easy to create visualizations from it.</p>
@@ -903,6 +956,7 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div>
 
+
 <p><img alt="cohort heatmap" src="/images/bitmapist_cohort_heatmap.jpg"></p>
 <h5>Cohorts Plots</h5>
 <div class="highlight"><pre><span></span><code><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
@@ -926,6 +980,7 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div>
 
+
 <p><img alt="cohorts plots" src="/images/bitmapist_cohorts_plots.jpg"></p>
 <h2>Registration methods cohorts</h2>
 <p>We are now going to use bitmapist to run a cohort analysis where we group users by registration method. We want to know what method has the highest user retention. </p>
@@ -933,55 +988,60 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
 <div class="highlight"><pre><span></span><code><span class="n">b</span><span class="o">.</span><span class="n">get_event_names</span><span class="p">()</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="p">[</span><span class="s s-Atom">&#39;active&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:-1&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:1&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:10&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:11&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:13&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:14&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:16&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:17&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:18&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:19&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:2&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:3&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:4&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:5&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:6&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:7&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:8&#39;</span><span class="p">,</span>
- <span class="s s-Atom">&#39;registered_via:9&#39;</span><span class="p">]</span>
+
+<div class="highlight"><pre><span></span><code>[&#39;active&#39;,
+ &#39;registered&#39;,
+ &#39;registered_via:-1&#39;,
+ &#39;registered_via:1&#39;,
+ &#39;registered_via:10&#39;,
+ &#39;registered_via:11&#39;,
+ &#39;registered_via:13&#39;,
+ &#39;registered_via:14&#39;,
+ &#39;registered_via:16&#39;,
+ &#39;registered_via:17&#39;,
+ &#39;registered_via:18&#39;,
+ &#39;registered_via:19&#39;,
+ &#39;registered_via:2&#39;,
+ &#39;registered_via:3&#39;,
+ &#39;registered_via:4&#39;,
+ &#39;registered_via:5&#39;,
+ &#39;registered_via:6&#39;,
+ &#39;registered_via:7&#39;,
+ &#39;registered_via:8&#39;,
+ &#39;registered_via:9&#39;]
 </code></pre></div>
+
 
 <p>All I have to do now is extract the number from the <code>registered_via:#</code> events.</p>
 <div class="highlight"><pre><span></span><code><span class="n">registration_methods</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">b</span><span class="o">.</span><span class="n">get_event_names</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">m</span><span class="p">]</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">[&#39;-1&#39;,</span>
-<span class="err"> &#39;1&#39;,</span>
-<span class="err"> &#39;10&#39;,</span>
-<span class="err"> &#39;11&#39;,</span>
-<span class="err"> &#39;13&#39;,</span>
-<span class="err"> &#39;14&#39;,</span>
-<span class="err"> &#39;16&#39;,</span>
-<span class="err"> &#39;17&#39;,</span>
-<span class="err"> &#39;18&#39;,</span>
-<span class="err"> &#39;19&#39;,</span>
-<span class="err"> &#39;2&#39;,</span>
-<span class="err"> &#39;3&#39;,</span>
-<span class="err"> &#39;4&#39;,</span>
-<span class="err"> &#39;5&#39;,</span>
-<span class="err"> &#39;6&#39;,</span>
-<span class="err"> &#39;7&#39;,</span>
-<span class="err"> &#39;8&#39;,</span>
-<span class="err"> &#39;9&#39;]</span>
+
+<div class="highlight"><pre><span></span><code>[&#39;-1&#39;,
+ &#39;1&#39;,
+ &#39;10&#39;,
+ &#39;11&#39;,
+ &#39;13&#39;,
+ &#39;14&#39;,
+ &#39;16&#39;,
+ &#39;17&#39;,
+ &#39;18&#39;,
+ &#39;19&#39;,
+ &#39;2&#39;,
+ &#39;3&#39;,
+ &#39;4&#39;,
+ &#39;5&#39;,
+ &#39;6&#39;,
+ &#39;7&#39;,
+ &#39;8&#39;,
+ &#39;9&#39;]
 </code></pre></div>
+
 
 <p>Next, as I only saved the activity data for 2016, I am only going to consider the users who registered in 2016. I create a <code>base_users</code> bitmap:</p>
 <div class="highlight"><pre><span></span><code><span class="n">base_users</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">YearEvent</span><span class="p">(</span><span class="s1">&#39;registered&#39;</span><span class="p">,</span> <span class="mi">2016</span><span class="p">)</span>
 </code></pre></div>
+
 
 <p>Before going further, I want to have a look at how many user used each method to register.</p>
 <div class="highlight"><pre><span></span><code><span class="n">users_count</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">UniqueEvents</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;registered_via:</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">base_users</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">registration_methods</span><span class="p">]</span>
@@ -989,6 +1049,7 @@ The cohort column gives us the size of the cohort (i.e. how many users registere
                    <span class="s1">&#39;users_count&#39;</span><span class="p">:</span><span class="n">users_count</span><span class="p">})</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;users_count&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;methods&#39;</span><span class="p">)</span>   
 </code></pre></div>
+
 
 <p><img alt="methods users count" src="/images/bitmapist_methods_users-count.jpg"></p>
 <p>I used the <code>AND</code> operator to limit the registrations to 2016 : <code>b.UniqueEvents(f'registered_via:{m}') &amp; base_users</code>. 
@@ -1022,6 +1083,7 @@ Most users registered via method 4. After that, some users registered via method
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
 <span class="n">df</span>
 </code></pre></div>
+
 
 <table>
 <thead>
@@ -1148,6 +1210,7 @@ Most users registered via method 4. After that, some users registered via method
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div>
 
+
 <p><img alt="methods cohorts heatmap" src="/images/bitmapist_methods_cohorts_heatmap.jpg"></p>
 <p>We can see that while method 4 was the most used registration method, it has the worst retention rate. This might be what pulled down the retention rate on all cohorts in the previous analysis. This would require to dig a bit deeper.</p>
 <h2>Conclusion</h2>
@@ -1244,8 +1307,6 @@ Most users registered via method 4. After that, some users registered via method
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -1258,73 +1319,52 @@ Most users registered via method 4. After that, some users registered via method
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -1333,10 +1373,31 @@ Most users registered via method 4. After that, some users registered via method
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

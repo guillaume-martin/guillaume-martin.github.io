@@ -123,17 +123,18 @@ Guillaume Martin            </a>
 <p>You also need to know a bout SQL Window Functions. If you don't, you should read my article <a href="https://guillaume-martin.github.io/sql-window-functions">here</a></p>
 <p>To illustrate how to calculate a moving average, I'll use the DVDrental database that can be downloaded <a href="https://www.postgresqltutorial.com/postgresql-sample-database/">here</a></p>
 <p>We have a payment table storing all the payments made by our customers.</p>
-<div class="highlight"><pre><span></span><code><span class="o">#</span> <span class="err">\</span><span class="n">d</span><span class="o">+</span> <span class="n">payment</span>
-          <span class="k">Table</span> <span class="ss">&quot;public.payment&quot;</span>
-    <span class="k">Column</span>    <span class="o">|</span>            <span class="k">Type</span>             <span class="o">|</span>
-<span class="c1">--------------+-----------------------------+</span>
- <span class="n">payment_id</span>   <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span>
- <span class="n">customer_id</span>  <span class="o">|</span> <span class="nb">smallint</span>                    <span class="o">|</span>
- <span class="n">staff_id</span>     <span class="o">|</span> <span class="nb">smallint</span>                    <span class="o">|</span>
- <span class="n">rental_id</span>    <span class="o">|</span> <span class="nb">integer</span>                     <span class="o">|</span>
- <span class="n">amount</span>       <span class="o">|</span> <span class="nb">numeric</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>                <span class="o">|</span>
- <span class="n">payment_date</span> <span class="o">|</span> <span class="k">timestamp</span> <span class="k">without</span> <span class="k">time</span> <span class="k">zone</span> <span class="o">|</span>
+<div class="highlight"><pre><span></span><code># \d+ payment
+          Table &quot;public.payment&quot;
+    Column    |            Type             |
+--------------+-----------------------------+
+ payment_id   | integer                     |
+ customer_id  | smallint                    |
+ staff_id     | smallint                    |
+ rental_id    | integer                     |
+ amount       | numeric(5,2)                |
+ payment_date | timestamp without time zone |
 </code></pre></div>
+
 
 <p>I want to calculate the moving average of the amount over a 5 days period.</p>
 <p>First, I calculate the total amount per day in a Common Table Expression (CTE) using a <code>WITH</code> statement.</p>
@@ -147,6 +148,7 @@ Guillaume Martin            </a>
         <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
 <span class="p">)</span>
 </code></pre></div>
+
 
 <p>Next, I calculate the moving average on the amount using a window function:</p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
@@ -168,6 +170,7 @@ Guillaume Martin            </a>
  <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">28</span>   <span class="o">|</span> <span class="mi">2622</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">1703</span><span class="p">.</span><span class="mi">9133333333333333</span>
 </code></pre></div>
 
+
 <p>SQL returns an average for the first four rows. When we calculate a moving average, the first rows should be empty because we don't have enough values to calculate the average.
 In my example, I need to return Null for the first four rows. To do so, I'll use a <code>CASE WHEN ELSE</code> statement. This statement is the SQL equivalent of <code>if then else</code>.
 I also use the <code>ROW_NUMBER()</code> window function to get the number of each row of the result set. Then if <code>ROW_NUMBER()</code> is more than 4 then the query should return the average  of the amount of the last 5 rows. If the <code>ROW_NUMBER()</code> is less than 4, the query should return <code>Null</code>.
@@ -178,6 +181,7 @@ This is how I write the <code>CASE</code> statement:</p>
     <span class="k">ELSE</span> <span class="k">Null</span>
 <span class="k">END</span> <span class="k">AS</span> <span class="n">MA5</span> 
 </code></pre></div>
+
 
 <p>The Final query looks like this:</p>
 <div class="highlight"><pre><span></span><code>  <span class="k">WITH</span> <span class="n">cte_daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
@@ -200,15 +204,15 @@ This is how I write the <code>CASE</code> statement:</p>
     <span class="n">cte_daily_amount</span>
  <span class="p">;</span>
   <span class="n">payment_date</span> <span class="o">|</span> <span class="n">amount</span>  <span class="o">|</span>   <span class="n">ma5</span>   
-<span class="c1">--------------+---------+---------</span>
- <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>        
- <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>        
- <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>        
- <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span> <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span> <span class="o">|</span>        
- <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">26</span>   <span class="o">|</span>  <span class="mi">347</span><span class="p">.</span><span class="mi">21</span> <span class="o">|</span> <span class="mi">1118</span><span class="p">.</span><span class="mi">32</span>
- <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">08</span>   <span class="o">|</span> <span class="mi">2227</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span> <span class="mi">1303</span><span class="p">.</span><span class="mi">24</span>
- <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>   <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span> <span class="mi">1481</span><span class="p">.</span><span class="mi">94</span>
- <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">28</span>   <span class="o">|</span> <span class="mi">2622</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">1703</span><span class="p">.</span><span class="mi">91</span>
+<span class="c1">---------------+---------+---------</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>    <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>    <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>    <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">19</span>    <span class="o">|</span> <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span> <span class="o">|</span>        
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">26</span>    <span class="o">|</span>  <span class="mi">347</span><span class="p">.</span><span class="mi">21</span> <span class="o">|</span> <span class="mi">1118</span><span class="p">.</span><span class="mi">32</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">08</span>    <span class="o">|</span> <span class="mi">2227</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span> <span class="mi">1303</span><span class="p">.</span><span class="mi">24</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>    <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span> <span class="mi">1481</span><span class="p">.</span><span class="mi">94</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">28</span>    <span class="o">|</span> <span class="mi">2622</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">1703</span><span class="p">.</span><span class="mi">91</span>
 <span class="p">[...]</span>
 </code></pre></div>
             </div>
@@ -230,8 +234,6 @@ This is how I write the <code>CASE</code> statement:</p>
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -244,73 +246,52 @@ This is how I write the <code>CASE</code> statement:</p>
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -319,10 +300,31 @@ This is how I write the <code>CASE</code> statement:</p>
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

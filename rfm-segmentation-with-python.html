@@ -122,7 +122,830 @@ Guillaume Martin            </a>
     
 </footer><!-- /.post-info -->                    </div>
                 </div>
-                <p>{% notebook rfm-segmentation-with-python-2018-05-31.ipynb %}</p>
+                <h2>About RFM segmentation</h2>
+<p>Customer segmentation is important for multiple reasons. We get a deeper knowledge of our customers and can tailor targeted marketing campaigns.</p>
+<p>The RFM method was introduced by Bult and Wansbeek in 1995 and has been successfully used by marketers since.<br>
+It analyzes customers' behavior on three parameters:<br>
+<strong>Recency</strong>: How recent is the last purchase of the customer.<br>
+<strong>Frequency</strong>: How often the customer makes a purchase.<br>
+<strong>Monetary</strong>: How much money does the customer spends.</p>
+<p>The advantages of RFM is that it is easy to implement and it can be used for different types of business. It helps craft better marketing campaigns and improves CRM and customer's loyalty.</p>
+<p>The disadvantages are that it may not apply in industries where customers are usually one time buyers. It is based on historical data and won't give much insight about prospects.  </p>
+<p>In this post, I will show how we can use RFM segmentation with Python.</p>
+<h2>Methodology</h2>
+<p>To get the RFM score of a customer, we need to first calculate the R, F and M scores on a scale from 1 (worst) to 5 (best).  </p>
+<ol>
+<li>calculate Recency = number of days since last purchase</li>
+<li>calculate Freqency = number of purchases during the studied period (usually one year)</li>
+<li>calculate Monetary = total amount of purchases made during the studied period</li>
+<li>find quintiles for each of these dimensions</li>
+<li>give a grade to each dimension depending in which quintiles it stands</li>
+<li>combine R, F and M scores to get the RFM score</li>
+<li>map RF scores to segments  </li>
+</ol>
+<p>For this example, I will use the <a href="https://archive.ics.uci.edu/ml/datasets/Online+Retail">Online Retail dataset</a> available on the UCI Machine Learning Repository.</p>
+<h2>Calculcate the RFM score</h2>
+<h3>Prepare the data</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</code></pre></div>
+
+
+<p>I create a dataframe with the sales data</p>
+<div class="highlight"><pre><span></span><code><span class="n">sales</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s1">&#39;online-retail.xlsx&#39;</span><span class="p">)</span>
+<span class="n">sales</span><span class="o">.</span><span class="n">columns</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>Index([&#39;InvoiceNo&#39;, &#39;StockCode&#39;, &#39;Description&#39;, &#39;Quantity&#39;, &#39;InvoiceDate&#39;,
+        &#39;UnitPrice&#39;, &#39;CustomerID&#39;, &#39;Country&#39;],
+      dtype=&#39;object&#39;)
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:,}</span><span class="s1"> rows; </span><span class="si">{:,}</span><span class="s1"> columns&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sales</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sales</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>541,909 rows; 8 columns
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:,}</span><span class="s1"> invoices don</span><span class="se">\&#39;</span><span class="s1">t have a customer id&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sales</span><span class="p">[</span><span class="n">sales</span><span class="o">.</span><span class="n">CustomerID</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>135,080 invoices don&#39;t have a customer id
+</code></pre></div>
+
+
+<p>I am going to drop those lines as they will not help in our analysis of customers.</p>
+<div class="highlight"><pre><span></span><code><span class="n">sales</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CustomerID&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>What is the time frame of the data?</p>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Orders from </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sales</span><span class="p">[</span><span class="s1">&#39;InvoiceDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                                    <span class="n">sales</span><span class="p">[</span><span class="s1">&#39;InvoiceDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>  Orders from 2010-12-01 08:26:00 to 2011-12-09 12:50:00
+</code></pre></div>
+
+
+<p>We have about one year of sales data (from December 2010 to December 2011). This is the period usually used for RFM analysis. I'll set the period of the study to 365 days to get exactly one year.</p>
+<p>I calculate the total price of each line.</p>
+<div class="highlight"><pre><span></span><code><span class="n">sales</span><span class="p">[</span><span class="s1">&#39;Price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sales</span><span class="p">[</span><span class="s1">&#39;Quantity&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">sales</span><span class="p">[</span><span class="s1">&#39;UnitPrice&#39;</span><span class="p">]</span>
+</code></pre></div>
+
+
+<p>Next, I control whether there's only one row per invoice.</p>
+<div class="highlight"><pre><span></span><code><span class="n">sales</span><span class="p">[</span><span class="s1">&#39;InvoiceNo&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>576339    542
+579196    533
+580727    529
+578270    442
+573576    435
+Name: InvoiceNo, dtype: int64
+</code></pre></div>
+
+
+<p>Invoices can have multiple rows (one row per item). However, I am interested in how many times did a customer purchase, not how many items did he buy. I want to count orders rather than items.<br>
+I create an <code>order</code> dataframe that will aggregate our sales at the order level.</p>
+<div class="highlight"><pre><span></span><code><span class="n">orders</span> <span class="o">=</span> <span class="n">sales</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;InvoiceNo&#39;</span><span class="p">,</span> <span class="s1">&#39;InvoiceDate&#39;</span><span class="p">,</span> <span class="s1">&#39;CustomerID&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&#39;Price&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()})</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">orders</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>InvoiceNo</th>
+      <th>InvoiceDate</th>
+      <th>CustomerID</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>536365</td>
+      <td>2010-12-01 08:26:00</td>
+      <td>17850.0</td>
+      <td>139.12</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>536366</td>
+      <td>2010-12-01 08:28:00</td>
+      <td>17850.0</td>
+      <td>22.20</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>536367</td>
+      <td>2010-12-01 08:34:00</td>
+      <td>13047.0</td>
+      <td>278.73</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>536368</td>
+      <td>2010-12-01 08:34:00</td>
+      <td>13047.0</td>
+      <td>70.05</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>536369</td>
+      <td>2010-12-01 08:35:00</td>
+      <td>13047.0</td>
+      <td>17.85</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Finally, I am going to simulate an analysis I am doing in real time by setting the <code>NOW</code> date at one day after the last purchase. This date will be used as a reference to calculate the <code>Recency</code> score.</p>
+<div class="highlight"><pre><span></span><code><span class="n">NOW</span> <span class="o">=</span> <span class="n">orders</span><span class="p">[</span><span class="s1">&#39;InvoiceDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">NOW</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>Timestamp(&#39;2011-12-10 12:50:00&#39;)
+</code></pre></div>
+
+
+<p>I am going to study the data over a period of one year. I set a <code>period</code> variable to 365 (days).<br>
+You can change this value depending on your needs. It will depend on the industry and the expected behavior of customers but one year is a commonly used value in RFM segmentation.</p>
+<div class="highlight"><pre><span></span><code><span class="n">period</span> <span class="o">=</span> <span class="mi">365</span>
+</code></pre></div>
+
+
+<h3>Calculate the Recency, Frequency and Monetary Value of each customers</h3>
+<p>To make things easier, I am going to add a column with the number of days between the purchase and now. To find the Recency values, I will just have to find the minimum of this column for each customer.</p>
+<div class="highlight"><pre><span></span><code><span class="n">orders</span><span class="p">[</span><span class="s1">&#39;DaysSinceOrder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orders</span><span class="p">[</span><span class="s1">&#39;InvoiceDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">NOW</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">days</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>The scores are calculated for each customer. I need a dataframe with one row per customer. The scores will be stored in columns.</p>
+<div class="highlight"><pre><span></span><code><span class="n">aggr</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;DaysSinceOrder&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>  <span class="c1"># the number of days since last order (Recency)</span>
+    <span class="s1">&#39;InvoiceDate&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">if</span> <span class="n">d</span> <span class="o">&gt;=</span> <span class="n">NOW</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">period</span><span class="p">)]),</span> <span class="c1"># the total number of orders in the last period (Frequency)</span>
+<span class="p">}</span>
+<span class="n">rfm</span> <span class="o">=</span> <span class="n">orders</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;CustomerID&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">aggr</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">rfm</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;DaysSinceOrder&#39;</span><span class="p">:</span> <span class="s1">&#39;Recency&#39;</span><span class="p">,</span> <span class="s1">&#39;InvoiceDate&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">rfm</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>CustomerID</th>
+      <th>Recency</th>
+      <th>Frequency</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>12346.0</td>
+      <td>326</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>12347.0</td>
+      <td>2</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>12348.0</td>
+      <td>75</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>12349.0</td>
+      <td>19</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>12350.0</td>
+      <td>310</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>I have the Recency and Frequency data. I need to add the Monetary value of each customer by adding sales over the last year.</p>
+<div class="highlight"><pre><span></span><code><span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Monetary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;CustomerID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">orders</span><span class="p">[(</span><span class="n">orders</span><span class="p">[</span><span class="s1">&#39;CustomerID&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="o">&amp;</span> \
+                                                           <span class="p">(</span><span class="n">orders</span><span class="p">[</span><span class="s1">&#39;InvoiceDate&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">NOW</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">period</span><span class="p">))]</span>\
+                                                           <span class="p">[</span><span class="s1">&#39;Price&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="n">rfm</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>CustomerID</th>
+      <th>Recency</th>
+      <th>Frequency</th>
+      <th>Monetary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>12346.0</td>
+      <td>326</td>
+      <td>2</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>12347.0</td>
+      <td>2</td>
+      <td>6</td>
+      <td>3598.21</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>12348.0</td>
+      <td>75</td>
+      <td>4</td>
+      <td>1797.24</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>12349.0</td>
+      <td>19</td>
+      <td>1</td>
+      <td>1757.55</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>12350.0</td>
+      <td>310</td>
+      <td>1</td>
+      <td>334.40</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Calculate the R, F and M scores</h3>
+<p>At this point, I have the values for Recency, Frequency and Monetary parameters. Each customer will get a note between 1 and 5 for each parameter.<br>
+We can do this by setting ranges based on expected behavior. For example, to rate Recency, we could use this scale:<br>
+1: 0-30 days<br>
+2: 31-60 days<br>
+3: 61-90 days<br>
+4: 91-180 days<br>
+5: 181-365 days  </p>
+<p>We could also use quintiles. Each quintiles contains 20% of the population. Using quintiles is more flexible as the ranges will adapt to the data and would work across different industries or if there's any change in expected customer behavior.<br>
+I am going to use the quintiles method. First, I get the quintiles for each parameter.</p>
+<div class="highlight"><pre><span></span><code><span class="n">quintiles</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[[</span><span class="s1">&#39;Recency&#39;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;Monetary&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">quantile</span><span class="p">([</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="o">.</span><span class="mi">8</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="n">quintiles</span>
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>{&#39;Frequency&#39;: {0.2: 1.0, 0.4: 2.0, 0.6: 3.0, 0.8: 6.0},
+  &#39;Monetary&#39;: {0.2: 215.89800000000002,
+  0.4: 440.432,
+  0.6: 876.3679999999999,
+  0.8: 1909.6580000000006},
+  &#39;Recency&#39;: {0.2: 11.0, 0.4: 32.0, 0.6: 71.0, 0.8: 178.80000000000018}}
+</code></pre></div>
+
+
+<p>Then I write methods to assign ranks from 1 to 5. A smaller Recency value is better whereas higher Frequency and Monetary values are better. I need to write two separate methods.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">r_score</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="s1">&#39;Recency&#39;</span><span class="p">][</span><span class="o">.</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">5</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="s1">&#39;Recency&#39;</span><span class="p">][</span><span class="o">.</span><span class="mi">4</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">4</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="s1">&#39;Recency&#39;</span><span class="p">][</span><span class="o">.</span><span class="mi">6</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">3</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="s1">&#39;Recency&#39;</span><span class="p">][</span><span class="o">.</span><span class="mi">8</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">fm_score</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="o">.</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="o">.</span><span class="mi">4</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="o">.</span><span class="mi">6</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">3</span>
+    <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">quintiles</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="o">.</span><span class="mi">8</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">4</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">5</span>    
+</code></pre></div>
+
+
+<p>I am now ready to get the R, F and M scores of each customer.</p>
+<div class="highlight"><pre><span></span><code><span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Recency&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">r_score</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Frequency&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">fm_score</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">))</span>
+<span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;M&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Monetary&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">fm_score</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;Monetary&#39;</span><span class="p">))</span>
+</code></pre></div>
+
+
+<h3>Get customers segments from RFM score</h3>
+<p>Finally, I combine the R, F and M scores into a <code>RFM Score</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;RFM Score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;M&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="n">rfm</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>CustomerID</th>
+      <th>Recency</th>
+      <th>Frequency</th>
+      <th>Monetary</th>
+      <th>R</th>
+      <th>F</th>
+      <th>M</th>
+      <th>RFM Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>12346.0</td>
+      <td>326</td>
+      <td>2</td>
+      <td>0.00</td>
+      <td>1</td>
+      <td>2</td>
+      <td>1</td>
+      <td>121</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>12347.0</td>
+      <td>2</td>
+      <td>6</td>
+      <td>3598.21</td>
+      <td>5</td>
+      <td>4</td>
+      <td>5</td>
+      <td>545</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>12348.0</td>
+      <td>75</td>
+      <td>4</td>
+      <td>1797.24</td>
+      <td>2</td>
+      <td>4</td>
+      <td>4</td>
+      <td>244</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>12349.0</td>
+      <td>19</td>
+      <td>1</td>
+      <td>1757.55</td>
+      <td>4</td>
+      <td>1</td>
+      <td>4</td>
+      <td>414</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>12350.0</td>
+      <td>310</td>
+      <td>1</td>
+      <td>334.40</td>
+      <td>1</td>
+      <td>1</td>
+      <td>2</td>
+      <td>112</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The RFM scores give us 5<span class="math">\(^3\)</span> = 125 segments. Which is not easy to work with.<br>
+I am going to work with 11 segments based on the R and F scores. Here is the description of the segments:  </p>
+<table>
+<thead>
+<tr>
+<th align="left">Segment</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">Champions</td>
+<td align="left">Bought recently, buy often and spend the most</td>
+</tr>
+<tr>
+<td align="left">Loyal Customers</td>
+<td align="left">Buy on a regular basis. Responsive to promotions.</td>
+</tr>
+<tr>
+<td align="left">Potential Loyalist</td>
+<td align="left">Recent customers with average frequency.</td>
+</tr>
+<tr>
+<td align="left">Recent Customers</td>
+<td align="left">Bought most recently, but not often.</td>
+</tr>
+<tr>
+<td align="left">Promising</td>
+<td align="left">Recent shoppers, but haven’t spent much.</td>
+</tr>
+<tr>
+<td align="left">Customers Needing Attention</td>
+<td align="left">Above average recency, frequency and monetary values. May not have bought very recently though.</td>
+</tr>
+<tr>
+<td align="left">About To Sleep</td>
+<td align="left">Below average recency and frequency. Will lose them if not reactivated.</td>
+</tr>
+<tr>
+<td align="left">At Risk</td>
+<td align="left">Purchased often but a long time ago. Need to bring them back!</td>
+</tr>
+<tr>
+<td align="left">Can’t Lose Them</td>
+<td align="left">Used to purchase frequently but haven’t returned for a long time.</td>
+</tr>
+<tr>
+<td align="left">Hibernating</td>
+<td align="left">Last purchase was long back and low number of orders. May be lost.</td>
+</tr>
+</tbody>
+</table>
+<p>The resulting matrix look like this:<br>
+<img alt="rfm segments" src="/images/rfm-segments.png"></p>
+<div class="highlight"><pre><span></span><code><span class="n">segt_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="sa">r</span><span class="s1">&#39;[1-2][1-2]&#39;</span><span class="p">:</span> <span class="s1">&#39;hibernating&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;[1-2][3-4]&#39;</span><span class="p">:</span> <span class="s1">&#39;at risk&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;[1-2]5&#39;</span><span class="p">:</span> <span class="s1">&#39;can</span><span class="se">\&#39;</span><span class="s1">t loose&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;3[1-2]&#39;</span><span class="p">:</span> <span class="s1">&#39;about to sleep&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;33&#39;</span><span class="p">:</span> <span class="s1">&#39;need attention&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;[3-4][4-5]&#39;</span><span class="p">:</span> <span class="s1">&#39;loyal customers&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;41&#39;</span><span class="p">:</span> <span class="s1">&#39;promising&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;51&#39;</span><span class="p">:</span> <span class="s1">&#39;new customers&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;[4-5][2-3]&#39;</span><span class="p">:</span> <span class="s1">&#39;potential loyalists&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;5[4-5]&#39;</span><span class="p">:</span> <span class="s1">&#39;champions&#39;</span>
+<span class="p">}</span>
+
+<span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Segment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Segment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Segment&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">segt_map</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">rfm</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>CustomerID</th>
+      <th>Recency</th>
+      <th>Frequency</th>
+      <th>Monetary</th>
+      <th>R</th>
+      <th>F</th>
+      <th>M</th>
+      <th>RFM Score</th>
+      <th>Segment</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>12346.0</td>
+      <td>326</td>
+      <td>2</td>
+      <td>0.00</td>
+      <td>1</td>
+      <td>2</td>
+      <td>1</td>
+      <td>121</td>
+      <td>hibernating</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>12347.0</td>
+      <td>2</td>
+      <td>6</td>
+      <td>3598.21</td>
+      <td>5</td>
+      <td>4</td>
+      <td>5</td>
+      <td>545</td>
+      <td>champions</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>12348.0</td>
+      <td>75</td>
+      <td>4</td>
+      <td>1797.24</td>
+      <td>2</td>
+      <td>4</td>
+      <td>4</td>
+      <td>244</td>
+      <td>at risk</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>12349.0</td>
+      <td>19</td>
+      <td>1</td>
+      <td>1757.55</td>
+      <td>4</td>
+      <td>1</td>
+      <td>4</td>
+      <td>414</td>
+      <td>promising</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>12350.0</td>
+      <td>310</td>
+      <td>1</td>
+      <td>334.40</td>
+      <td>1</td>
+      <td>1</td>
+      <td>2</td>
+      <td>112</td>
+      <td>hibernating</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Visualize our customers segments</h2>
+<p>Now that we have our scores, we can do some data visualization to get a better idea of our customers portfolio.
+First, let see at the distribution of R, F and M. </p>
+<div class="highlight"><pre><span></span><code><span class="c1"># plot the distribution of customers over R and F</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">]):</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;R&#39;</span><span class="p">:</span><span class="s1">&#39;Recency&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span><span class="s1">&#39;Frequency&#39;</span><span class="p">}</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">bars</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_frame_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Distribution of </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="n">p</span><span class="p">]),</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">bar</span> <span class="ow">in</span> <span class="n">bars</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_height</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+            <span class="n">bar</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;firebrick&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span> <span class="o">+</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_width</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">value</span> <span class="o">-</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n</span><span class="s1">(</span><span class="si">{}</span><span class="s1">%)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
+               <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+               <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span>
+               <span class="n">color</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># plot the distribution of M for RF score</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                         <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="n">r_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">f_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">r_range</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">f_range</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[(</span><span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">r</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">f</span><span class="p">)][</span><span class="s1">&#39;M&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">bars</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n</span><span class="s1">F&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;R</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_frame_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">bar</span> <span class="ow">in</span> <span class="n">bars</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_height</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+                <span class="n">bar</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;firebrick&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span> <span class="o">+</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_width</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="n">value</span><span class="p">,</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
+                    <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+                    <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Distribution of M for each F and R&#39;</span><span class="p">,</span>
+             <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+
+
+<p><img alt="RF distribution" src="/images/rfm-rf-distribution.png"></p>
+<p><img alt="M distribution" src="/images/rfm-m-distribution.png"></p>
+<p>We can see that if recency seems evenly distributed, almost half of the customers don't purchase very often (48% of customers have a frequency of 1 or 2).<br>
+When looking at the monetary value, we see that the customers spending the most are those with the highest activity (R and F of 4-5). We have very few large orders (high monetary value but low frequency).</p>
+<p>Let's look at the distribution of our segments.<br>
+I am not going to use a treemap like the segments matrix shown above to visualize the distribution of segments. Bar charts are a better fit for comparing quantities.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># count the number of customers in each segment</span>
+<span class="n">segments_counts</span> <span class="o">=</span> <span class="n">rfm</span><span class="p">[</span><span class="s1">&#39;Segment&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="n">bars</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">segments_counts</span><span class="p">)),</span>
+              <span class="n">segments_counts</span><span class="p">,</span>
+              <span class="n">color</span><span class="o">=</span><span class="s1">&#39;silver&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_frame_on</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">labelbottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">segments_counts</span><span class="p">)))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">segments_counts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bar</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bars</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_width</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">segments_counts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;champions&#39;</span><span class="p">,</span> <span class="s1">&#39;loyal customers&#39;</span><span class="p">]:</span>
+            <span class="n">bar</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;firebrick&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">value</span><span class="p">,</span>
+                <span class="n">bar</span><span class="o">.</span><span class="n">get_y</span><span class="p">()</span> <span class="o">+</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_height</span><span class="p">()</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="si">{:,}</span><span class="s1"> (</span><span class="si">{:}</span><span class="s1">%)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">),</span>
+                                   <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="n">segments_counts</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
+                <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+                <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span>
+               <span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+
+
+<p><img alt="RFM customers segmentation" src="/images/rfm-customers-segmentation.png"></p>
+<p>We have a lot of customers who don't buy frequently from us (29% are hibernating).  However, 32% of our customers are either champions or loyal customers.</p>
+<p>Further analysis can be done that integrate the Monetary parameters.<br>
+With customers assigned to segments and some statistics on the composition of our customers portfolio, we can work on targeted marketing campaigns to retain customers that are at risk, improve sales to customers with some potential and reward the best customers.</p>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
             </div>
             <!-- /.entry-content -->
         </article>
@@ -142,8 +965,6 @@ Guillaume Martin            </a>
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -156,73 +977,52 @@ Guillaume Martin            </a>
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -231,10 +1031,31 @@ Guillaume Martin            </a>
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

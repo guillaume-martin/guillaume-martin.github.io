@@ -126,88 +126,63 @@ Guillaume Martin            </a>
 <p>First, I create the database:</p>
 <div class="highlight"><pre><span></span><code>$ su - postgres
 $ psql
-psql <span class="o">(</span><span class="m">11</span>.7 <span class="o">(</span>Debian <span class="m">11</span>.7-0+deb10u1<span class="o">))</span>
-Type <span class="s2">&quot;help&quot;</span> <span class="k">for</span> help.
+psql (11.7 (Debian 11.7-0+deb10u1))
+Type &quot;help&quot; for help.
 
-<span class="nv">postgres</span><span class="o">=</span><span class="c1"># CREATE DATABASE dvdrental;</span>
+postgres=# CREATE DATABASE dvdrental;
 CREATE DATABASE
-<span class="nv">postgres</span><span class="o">=</span><span class="c1"># \q</span>
+postgres=# \q
 </code></pre></div>
+
 
 <p>Then I download the dump file from postgresqltutorial.com and I restore the database using the <code>pg_restore</code> command.</p>
-<div class="highlight"><pre><span></span><code><span class="o">$</span> <span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">sp</span><span class="o">.</span><span class="n">postgresqltutorial</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">wp</span><span class="o">-</span><span class="n">content</span><span class="o">/</span><span class="n">uploads</span><span class="o">/</span><span class="mi">2019</span><span class="o">/</span><span class="mi">05</span><span class="o">/</span><span class="n">dvdrental</span><span class="o">.</span><span class="n">zip</span>
-<span class="o">$</span> <span class="n">unzip</span> <span class="n">dvdrental</span><span class="o">.</span><span class="n">zip</span>
-<span class="o">$</span> <span class="n">pg_restore</span> <span class="o">-</span><span class="n">U</span> <span class="n">postgres</span> <span class="o">-</span><span class="n">d</span> <span class="n">dvdrental</span> <span class="n">dvdrental</span><span class="o">.</span><span class="n">tar</span>
-<span class="o">$</span> <span class="n">psql</span> <span class="o">-</span><span class="n">U</span> <span class="n">postgres</span> <span class="o">-</span><span class="n">d</span> <span class="n">dvdrental</span>
-<span class="n">psql</span> <span class="p">(</span><span class="mf">11.7</span> <span class="p">(</span><span class="n">Debian</span> <span class="mf">11.7</span><span class="o">-</span><span class="mi">0</span><span class="o">+</span><span class="n">deb10u1</span><span class="p">))</span>
-<span class="n">Type</span> <span class="s2">&quot;help&quot;</span> <span class="k">for</span> <span class="n">help</span><span class="o">.</span>
+<div class="highlight"><pre><span></span><code>$ wget https://sp.postgresqltutorial.com/wp-content/uploads/2019/05/dvdrental.zip
+$ unzip dvdrental.zip
+$ pg_restore -U postgres -d dvdrental dvdrental.tar
+$ psql -U postgres -d dvdrental
+psql (11.7 (Debian 11.7-0+deb10u1))
+Type &quot;help&quot; for help.
 
-<span class="n">dvdrental</span><span class="o">=</span><span class="c1"># \dt</span>
-             <span class="n">List</span> <span class="n">of</span> <span class="n">relations</span>
- <span class="n">Schema</span> <span class="o">|</span>     <span class="n">Name</span>      <span class="o">|</span> <span class="n">Type</span>  <span class="o">|</span>  <span class="n">Owner</span>
-<span class="o">--------+---------------+-------+----------</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">actor</span>         <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">address</span>       <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">category</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">city</span>          <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">country</span>       <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">customer</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">film</span>          <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">film_actor</span>    <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">film_category</span> <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">inventory</span>     <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">language</span>      <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">payment</span>       <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">rental</span>        <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">staff</span>         <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="n">public</span> <span class="o">|</span> <span class="n">store</span>         <span class="o">|</span> <span class="n">table</span> <span class="o">|</span> <span class="n">postgres</span>
-<span class="p">(</span><span class="mi">15</span> <span class="n">rows</span><span class="p">)</span>
+dvdrental=# \dt
+             List of relations
+ Schema |     Name      | Type  |  Owner
+--------+---------------+-------+----------
+ public | actor         | table | postgres
+ public | address       | table | postgres
+ public | category      | table | postgres
+ public | city          | table | postgres
+ public | country       | table | postgres
+ public | customer      | table | postgres
+ public | film          | table | postgres
+ public | film_actor    | table | postgres
+ public | film_category | table | postgres
+ public | inventory     | table | postgres
+ public | language      | table | postgres
+ public | payment       | table | postgres
+ public | rental        | table | postgres
+ public | staff         | table | postgres
+ public | store         | table | postgres
+(15 rows)
 </code></pre></div>
+
 
 <h1>Pivot tables</h1>
 <p>In this example, I want to get the total amount of sales per month for each
 employee.  </p>
 <p>I want the result to look like this:</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Employee 1</th>
-<th>...</th>
-<th>Employee n</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>January</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>February</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>...</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>December</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+<div class="highlight"><pre><span></span><code>|          | Employee 1 | ... | Employee n |
+|----------|------------|-----|------------|
+| January  |            |     |            | 
+| February |            |     |            | 
+| ...      |            |     |            |
+| December |            |     |            |
+</code></pre></div>
+
+
 <p>Each cell of the table will contain the total amount of sales for the employee on that mounth.</p>
 <h2>Explore the database</h2>
 <p>Here is an extract of the database ERD that shows the two tables we are interested in:<br>
-<img alt="" src="/images/dvdrental-erd-sample.png"></p>
+<img alt="ERD samples" src="/images/dvdrental-erd-sample.png"></p>
 <p>The sales are recorded in the payment table.</p>
 <p>For each payment, we have a <code>staff_id</code> and  a <code>payment_date</code>.</p>
 <p>I can join the two tables on the <code>staff_id</code> column.</p>
@@ -217,88 +192,95 @@ employee.  </p>
 We have a datetime value stored in <em>payment.payment_date</em>.
 I'd like to have a month in letters to make it easier to read.
 I'll use the <code>to_char()</code> to convert the timestamp into a string. </p>
-<div class="highlight"><pre><span></span><code><span class="err">to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
+<div class="highlight"><pre><span></span><code><span class="n">to_char</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">,</span> <span class="s1">&#39;Month&#39;</span><span class="p">)</span> <span class="k">AS</span> <span class="k">month</span>
 </code></pre></div>
+
 
 <p><strong>Employee:</strong><br>
 I will concatenate the first and last names to get a full name. This will be our columns headers.</p>
-<div class="highlight"><pre><span></span><code><span class="err">staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
+<div class="highlight"><pre><span></span><code><span class="n">staff</span><span class="p">.</span><span class="n">first_name</span> <span class="o">||</span> <span class="s1">&#39; &#39;</span> <span class="o">||</span> <span class="n">staff</span><span class="p">.</span><span class="n">last_name</span> <span class="k">AS</span> <span class="n">staff_name</span>
 </code></pre></div>
+
 
 <p><strong>Total amount:</strong><br>
 The total amount is simply the sum of all the amounts from the payment table grouped by staff and month.</p>
-<div class="highlight"><pre><span></span><code><span class="err">sum(payment.amount)</span>
+<div class="highlight"><pre><span></span><code><span class="k">sum</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="n">amount</span><span class="p">)</span>
 </code></pre></div>
+
 
 <p>My query is as follow:</p>
-<div class="highlight"><pre><span></span><code><span class="err">SELECT </span>
-<span class="err">    to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
-<span class="err">    , staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
-<span class="err">    , sum(payment.amount) AS total</span>
-<span class="err">FROM </span>
-<span class="err">    payment</span>
-<span class="err">        LEFT JOIN staff</span>
-<span class="err">            ON payment.staff_id = staff.staff_id</span>
-<span class="err">GROUP BY</span>
-<span class="err">    staff_name</span>
-<span class="err">    , month </span>
-<span class="err">    ,  date_part(&#39;month&#39;, payment.payment_date)</span>
-<span class="err">ORDER BY </span>
-<span class="err">    staff_name</span>
-<span class="err">    , date_part(&#39;month&#39;, payment.payment_date);</span>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">to_char</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">,</span> <span class="s1">&#39;Month&#39;</span><span class="p">)</span> <span class="k">AS</span> <span class="k">month</span>
+    <span class="p">,</span> <span class="n">staff</span><span class="p">.</span><span class="n">first_name</span> <span class="o">||</span> <span class="s1">&#39; &#39;</span> <span class="o">||</span> <span class="n">staff</span><span class="p">.</span><span class="n">last_name</span> <span class="k">AS</span> <span class="n">staff_name</span>
+    <span class="p">,</span> <span class="k">sum</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total</span>
+<span class="k">FROM</span> 
+    <span class="n">payment</span>
+        <span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">staff</span>
+            <span class="k">ON</span> <span class="n">payment</span><span class="p">.</span><span class="n">staff_id</span> <span class="o">=</span> <span class="n">staff</span><span class="p">.</span><span class="n">staff_id</span>
+<span class="k">GROUP</span> <span class="k">BY</span>
+    <span class="n">staff_name</span>
+    <span class="p">,</span> <span class="k">month</span> 
+    <span class="p">,</span>  <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">)</span>
+<span class="k">ORDER</span> <span class="k">BY</span> 
+    <span class="n">staff_name</span>
+    <span class="p">,</span> <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">);</span>
 </code></pre></div>
 
+
 <p>And the output looks like this</p>
-<div class="highlight"><pre><span></span><code><span class="err">   month   |  staff_name  |  total</span>
-<span class="err">-----------+--------------+----------</span>
-<span class="err"> February  | Jon Stephens |  4191.00</span>
-<span class="err"> March     | Jon Stephens | 12109.73</span>
-<span class="err"> April     | Jon Stephens | 14479.10</span>
-<span class="err"> May       | Jon Stephens |   280.09</span>
-<span class="err"> February  | Mike Hillyer |  4160.84</span>
-<span class="err"> March     | Mike Hillyer | 11776.83</span>
-<span class="err"> April     | Mike Hillyer | 14080.36</span>
-<span class="err"> May       | Mike Hillyer |   234.09</span>
-<span class="err">(8 rows)</span>
+<div class="highlight"><pre><span></span><code>   month   |  staff_name  |  total
+-----------+--------------+----------
+ February  | Jon Stephens |  4191.00
+ March     | Jon Stephens | 12109.73
+ April     | Jon Stephens | 14479.10
+ May       | Jon Stephens |   280.09
+ February  | Mike Hillyer |  4160.84
+ March     | Mike Hillyer | 11776.83
+ April     | Mike Hillyer | 14080.36
+ May       | Mike Hillyer |   234.09
+(8 rows)
 </code></pre></div>
+
 
 <h2>Generate the pivot table</h2>
 <p>Now, to generate the pivot table, I just have to append the <code>crosstabview</code> command to my query.<br>
 The order of the selected columns in the query is important as it will determine which is used for rows, columns or values (cells).<br>
 The order should be as follow:  </p>
-<div class="highlight"><pre><span></span><code><span class="err">SELECT</span>
-<span class="err">    rows</span>
-<span class="err">    , columns</span>
-<span class="err">    , values</span>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+    <span class="k">rows</span>
+    <span class="p">,</span> <span class="n">columns</span>
+    <span class="p">,</span> <span class="k">values</span>
 </code></pre></div>
+
 
 <p>So the final query is like this:</p>
-<div class="highlight"><pre><span></span><code><span class="err">SELECT </span>
-<span class="err">    to_char(payment.payment_date, &#39;Month&#39;) AS month</span>
-<span class="err">    , staff.first_name || &#39; &#39; || staff.last_name AS staff_name</span>
-<span class="err">    , sum(payment.amount) AS total</span>
-<span class="err">FROM </span>
-<span class="err">    payment</span>
-<span class="err">        LEFT JOIN staff</span>
-<span class="err">            ON payment.staff_id = staff.staff_id</span>
-<span class="err">GROUP BY</span>
-<span class="err">    staff_name</span>
-<span class="err">    , month </span>
-<span class="err">    ,  date_part(&#39;month&#39;, payment.payment_date)</span>
-<span class="err">ORDER BY </span>
-<span class="err">    staff_name</span>
-<span class="err">    , date_part(&#39;month&#39;, payment.payment_date)</span>
-<span class="err">\crosstabview</span>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
+    <span class="n">to_char</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">,</span> <span class="s1">&#39;Month&#39;</span><span class="p">)</span> <span class="k">AS</span> <span class="k">month</span>
+    <span class="p">,</span> <span class="n">staff</span><span class="p">.</span><span class="n">first_name</span> <span class="o">||</span> <span class="s1">&#39; &#39;</span> <span class="o">||</span> <span class="n">staff</span><span class="p">.</span><span class="n">last_name</span> <span class="k">AS</span> <span class="n">staff_name</span>
+    <span class="p">,</span> <span class="k">sum</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total</span>
+<span class="k">FROM</span> 
+    <span class="n">payment</span>
+        <span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">staff</span>
+            <span class="k">ON</span> <span class="n">payment</span><span class="p">.</span><span class="n">staff_id</span> <span class="o">=</span> <span class="n">staff</span><span class="p">.</span><span class="n">staff_id</span>
+<span class="k">GROUP</span> <span class="k">BY</span>
+    <span class="n">staff_name</span>
+    <span class="p">,</span> <span class="k">month</span> 
+    <span class="p">,</span>  <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">)</span>
+<span class="k">ORDER</span> <span class="k">BY</span> 
+    <span class="n">staff_name</span>
+    <span class="p">,</span> <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment</span><span class="p">.</span><span class="n">payment_date</span><span class="p">)</span>
+<span class="err">\</span><span class="n">crosstabview</span>
 </code></pre></div>
 
+
 <p>It outputs the pivot table I wanted:</p>
-<div class="highlight"><pre><span></span><code><span class="err">   month   | Jon Stephens | Mike Hillyer</span>
-<span class="err">-----------+--------------+--------------</span>
-<span class="err"> February  |      4191.00 |      4160.84</span>
-<span class="err"> March     |     12109.73 |     11776.83</span>
-<span class="err"> April     |     14479.10 |     14080.36</span>
-<span class="err"> May       |       280.09 |       234.09</span>
-<span class="err">(4 rows)</span>
+<div class="highlight"><pre><span></span><code>   month   | Jon Stephens | Mike Hillyer
+-----------+--------------+--------------
+ February  |      4191.00 |      4160.84
+ March     |     12109.73 |     11776.83
+ April     |     14479.10 |     14080.36
+ May       |       280.09 |       234.09
+(4 rows)
 </code></pre></div>
             </div>
             <!-- /.entry-content -->
@@ -319,8 +301,6 @@ The order should be as follow:  </p>
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -333,73 +313,52 @@ The order should be as follow:  </p>
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -408,10 +367,31 @@ The order should be as follow:  </p>
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

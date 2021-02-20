@@ -131,42 +131,44 @@ The difference with aggregation functions using the <code>GROUP BY</code> clause
 To illustrate, we'll write queries that sum the salaries of each department of a company.</li>
 </ol>
 <p>Aggregation functions return a single result per group, hiding the rows of each group.</p>
-<div class="highlight"><pre><span></span><code> <span class="n">department_name</span>  <span class="o">|</span>   <span class="k">sum</span>    
-<span class="c1">------------------+----------</span>
- <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Finance</span>          <span class="o">|</span> <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Human</span> <span class="n">Resources</span>  <span class="o">|</span>  <span class="mi">6500</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">IT</span>               <span class="o">|</span> <span class="mi">28800</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Marketing</span>        <span class="o">|</span> <span class="mi">19000</span><span class="p">.</span><span class="mi">00</span>
- <span class="k">Public</span> <span class="n">Relations</span> <span class="o">|</span> <span class="mi">10000</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Purchasing</span>       <span class="o">|</span> <span class="mi">24900</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Sales</span>            <span class="o">|</span> <span class="mi">57700</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
-<span class="p">(</span><span class="mi">11</span> <span class="k">rows</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code> department_name  |   sum    
+------------------+----------
+ Accounting       | 20300.00
+ Administration   |  4400.00
+ Executive        | 58000.00
+ Finance          | 51600.00
+ Human Resources  |  6500.00
+ IT               | 28800.00
+ Marketing        | 19000.00
+ Public Relations | 10000.00
+ Purchasing       | 24900.00
+ Sales            | 57700.00
+ Shipping         | 41200.00
+(11 rows)
 </code></pre></div>
 
+
 <p>When using a window function, all the rows of each group are returned.</p>
-<div class="highlight"><pre><span></span><code> <span class="n">department_name</span>  <span class="o">|</span>   <span class="k">sum</span>    
-<span class="c1">------------------+----------</span>
- <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Accounting</span>       <span class="o">|</span> <span class="mi">20300</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Administration</span>   <span class="o">|</span>  <span class="mi">4400</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">58000</span><span class="p">.</span><span class="mi">00</span>
-<span class="p">[...]</span>
- <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
- <span class="n">Shipping</span>         <span class="o">|</span> <span class="mi">41200</span><span class="p">.</span><span class="mi">00</span>
-<span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code> department_name  |   sum    
+------------------+----------
+ Accounting       | 20300.00
+ Accounting       | 20300.00
+ Administration   |  4400.00
+ Executive        | 58000.00
+[...]
+ Shipping         | 41200.00
+ Shipping         | 41200.00
+ Shipping         | 41200.00
+(40 rows)
 </code></pre></div>
+
 
 <ol>
 <li>Window functions can run calculations on a set of rows related to the current row.
 Window functions can run their calculation on a window that 'slides' along the dataset. It can include a number of rows before and/or after the current row.
 A common example of such operation is how we calculate a moving average. For example, a 5 periods moving average will only include the last five rows:
 In the example below, <span class="math">\(60 = \frac{85+97+39+49+30}{5}\)</span>.
-<img alt="" src="images/5be3beb5e83742d386080ddbb7bb4125.png"></li>
+<img alt="5be3beb5e83742d386080ddbb7bb4125.png" src="images/5be3beb5e83742d386080ddbb7bb4125.png"></li>
 </ol>
 <h1>Syntax</h1>
 <p>A window function call always contains an <code>OVER</code> clause. The <code>OVER</code> clause is what defines the window partitions.</p>
@@ -174,6 +176,7 @@ In the example below, <span class="math">\(60 = \frac{85+97+39+49+30}{5}\)</span
                           <span class="p">[</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">order_list</span><span class="p">]</span>
                           <span class="p">[</span><span class="k">ROWS</span> <span class="n">frame_clause</span><span class="p">])</span>
 </code></pre></div>
+
 
 <h2>The OVER() clause</h2>
 <p>The <code>OVER()</code> clause is where the partitionning of the window function is set. It contains three clauses:
@@ -187,12 +190,14 @@ In the example below, <span class="math">\(60 = \frac{85+97+39+49+30}{5}\)</span
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span> <span class="k">MAX</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">salaries</span><span class="p">;</span>
 </code></pre></div>
 
+
 <p>I get a unique row with the highest of all salaries:</p>
-<div class="highlight"><pre><span></span><code>   <span class="k">max</span>    
-<span class="c1">----------</span>
- <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
-<span class="p">(</span><span class="mi">1</span> <span class="k">row</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code>   max    
+----------
+ 24000.00
+(1 row)
 </code></pre></div>
+
 
 <p>If I want to get the maximum salary for each department, I can use the <code>PARTITION BY department</code> clause:</p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
@@ -213,6 +218,7 @@ In the example below, <span class="math">\(60 = \frac{85+97+39+49+30}{5}\)</span
  <span class="n">Neena</span> <span class="n">Kochhar</span>     <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">17000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span>
 <span class="p">...</span>
 </code></pre></div>
+
 
 <p>For each row, I get the maximum salary for that department. For example, we can see that Shelley Higgins has the highest salary in the Accounting department.</p>
 <h3><code>ORDER BY</code></h3>
@@ -240,6 +246,7 @@ From the previous example, we can order the rows by employee:</p>
  <span class="n">Jose</span> <span class="n">Manuel</span> <span class="n">Urman</span> <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span>  <span class="mi">7800</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">9000</span><span class="p">.</span><span class="mi">00</span>
 </code></pre></div>
 
+
 <p>We now have the departments that are grouped together and all employees of a department are sorted alphabetically.</p>
 <h3><code>ROWS</code> or <code>RANGE</code></h3>
 <p>The last clause defines the frame. This is a subset of rows against which the function is run.</p>
@@ -247,9 +254,11 @@ From the previous example, we can order the rows by employee:</p>
 <div class="highlight"><pre><span></span><code><span class="err">{</span><span class="n">RANGE</span> <span class="o">|</span> <span class="k">ROWS</span><span class="err">}</span> <span class="n">frame_start</span>
 </code></pre></div>
 
+
 <p>Or it can specify where the frame starts and where it ends:</p>
 <div class="highlight"><pre><span></span><code><span class="err">{</span><span class="n">RANGE</span> <span class="o">|</span> <span class="k">ROWS</span><span class="err">}</span> <span class="k">BETWEEN</span> <span class="n">frame_start</span> <span class="k">AND</span> <span class="n">frame_end</span>
 </code></pre></div>
+
 
 <p><code>frame_start</code> is one of the following options:
 - N PRECEDING: N rows before the current row.
@@ -271,7 +280,8 @@ From the previous example, we can order the rows by employee:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<p><img alt="" src="images/74b0172cbc574c4d96e82b4a597cc6e7.png"></p>
+
+<p><img alt="74b0172cbc574c4d96e82b4a597cc6e7.png" src="images/74b0172cbc574c4d96e82b4a597cc6e7.png"></p>
 <p>Let's look at some example using <code>BETWEEN ... AND ...</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
     <span class="n">payment_date</span>
@@ -284,7 +294,8 @@ From the previous example, we can order the rows by employee:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<p><img alt="" src="images/df5de973fc864cc88b447eac83fa73a9.png"></p>
+
+<p><img alt="df5de973fc864cc88b447eac83fa73a9.png" src="images/df5de973fc864cc88b447eac83fa73a9.png"></p>
 <p>The <code>BETWEEN UNBOUNDED PRECEDING AND 2 FOLLOWING</code> clause will sum all the amounts from the beginning (UNBOUNDED PRECEDING) until two rows after the current row (2 FOLLOWING) as shown by the red frame.</p>
 <p>The <code>BETWEEN 3 PRECEDING AND 2 FOLLOWING</code> clause  will sum all the amounts from three rows before the current row (3 PRECEDING) until two rows after the current row (2 FOLLOWING) as shown by the green frame.</p>
 <p>Finally, the <code>BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</code> clause will sum all the amounts from the current row to the last row (UNBOUNDED FOLLOWING) as shown by the blue frame.</p>
@@ -299,7 +310,8 @@ To check the difference between ROWS and RANGE, I am going to write a query that
 <span class="p">;</span>
 </code></pre></div>
 
-<p><img alt="" src="images/5977e81bf968489e857403669d2cf016.png"></p>
+
+<p><img alt="5977e81bf968489e857403669d2cf016.png" src="images/5977e81bf968489e857403669d2cf016.png"></p>
 <p>We can see there's a difference when there are duplicate values. RANGE returns all rows with the same value as a unique current row. In our example, there are two employees with a salary of 4800. When using ROWS, the sum returns 4800 for each of the rows. When using RANGE, the sum returns 9600 (4800 + 4800) on both rows.</p>
 <h1>Window functions types</h1>
 <h2>Value window functions</h2>
@@ -309,6 +321,7 @@ To check the difference between ROWS and RANGE, I am going to write a query that
 <p><strong>syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">FIRST_VALUE</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
+
 
 <p><strong>Example:</strong>
 Let's write a query that gives us the name of the employee who has the lowest salary of each department. We'll build the window function as follow:
@@ -339,14 +352,16 @@ Let's write a query that gives us the name of the employee who has the lowest sa
 <span class="p">...</span>
 </code></pre></div>
 
+
 <h3>LAST_VALUE()</h3>
 <p>The <code>LAST_VALUE()</code> function returns the value of the last row of the partition.
 Unlike the <code>FIRST_VALUE()</code> function, it requires that the frame is specified in the OVER() clause.</p>
-<p><strong>Syntax:</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">LAST_VALUE</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong>
+
+<p><strong>Example:</strong><br>
 We can use the same example we used for the <em>first_value()</em> function. This time, we want to see who has the highest salary in each department:
 - partition the data by department: <code>PARTITION BY department</code>.
 - order the salaries to get the highest one in the last row of the partition: <code>ORDER BY salary</code>.
@@ -377,14 +392,16 @@ We can use the same example we used for the <em>first_value()</em> function. Thi
 <span class="p">...</span>
 </code></pre></div>
 
+
 <h3>LAG()</h3>
 <p>The <code>LAG()</code> funciton accesses the row that is n rows before the current row. We can also set a default value that will be returned when the row does not exist.</p>
-<p><strong>Syntax:</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">LAG</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="k">offset</span><span class="p">,</span> <span class="k">default</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
+
 <p>where <strong>offset</strong> is the number of rows before the current row from which we want the data.</p>
-<p><strong>Example:</strong> 
+<p><strong>Example:</strong><br>
 We can use the LAG() function to compare daily sales with the previous week sales. To do so, we:
 - order the sales by date: <code>ORDER BY payment_date</code>.
 - get the amount from 7 days before: <code>LAG(amount, 7)</code>.
@@ -423,13 +440,15 @@ We can use the LAG() function to compare daily sales with the previous week sale
  <span class="p">...</span>
 </code></pre></div>
 
+
 <h3>LEAD()</h3>
 <p>The <code>LEAD()</code> function is similar to the <code>LAG()</code> but it returns the value of the nth row following the current row.</p>
-<p><strong>Syntax</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">LEAD</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="k">offset</span><span class="p">,</span> <span class="k">default</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong>
+
+<p><strong>Example:</strong><br>
 We can write a query that gives us the sales of the next week:
 - order the sales by date: <code>ORDER BY payment_date</code>.
 - get the amount 7 days after the date of the current row: <code>LEAD(amount, 7)</code>.</p>
@@ -469,17 +488,19 @@ We can write a query that gives us the sales of the next week:
  <span class="p">...</span>
 </code></pre></div>
 
+
 <h3>NTH_VALUE()</h3>
 <p>The <code>NTH_VALUE()</code> returns the value from the Nth row of a partition.</p>
-<p><strong>Syntax</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">NTH_VALUE</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="k">offset</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
+
 
 <ul>
 <li>expression: the target column or an expression.</li>
 <li>offset: integer that determines the row number relative to the first row of the partition.</li>
 </ul>
-<p><strong>Example</strong>
+<p><strong>Example:</strong><br>
 For this example, I'll simply write a query that gives the third salary from the lowest one for each department:
 - Group the salaries per department: <code>PARTITION BY department</code>.
 - Order the salaries: <code>ORDER BY salary</code>.
@@ -511,15 +532,17 @@ For this example, I'll simply write a query that gives the third salary from the
 <span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>When the total number of rows of a partition is less than the offset, the NTH_VALUE() function returns a Null value.</p>
 <h2>Ranking window functions</h2>
 <h3>ROW_NUMBER()</h3>
 <p>the <code>ROW_NUMBER()</code> function returns the number of the current row within its partition.</p>
-<p><strong>Syntax</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong></p>
+
+<p><strong>Example:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
         <span class="n">employee</span>
         <span class="p">,</span> <span class="n">department</span>
@@ -545,13 +568,15 @@ For this example, I'll simply write a query that gives the third salary from the
 <span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
 </code></pre></div>
 
+
 <h3>CUME_DIST()</h3>
 <p>The <code>CUME_DIST()</code> function calculate the cumulative distribution of a value. This is the number of rows with values less or equal to the value of the current row divided by the total number of rows.</p>
 <p><strong>Syntax:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">CUME_DIST</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong></p>
+
+<p><strong>Example:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
     <span class="n">employee</span>
     <span class="p">,</span> <span class="n">department</span>
@@ -574,13 +599,15 @@ For this example, I'll simply write a query that gives the third salary from the
  <span class="p">...</span>
 </code></pre></div>
 
+
 <p>In the example above, we can see that 20% of employees have a salary that is less or equal to 4000.</p>
 <h3>RANK and DENSE_RANK()</h3>
 <p>The <code>RANK()</code> and the <code>DENSE_RANK()</code> functions return the rank of the current row. The difference is that the <code>DENSE_RANK()</code> function result has no gap while the <code>RANK()</code> function will skip ranks when rows have the same values.</p>
-<p><strong>Syntax</strong>
+<p><strong>Syntax:</strong><br>
 - DENSE_RANK()</p>
 <div class="highlight"><pre><span></span><code><span class="n">DENSE_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
+
 
 <ul>
 <li>RANK()</li>
@@ -588,7 +615,8 @@ For this example, I'll simply write a query that gives the third salary from the
 <div class="highlight"><pre><span></span><code><span class="n">RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong></p>
+
+<p><strong>Example:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
     <span class="n">employee</span>
     <span class="p">,</span> <span class="n">department</span>
@@ -600,7 +628,8 @@ For this example, I'll simply write a query that gives the third salary from the
 <span class="p">;</span>
 </code></pre></div>
 
-<p><img alt="" src="images/d904290142f04415a22cae467840494b.png"></p>
+
+<p><img alt="d904290142f04415a22cae467840494b.png" src="images/d904290142f04415a22cae467840494b.png"></p>
 <p>In the example above, we can see that there are two employees with a salary of 4,800. Both of them get the rank 11 in the rank and the dense_rank columns. 
 However, the following employee's rank is 13 in the rank column and 12 in the dense_rank columns.
 The <code>DENSE_RANK()</code> function didn't skip any value. The <code>RANK()</code> returns the actual row number of the first row with a given value. </p>
@@ -610,11 +639,12 @@ The <code>DENSE_RANK()</code> function didn't skip any value. The <code>RANK()</
 <div class="math">$$\frac{rank - 1}{total\ partition\ rows -1}$$</div>
 <p>
 The values range from 0 to 1.</p>
-<p><strong>Syntax</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">PERCENT_RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong></p>
+
+<p><strong>Example:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
     <span class="n">employee</span>
     <span class="p">,</span> <span class="n">department</span>
@@ -643,13 +673,15 @@ The values range from 0 to 1.</p>
 <span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
 </code></pre></div>
 
+
 <h3>NTILE()</h3>
 <p>The <code>NTILE()</code> function breaks a resultset into a specified number of buckets. All the buckets have about the same number of rows.</p>
-<p><strong>Syntax</strong></p>
+<p><strong>Syntax:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="n">NTILE</span><span class="p">(</span><span class="n">number_buckets</span><span class="p">)</span> <span class="n">OVER</span><span class="p">()</span>
 </code></pre></div>
 
-<p><strong>Example</strong></p>
+
+<p><strong>Example:</strong>  </p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
         <span class="n">employee</span>
         <span class="p">,</span> <span class="n">department</span>
@@ -681,6 +713,7 @@ The values range from 0 to 1.</p>
  <span class="n">Steven</span> <span class="n">King</span>       <span class="o">|</span> <span class="n">Executive</span>        <span class="o">|</span> <span class="mi">24000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>            <span class="mi">4</span> <span class="o">|</span>          <span class="mi">10</span>
 <span class="p">(</span><span class="mi">40</span> <span class="k">rows</span><span class="p">)</span>
 </code></pre></div>
+
 
 <p>We have 40 employees. The <code>NTILE(4)</code> columns returns four buckets numbered 1 to 4 and containing ten employees each. The <code>NTILE(10)</code> column returns 10 buckets numbered 1 to 10 and containing four employees each.</p>
 <h2>Aggregate window functions</h2>
@@ -721,6 +754,7 @@ The values range from 0 to 1.</p>
  <span class="n">Nancy</span> <span class="n">Greenberg</span>   <span class="o">|</span> <span class="n">Finance</span>          <span class="o">|</span> <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>  <span class="mi">8600</span><span class="p">.</span><span class="mi">0000000000000000</span> <span class="o">|</span>         <span class="mi">51600</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>        <span class="mi">6900</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>       <span class="mi">12000</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span>         <span class="mi">6</span>
        <span class="mi">6</span>
 </code></pre></div>
+
 
 <h1>Examples</h1>
 <p><a href="https://guillaume-martin.github.io/sql-moving-average">How to calculate a moving average in SQL</a></p>
@@ -805,8 +839,6 @@ The values range from 0 to 1.</p>
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -819,73 +851,52 @@ The values range from 0 to 1.</p>
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -894,10 +905,31 @@ The values range from 0 to 1.</p>
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

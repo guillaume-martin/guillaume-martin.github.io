@@ -157,6 +157,7 @@ Here is an example of JSON object taken from the <a href="https://en.wikipedia.o
 <span class="p">}</span>
 </code></pre></div>
 
+
 <p>The values or the firstName, isAlive and age keys are strings, boolean or numbers.<br>
 The values of address is a JSON object.<br>
 the values of phoneNumbers and children are arrays.</p>
@@ -169,6 +170,7 @@ the values of phoneNumbers and children are arrays.</p>
   <span class="p">,</span> <span class="n">info</span> <span class="n">json</span>
 <span class="p">);</span>
 </code></pre></div>
+
 
 <p>Then, we add some data. To insert data in a JSON column, we simply insert the JSON object as a string: <code>'{"key":"value"}'</code>. </p>
 <div class="highlight"><pre><span></span><code><span class="k">INSERT</span> <span class="k">INTO</span> 
@@ -183,18 +185,20 @@ the values of phoneNumbers and children are arrays.</p>
 <span class="p">;</span>
 </code></pre></div>
 
+
 <p>We should now have a table where each row represents an order. The <code>info</code> column contains all the details of the order: customer, items, product, quantity.</p>
-<div class="highlight"><pre><span></span><code><span class="err">tests=# SELECT * FROM orders;</span>
-<span class="err"> id |                                info                                </span>
-<span class="err">----+--------------------------------------------------------------------</span>
-<span class="err">  1 | { &quot;customer&quot;: &quot;Alice&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;chocolate&quot;,&quot;qty&quot;: 6}}</span>
-<span class="err">  2 | { &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}</span>
-<span class="err">  3 | { &quot;customer&quot;: &quot;Charlie&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 1}}</span>
-<span class="err">  4 | { &quot;customer&quot;: &quot;Doris&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;cheese&quot;,&quot;qty&quot;: 2}}</span>
-<span class="err">  5 | { &quot;customer&quot;: &quot;Emily&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 2}}</span>
-<span class="err">  6 | { &quot;customer&quot;: &quot;Fabian&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 6}}</span>
-<span class="err">(6 rows)</span>
+<div class="highlight"><pre><span></span><code>tests=# SELECT * FROM orders;
+ id |                                info                                
+----+--------------------------------------------------------------------
+  1 | { &quot;customer&quot;: &quot;Alice&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;chocolate&quot;,&quot;qty&quot;: 6}}
+  2 | { &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}
+  3 | { &quot;customer&quot;: &quot;Charlie&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 1}}
+  4 | { &quot;customer&quot;: &quot;Doris&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;cheese&quot;,&quot;qty&quot;: 2}}
+  5 | { &quot;customer&quot;: &quot;Emily&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;milk&quot;,&quot;qty&quot;: 2}}
+  6 | { &quot;customer&quot;: &quot;Fabian&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 6}}
+(6 rows)
 </code></pre></div>
+
 
 <h2>Select data</h2>
 <p>There are four operators that we can use in PostgreSQL to query JSON data:</p>
@@ -214,11 +218,13 @@ I am going to try to select the products from the orders table using the <code>-
 <span class="p">;</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="n">ERROR</span><span class="o">:</span>  <span class="n">operator</span> <span class="n">does</span> <span class="n">not</span> <span class="n">exist</span><span class="o">:</span> <span class="n">text</span> <span class="o">-&gt;&gt;</span> <span class="n">unknown</span>
-<span class="n">LINE</span> <span class="mi">2</span><span class="o">:</span>   <span class="n">info</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;items&#39;</span> <span class="o">-&gt;&gt;</span> <span class="s1">&#39;product&#39;</span> <span class="n">AS</span> <span class="n">product</span>
-                           <span class="o">^</span>
-<span class="n">HINT</span><span class="o">:</span>  <span class="n">No</span> <span class="n">operator</span> <span class="n">matches</span> <span class="n">the</span> <span class="n">given</span> <span class="n">name</span> <span class="n">and</span> <span class="n">argument</span> <span class="n">type</span><span class="o">(</span><span class="n">s</span><span class="o">).</span> <span class="n">You</span> <span class="n">might</span> <span class="n">need</span> <span class="n">to</span> <span class="n">add</span> <span class="n">explicit</span> <span class="n">type</span> <span class="n">casts</span><span class="o">.</span>
+
+<div class="highlight"><pre><span></span><code>ERROR:  operator does not exist: text -&gt;&gt; unknown
+LINE 2:   info -&gt;&gt; &#39;items&#39; -&gt;&gt; &#39;product&#39; AS product
+                           ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
 </code></pre></div>
+
 
 <p>The <code>-&gt;&gt;</code> operator returns items as text so we can't apply the operator <code>-&gt;&gt;</code> on them. That is what <code>operator does not exist: text -&gt;&gt; unknown</code> actually means.<br>
 To get the list of products, I need to get the items as a JSON object using <code>-&gt;</code>, then I can use the <code>-&gt;&gt;</code> operator to extract the products:</p>
@@ -228,6 +234,7 @@ To get the list of products, I need to get the items as a JSON object using <cod
   <span class="n">orders</span>
 <span class="p">;</span>
 </code></pre></div>
+
 
 <div class="highlight"><pre><span></span><code>  product  
 -----------
@@ -240,6 +247,7 @@ To get the list of products, I need to get the items as a JSON object using <cod
 (6 rows)
 </code></pre></div>
 
+
 <p>Note that <code>info -&gt; 'items' -&gt; 'product' AS product</code> would also work.</p>
 <h3>The <code>#&gt;</code> and <code>#&gt;&gt;</code> operators</h3>
 <p>When using the <code>-&gt;</code> and <code>-&gt;&gt;</code> operators, I was adding the key as a text in the right operand. If I wanted to get a list of products, I had to chain the operators like this: <code>info -&gt; 'items' -&gt;&gt; 'product'</code>.<br>
@@ -251,17 +259,19 @@ Another way is to specify the path to the key I want to extract:</p>
 <span class="p">;</span>
 </code></pre></div>
 
+
 <p>This query is returning the same result as <code>info -&gt; 'items' -&gt; 'product'</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="err">  product   </span>
-<span class="err">-------------</span>
-<span class="err"> &quot;chocolate&quot;</span>
-<span class="err"> &quot;beer&quot;</span>
-<span class="err"> &quot;milk&quot;</span>
-<span class="err"> &quot;cheese&quot;</span>
-<span class="err"> &quot;beer&quot;</span>
-<span class="err"> &quot;milk&quot;</span>
-<span class="err">(6 rows)</span>
+<div class="highlight"><pre><span></span><code>  product   
+-------------
+ &quot;chocolate&quot;
+ &quot;beer&quot;
+ &quot;milk&quot;
+ &quot;cheese&quot;
+ &quot;beer&quot;
+ &quot;milk&quot;
+(6 rows)
 </code></pre></div>
+
 
 <p><code>info #&gt;&gt; '{items, product}'</code> would return the same result as <code>info -&gt; 'items' -&gt;&gt; 'product'</code>.</p>
 <p>The <code>jsonb_pretty</code> function outputs the result in a more readable format.</p>
@@ -273,24 +283,26 @@ Another way is to specify the path to the key I want to extract:</p>
 <span class="p">;</span>    
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">          orders          </span>
-<span class="err">--------------------------------</span>
-<span class="err"> {                             +</span>
-<span class="err">     &quot;items&quot;: {                +</span>
-<span class="err">         &quot;qty&quot;: 6,             +</span>
-<span class="err">         &quot;product&quot;: &quot;chocolate&quot;+</span>
-<span class="err">     },                        +</span>
-<span class="err">     &quot;customer&quot;: &quot;Alice&quot;       +</span>
-<span class="err"> }</span>
-<span class="err"> {                             +</span>
-<span class="err">     &quot;items&quot;: {                +</span>
-<span class="err">         &quot;qty&quot;: 24,            +</span>
-<span class="err">         &quot;product&quot;: &quot;beer&quot;     +</span>
-<span class="err">     },                        +</span>
-<span class="err">     &quot;customer&quot;: &quot;Bob&quot;         +</span>
-<span class="err"> }</span>
-<span class="err">(2 rows)</span>
+
+<div class="highlight"><pre><span></span><code>          orders          
+--------------------------------
+ {                             +
+     &quot;items&quot;: {                +
+         &quot;qty&quot;: 6,             +
+         &quot;product&quot;: &quot;chocolate&quot;+
+     },                        +
+     &quot;customer&quot;: &quot;Alice&quot;       +
+ }
+ {                             +
+     &quot;items&quot;: {                +
+         &quot;qty&quot;: 24,            +
+         &quot;product&quot;: &quot;beer&quot;     +
+     },                        +
+     &quot;customer&quot;: &quot;Bob&quot;         +
+ }
+(2 rows)
 </code></pre></div>
+
 
 <p>The function also works with operators:</p>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span> 
@@ -301,18 +313,20 @@ Another way is to specify the path to the key I want to extract:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">        items        </span>
-<span class="err">----------------------------</span>
-<span class="err"> {                         +</span>
-<span class="err">     &quot;qty&quot;: 6,             +</span>
-<span class="err">     &quot;product&quot;: &quot;chocolate&quot;+</span>
-<span class="err"> }</span>
-<span class="err"> {                         +</span>
-<span class="err">     &quot;qty&quot;: 24,            +</span>
-<span class="err">     &quot;product&quot;: &quot;beer&quot;     +</span>
-<span class="err"> }</span>
-<span class="err">(2 rows)</span>
+
+<div class="highlight"><pre><span></span><code>        items        
+----------------------------
+ {                         +
+     &quot;qty&quot;: 6,             +
+     &quot;product&quot;: &quot;chocolate&quot;+
+ }
+ {                         +
+     &quot;qty&quot;: 24,            +
+     &quot;product&quot;: &quot;beer&quot;     +
+ }
+(2 rows)
 </code></pre></div>
+
 
 <p>The JSON operators can be used in other parts of a query, like we'll see in the following examples.</p>
 <h3>SELECT with WHERE clause</h3>
@@ -326,12 +340,14 @@ Another way is to specify the path to the key I want to extract:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">customer </span>
-<span class="err">----------</span>
-<span class="err"> Bob</span>
-<span class="err"> Fabian</span>
-<span class="err">(2 rows)</span>
+
+<div class="highlight"><pre><span></span><code>customer 
+----------
+ Bob
+ Fabian
+(2 rows)
 </code></pre></div>
+
 
 <h3>Use aggregate functions</h3>
 <p>We can also use the usual aggregate functions on JSON columns. Note that as the operators return values as text, we need to cast them as integers if we want to calculate sums, averages, etc...<br>
@@ -346,11 +362,13 @@ Let's get some statistics on the quantities ordered:</p>
 <span class="p">;</span>
 </code></pre></div>
 
+
 <div class="highlight"><pre><span></span><code> mini | maxi | total |      average       
 ------+------+-------+--------------------
     1 |   24 |    41 | 6.8333333333333333
 (1 row)
 </code></pre></div>
+
 
 <h3>GROUP BY statement</h3>
 <p>Aggregates often come with a GROUP BY statement. Like for the <em>WHERE</em> clause, we can use the <code>-&gt;</code> and <code>-&gt;&gt;</code> operators in the <em>GROUP BY</em> statement.
@@ -365,6 +383,7 @@ Let's get the total quantity ordered per product:</p>
 <span class="p">;</span>
 </code></pre></div>
 
+
 <div class="highlight"><pre><span></span><code>  product  | total 
 -----------+-------
  milk      |     3
@@ -373,6 +392,7 @@ Let's get the total quantity ordered per product:</p>
  chocolate |     6
 (4 rows)
 </code></pre></div>
+
 
 <h2>UPDATE data</h2>
 <h3>Changing an existing value</h3>
@@ -383,6 +403,7 @@ Function:</p>
           <span class="p">,</span> <span class="n">new_value</span>       <span class="n">jsonb</span>
           <span class="p">[,</span> <span class="n">create_missing</span> <span class="nb">boolean</span><span class="p">])</span>
 </code></pre></div>
+
 
 <p>The function will replace the section of <code>target</code> designated by <code>path</code> with the <code>new_value</code>. If the section doesn't exist and <code>create_missing</code> is set to true (default), the <code>new_value</code> will be added.  </p>
 <p>Let's change Fabian's name to Bob</p>
@@ -395,13 +416,15 @@ Function:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">tests=# SELECT * FROM orders WHERE info -&gt;&gt; &#39;customer&#39; = &#39;Bob&#39;;</span>
-<span class="err"> id |                             info                             </span>
-<span class="err">----+--------------------------------------------------------------</span>
-<span class="err">  2 | { &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}</span>
-<span class="err">  6 | {&quot;items&quot;: {&quot;qty&quot;: 6, &quot;product&quot;: &quot;beer&quot;}, &quot;customer&quot;: &quot;Bob&quot;}</span>
-<span class="err">(2 rows)</span>
+
+<div class="highlight"><pre><span></span><code>tests=# SELECT * FROM orders WHERE info -&gt;&gt; &#39;customer&#39; = &#39;Bob&#39;;
+ id |                             info                             
+----+--------------------------------------------------------------
+  2 | { &quot;customer&quot;: &quot;Bob&quot;, &quot;items&quot;: {&quot;product&quot;: &quot;beer&quot;,&quot;qty&quot;: 24}}
+  6 | {&quot;items&quot;: {&quot;qty&quot;: 6, &quot;product&quot;: &quot;beer&quot;}, &quot;customer&quot;: &quot;Bob&quot;}
+(2 rows)
 </code></pre></div>
+
 
 <p>We now have two customers named Bob. Note that because the keys in the JSON data are not sorted, the two records look different.</p>
 <p>Using the <code>path</code> parameter, we can update data deeper into the JSON hierarchy.<br>
@@ -416,12 +439,14 @@ For example, let's set the quantity of cheese bought by Doris to three:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">tests=# SELECT * FROM orders WHERE info -&gt;&gt; &#39;customer&#39; = &#39;Doris&#39;;</span>
-<span class="err"> id |                              info                               </span>
-<span class="err">----+-----------------------------------------------------------------</span>
-<span class="err">  4 | {&quot;items&quot;: {&quot;qty&quot;: 3, &quot;product&quot;: &quot;cheese&quot;}, &quot;customer&quot;: &quot;Doris&quot;}</span>
-<span class="err">(1 row)</span>
+
+<div class="highlight"><pre><span></span><code>tests=# SELECT * FROM orders WHERE info -&gt;&gt; &#39;customer&#39; = &#39;Doris&#39;;
+ id |                              info                               
+----+-----------------------------------------------------------------
+  4 | {&quot;items&quot;: {&quot;qty&quot;: 3, &quot;product&quot;: &quot;cheese&quot;}, &quot;customer&quot;: &quot;Doris&quot;}
+(1 row)
 </code></pre></div>
+
 
 <h3>Creating a new key</h3>
 <p>Let's say that I want to add a unit_price to the items.
@@ -432,6 +457,7 @@ Function:</p>
              <span class="p">,</span> <span class="n">new_value</span>     <span class="n">jsonb</span>
              <span class="p">[,</span> <span class="n">insert_after</span> <span class="nb">boolean</span><span class="p">])</span>
 </code></pre></div>
+
 
 <p>The <code>new_value</code> will be inserted in the <code>target</code> in the section designated by <code>path</code>.</p>
 <p>I am going to add 5 as the unit_price of chocolate.</p>
@@ -444,12 +470,14 @@ Function:</p>
 <span class="p">;</span>    
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">tests=# SELECT * FROM orders WHERE info -&gt; &#39;items&#39; -&gt;&gt; &#39;product&#39; = &#39;chocolate&#39;;</span>
-<span class="err"> id |                                info                                </span>
-<span class="err">----+--------------------------------------------------------------------</span>
-<span class="err">  1 | {&quot;items&quot;: {&quot;qty&quot;: 6, &quot;product&quot;: &quot;chocolate&quot;, &quot;unit_price&quot;: 5}, &quot;customer&quot;: &quot;Alice&quot;}</span>
-<span class="err">(1 row)</span>
+
+<div class="highlight"><pre><span></span><code>tests=# SELECT * FROM orders WHERE info -&gt; &#39;items&#39; -&gt;&gt; &#39;product&#39; = &#39;chocolate&#39;;
+ id |                                info                                
+----+--------------------------------------------------------------------
+  1 | {&quot;items&quot;: {&quot;qty&quot;: 6, &quot;product&quot;: &quot;chocolate&quot;, &quot;unit_price&quot;: 5}, &quot;customer&quot;: &quot;Alice&quot;}
+(1 row)
 </code></pre></div>
+
 
 <p>I have now a new attribute that I was able to add without modifying my schema. This is one of the main advantages of using JSON data, it allows for more flexibility. I also added a new attribute to one record without impacting the other records.</p>
 <h3>Removing a key</h3>
@@ -463,12 +491,14 @@ Function:</p>
 <span class="p">;</span>
 </code></pre></div>
 
-<div class="highlight"><pre><span></span><code><span class="err">tests=# SELECT * FROM orders WHERE id = 5;</span>
-<span class="err"> id |                   info                   </span>
-<span class="err">----+------------------------------------------</span>
-<span class="err">  5 | {&quot;items&quot;: {&quot;qty&quot;: 2, &quot;product&quot;: &quot;milk&quot;}}</span>
-<span class="err">(1 row)</span>
+
+<div class="highlight"><pre><span></span><code>tests=# SELECT * FROM orders WHERE id = 5;
+ id |                   info                   
+----+------------------------------------------
+  5 | {&quot;items&quot;: {&quot;qty&quot;: 2, &quot;product&quot;: &quot;milk&quot;}}
+(1 row)
 </code></pre></div>
+
 
 <p>The record doesn't have a customer anymore.</p>
 <h2>Further reading</h2>
@@ -495,8 +525,6 @@ Function:</p>
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -509,73 +537,52 @@ Function:</p>
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -584,10 +591,31 @@ Function:</p>
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

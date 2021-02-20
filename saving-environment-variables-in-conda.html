@@ -130,11 +130,13 @@ Guillaume Martin            </a>
 <div class="highlight"><pre><span></span><code>$ conda create --name my_environment
 </code></pre></div>
 
+
 <p>This command will create a <code>my_environment</code> subdirectory in the <code>anaconda3/env</code> directory. </p>
 <p>Next, we activate the environment:</p>
 <div class="highlight"><pre><span></span><code>$ <span class="nb">source</span> activate my_environment
 <span class="o">(</span>my_environment<span class="o">)</span>$ 
 </code></pre></div>
+
 
 <p>Now, we need to create scripts that will set our environment variables whenever we activate our virtual environment and unset them when we deactivate. The path to our environment directory is set as <code>$CONDA_PREFIX</code>. We <code>cd</code> to that directory and create a <code>/etc/conda/activate.d</code> and a <code>/etc/conda/deactivate.d</code> directory:</p>
 <div class="highlight"><pre><span></span><code><span class="o">(</span>my_environment<span class="o">)</span>$ <span class="nb">cd</span> <span class="nv">$CONDA_PREFIX</span>
@@ -142,10 +144,12 @@ Guillaume Martin            </a>
 <span class="o">(</span>my_environment<span class="o">)</span>$ mkdir -p ./etc/conda/deactivate.d
 </code></pre></div>
 
+
 <p>In each of those directories, we create a <code>env_var.sh</code> script where we'll write the commands to set and unset our variables:</p>
 <div class="highlight"><pre><span></span><code><span class="o">(</span>my_environment<span class="o">)</span>$ touch ./etc/conda/activate.d/env_vars.sh
 <span class="o">(</span>my_environment<span class="o">)</span>$ touch ./etc/conda/deactivate.d/env_vars.sh
 </code></pre></div>
+
 
 <p>In <code>activate.d/env_vars.sh</code>, we add the <code>export</code> commands to set our variables when the virtual environment is activated:</p>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/bin/sh</span>
@@ -153,11 +157,13 @@ Guillaume Martin            </a>
 <span class="nb">export</span> <span class="nv">MY_VARIABLE</span><span class="o">=</span>some_value
 </code></pre></div>
 
+
 <p>In <code>deactivate.d/env_vars.sh</code>, we add the <code>unset</code> commands to delete our variables when the virtual environment in deactivated.</p>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/bin/sh</span>
 
 <span class="nb">unset</span> MY_VARIABLE
 </code></pre></div>
+
 
 <p>Let's test our setting. We need to reactivate our environment to get the variables set.</p>
 <div class="highlight"><pre><span></span><code><span class="o">(</span>my_environment<span class="o">)</span>$ conda deactivate
@@ -166,12 +172,14 @@ $ conda activate my_environment
 some_value
 </code></pre></div>
 
+
 <p>The environment variable has been set. Now, let's check if the variable is unset when we deactivate our environment:</p>
 <div class="highlight"><pre><span></span><code><span class="o">(</span>my_environment<span class="o">)</span>$ conda deactivate
 $ <span class="nb">echo</span> <span class="nv">$MY_VARIABLE</span>
 
 $
 </code></pre></div>
+
 
 <p>The <code>echo</code> command returns an empty line, meaning that our variable has been unset.</p>
 <p>Voilà! We now have a virtual environment with it's own environment variables.</p>
@@ -194,8 +202,6 @@ $
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -208,73 +214,52 @@ $
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -283,10 +268,31 @@ $
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

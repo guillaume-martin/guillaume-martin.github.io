@@ -159,6 +159,7 @@ I use <code>pyplot</code> and <code>animation</code> from <code>matplotlib</code
 <span class="kn">import</span> <span class="nn">matplotlib.animation</span> <span class="k">as</span> <span class="nn">animation</span>
 </code></pre></div>
 
+
 <p>I import the data in separate dataframes:</p>
 <div class="highlight"><pre><span></span><code><span class="n">country</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;country_metadata.csv&#39;</span><span class="p">)</span>
 <span class="n">population</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;country_population.csv&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
@@ -166,10 +167,12 @@ I use <code>pyplot</code> and <code>animation</code> from <code>matplotlib</code
 <span class="n">life_expectancy</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;life_expectancy.csv&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>All tables have a <code>Country Name</code> and a <code>Country Code</code> column. I'll use the <code>Country Code</code> column as the country id to merge the datasets.<br>
 So from the country dataframe, I need only the Country Code and Region columns.  </p>
 <div class="highlight"><pre><span></span><code><span class="n">country</span> <span class="o">=</span> <span class="n">country</span><span class="p">[[</span><span class="s1">&#39;Country Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Region&#39;</span><span class="p">]]</span>
 </code></pre></div>
+
 
 <p>The <em>population</em>, <em>fertility_rate</em> and <em>life_expectancy</em> dataframes have the same structure. I'll repeat the same process on three of them to prepare the data.<br>
 First, I remove useless columns:  </p>
@@ -177,9 +180,11 @@ First, I remove useless columns:  </p>
                  <span class="s1">&#39;2017&#39;</span><span class="p">,</span> <span class="s1">&#39;Unnamed: 62&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>Next, I drop the countries with missing values. I could try to fill data missing in any given year with the data from the previous or next year but some countries are missing too much if not all data.</p>
 <div class="highlight"><pre><span></span><code><span class="n">population</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
+
 
 <p>The years are in columns (i.e. one column represents the data of all countries for a given year). I need <code>year</code> to be a variable that has its own column. To do so, I'll use the <code>melt()</code> method on the dataframe.</p>
 <div class="highlight"><pre><span></span><code><span class="n">years</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1960</span><span class="p">,</span> <span class="mi">2017</span><span class="p">)]</span>
@@ -190,6 +195,7 @@ First, I remove useless columns:  </p>
                      <span class="n">value_name</span><span class="o">=</span><span class="s1">&#39;Population&#39;</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>At this point, the <em>population</em> data is ready. I preprocess the <em>fertility_rate</em> and the <em>life_expectancy</em> the same way.<br>
 When the three datasets are ready, I merge them into one dataframe.<br>
 Some countries may have data for one statistic but not the other. After merging the dataframes, I do a <code>dropna()</code> again to remove those cases.</p>
@@ -198,6 +204,7 @@ Some countries may have data for one statistic but not the other. After merging 
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">fertility_rate</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Country Code&#39;</span><span class="p">,</span> <span class="s1">&#39;Year&#39;</span><span class="p">])</span>
 <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
+
 
 <p>The data is ready. I can now start builing the visualization.  </p>
 <h2>Building the visualization</h2>
@@ -257,13 +264,15 @@ To show an example, I am going to plot the data for the year 1960.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div>
 
+
 <p>Here's the result:<br>
-<img alt="" src="images/best-stat-static.png"></p>
+<img alt="Best stat static" src="images/best-stat-static.png"></p>
 <h3>Animate the plot</h3>
 <p>To make the animation, we need to create one plot for each year. Each plot is a frame. Frames are shown in sequence.<br>
 Luckily, matplotlib as an animation module. </p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">matplotlib.animation</span> <span class="k">as</span> <span class="nn">animation</span>
 </code></pre></div>
+
 
 <p>To make the animation, I need to define a function that will set the inital state (optional) and a function that will update the plot for each frame.<br>
 But first, I need to modify a bit the script I used to build the static plot. 
@@ -283,12 +292,14 @@ I create a list where I store all my scatter artists. I will iterate through tha
                     <span class="n">size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span><span class="s1">&#39;bold&#39;</span><span class="p">})</span>
 </code></pre></div>
 
+
 <p>The <code>init()</code> method that initialize the animation is very simple</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">init</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">scat</span> <span class="ow">in</span> <span class="n">scats</span><span class="p">:</span>
         <span class="n">scat</span><span class="o">.</span><span class="n">set_offsets</span><span class="p">([])</span>
     <span class="k">return</span> <span class="n">scats</span>
 </code></pre></div>
+
 
 <p>The <code>set_offsets()</code> method set the values of x and y. I want to start with an empty plot so I just pass an empty list.<br>
 Next, I define an <code>update()</code> method that will update the scatter plot for each frame.<br>
@@ -313,6 +324,7 @@ For each region, the method does:</p>
     <span class="k">return</span> <span class="n">scats</span><span class="p">,</span> 
 </code></pre></div>
 
+
 <p>I am now ready to make the animation using the <code>FuncAnimation</code> from the animation module.</p>
 <div class="highlight"><pre><span></span><code><span class="n">ani</span> <span class="o">=</span> <span class="n">animation</span><span class="o">.</span><span class="n">FuncAnimation</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">init_func</span><span class="o">=</span><span class="n">init</span><span class="p">,</span>
                               <span class="n">frames</span><span class="o">=</span><span class="n">years</span><span class="p">,</span>
@@ -320,13 +332,15 @@ For each region, the method does:</p>
                               <span class="n">repeat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>Once the animation in done, I can show it using <code>plt.show()</code> or save it as a movie or an animated gif.<br>
 I am going to save it as a gif to display it on this post:</p>
 <div class="highlight"><pre><span></span><code><span class="n">ani</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;best_stat_anim.gif&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="s1">&#39;imagemagick&#39;</span><span class="p">)</span>
 </code></pre></div>
 
+
 <p>Et voilà!</p>
-<p><img alt="" src="images/best_stat_anim.gif"></p>
+<p><img alt="Best stat animation" src="images/best_stat_anim.gif"></p>
 <h2>source code</h2>
 <p><a href="https://github.com/guillaume-martin/best_stats_ever">github</a><br>
 <a href="https://www.kaggle.com/gemartin/the-best-stats-you-ve-ever-seen-with-matplotlib">kaggle</a></p>
@@ -349,8 +363,6 @@ I am going to save it as a gif to display it on this post:</p>
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -363,73 +375,52 @@ I am going to save it as a gif to display it on this post:</p>
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -438,10 +429,31 @@ I am going to save it as a gif to display it on this post:</p>
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>

@@ -142,14 +142,17 @@ To test whether the client is installed on your system, use the <code>psql --ver
 psql <span class="o">(</span>PostgreSQL<span class="o">)</span> <span class="m">10</span>.10 <span class="o">(</span>Ubuntu <span class="m">10</span>.10-0ubuntu0.18.04.1<span class="o">)</span>
 </code></pre></div>
 
+
 <p>If the postgresql client is not installed, you should get an output that looks like this:</p>
 <div class="highlight"><pre><span></span><code>$ psql --version
 bash: /usr/bin/psql: No such file or directory
 </code></pre></div>
 
+
 <p>To install in Debian based systems:</p>
 <div class="highlight"><pre><span></span><code>$ sudo apt install postgresql-client
 </code></pre></div>
+
 
 <p>The command should install the <code>postgresql-client-common</code> and <code>postgresql-client-&lt;version&gt;</code>. At the time of writing, version is 10.<br>
 Once the client is installed, you can start using the <code>psql</code> command.</p>
@@ -164,11 +167,13 @@ Once the client is installed, you can start using the <code>psql</code> command.
 <span class="nv">username</span><span class="o">=</span>&gt; 
 </code></pre></div>
 
+
 <ol>
 <li>Send an SQL command using the <code>-c</code> option</li>
 </ol>
 <div class="highlight"><pre><span></span><code>$ psql -h &lt;host_ip&gt; -p &lt;port&gt; -U &lt;username&gt; -d &lt;database&gt; -c <span class="s1">&#39;SELECT * FROM table&#39;</span>
 </code></pre></div>
+
 
 <ol>
 <li>Run an SQL script from a file using the <code>-f</code> command</li>
@@ -176,16 +181,19 @@ Once the client is installed, you can start using the <code>psql</code> command.
 <div class="highlight"><pre><span></span><code>$ psql -h &lt;host_ip&gt; -p &lt;port&gt; -U &lt;username&gt; -d &lt;database&gt; -f myscript.sql
 </code></pre></div>
 
+
 <p>I will be working on a local PostgreSQL server, that's why I skip the <code>-h</code> option. By default, the client connects to <code>localhost</code>. If your PostgreSQL server is on a remote machine, you need to add the <code>-h &lt;host_ip&gt;</code> option to the commands that follows. The <code>-p</code> command that sets the port can be skipped if the PostgreSQL server is set to listen on the default port (5432).</p>
 <p>First, create the demo database:</p>
 <div class="highlight"><pre><span></span><code>$ psql -U postgres -c <span class="s1">&#39;CREATE DATABASE my_database;&#39;</span>
 CREATE DATABASE
 </code></pre></div>
 
+
 <p>Then, we are going to write a script that will create a table in the <code>my_database</code> database and fill it with some data. We will execute the script using the <code>psql</code> command.</p>
 <p>First, create the script.</p>
 <div class="highlight"><pre><span></span><code>$ vim create_database.sql
 </code></pre></div>
+
 
 <div class="highlight"><pre><span></span><code><span class="c1">-- Create a users table</span>
 <span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">users</span> <span class="p">(</span>
@@ -204,9 +212,11 @@ CREATE DATABASE
 <span class="p">;</span>
 </code></pre></div>
 
+
 <p>Then, we execute the script:</p>
 <div class="highlight"><pre><span></span><code>$ psql -U postgres -f create_database.sql
 </code></pre></div>
+
 
 <p>We can control that all is set:</p>
 <div class="highlight"><pre><span></span><code>$ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
@@ -218,6 +228,7 @@ CREATE DATABASE
 <span class="o">(</span><span class="m">3</span> rows<span class="o">)</span>
 </code></pre></div>
 
+
 <p>We're all set! We can now learn how to backup our database.</p>
 <h1>pg_dump, pg_dumpall and pg_restore</h1>
 <p>The <code>pg_dump</code> command lets us extract a database into a backup file. The <code>pg_dumpall</code> extracts an entire cluster.<br>
@@ -225,6 +236,7 @@ The <code>pg_restore</code> reloads an archive file into a database.</p>
 <p>For example, if I want to backup the <em>my_database</em> database, I would run the following commmand:</p>
 <div class="highlight"><pre><span></span><code>$ pg_dump my_database &gt; backup.sql
 </code></pre></div>
+
 
 <p>I will then have a local <code>backup.sql</code> file that contains all the SQL instructions needed to create my database objects and fill it with the backed up data.</p>
 <h2>pg_dump options</h2>
@@ -248,6 +260,7 @@ The <code>pg_restore</code> reloads an archive file into a database.</p>
 <p>If the database is stored on a remote server, we can specify the host and the user as options.</p>
 <div class="highlight"><pre><span></span><code>$ pg_dump -h &lt;host_ip&gt; -U &lt;username&gt; my_database &gt; my_database_backup.sql
 </code></pre></div>
+
 
 <p>We will be prompted to enter the password after hitting enter.</p>
 <h2>Restoring a database from a backup file</h2>
@@ -292,6 +305,7 @@ ALTER TABLE
 ALTER TABLE
 </code></pre></div>
 
+
 <p>We control that the data is there:</p>
 <div class="highlight"><pre><span></span><code>$ psql -U postgres -d new_db -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
  id <span class="p">|</span> username <span class="p">|</span>          email          
@@ -301,6 +315,7 @@ ALTER TABLE
   <span class="m">3</span> <span class="p">|</span> Charlie  <span class="p">|</span> charlie@some_domain.com
 <span class="o">(</span><span class="m">3</span> rows<span class="o">)</span>
 </code></pre></div>
+
 
 <p>Here, we used the <code>psql</code> command to restore the database instead of the <code>pg_restore</code> one. When creating a backup without specifying the backup format, the format option defaults to plain-text SQL (<code>-F p</code>). This will generate a plain-text file with SQL commands. <code>pg_restore</code> cannot process those files.<br>
 To get a file that can be processed by <code>pg_restore</code>, we have to save our backup using the <code>-F</code> option with the <code>c</code>, <code>d</code>, or <code>t</code> values.</p>
@@ -319,6 +334,7 @@ To get a file that can be processed by <code>pg_restore</code>, we have to save 
 <div class="highlight"><pre><span></span><code>$ pg_dump -U postgres -F t my_database &gt; my_database_backup.tar
 </code></pre></div>
 
+
 <p>To demonstrate the command, we are going to delete a record from the users table, restore from the backup file and control that the record is back.</p>
 <p>Delete the record:</p>
 <div class="highlight"><pre><span></span><code>$ psql -U postgres -d my_database -c <span class="s1">&#39;DELETE FROM users WHERE id = 2;&#39;</span>
@@ -331,6 +347,7 @@ $ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&
 <span class="o">(</span><span class="m">2</span> rows<span class="o">)</span>
 </code></pre></div>
 
+
 <p>Restore the data from the backup file:</p>
 <div class="highlight"><pre><span></span><code>$ pg_restore -U postgres -d my_database -c my_database_backup.tar
 $ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&#39;</span>
@@ -341,6 +358,7 @@ $ psql -U postgres -d my_database -c <span class="s1">&#39;SELECT * FROM users;&
   <span class="m">3</span> <span class="p">|</span> Charlie  <span class="p">|</span> charlie@some_domain.com
 <span class="o">(</span><span class="m">3</span> rows<span class="o">)</span>
 </code></pre></div>
+
 
 <h1>Automate this!</h1>
 <p>So far, we have seen how to backup our database manually. But a useful backup should be done on a regular basis and we don't want to have to do it manually.
@@ -391,6 +409,7 @@ We are however going to write a simpler script following their example. The scri
 <span class="n">WEEKS_TO_KEEP</span><span class="o">=</span><span class="mi">5</span>
 </code></pre></div>
 
+
 <h3>Backup script</h3>
 <p>First, we need to get the path to the configuration file that will be passed with the <code>-c</code> option when calling our script.</p>
 <h4>Load the configuration file</h4>
@@ -416,6 +435,7 @@ We are however going to write a simpler script following their example. The scri
 <span class="nb">source</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">CONFIG_FILE_PATH</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div>
 
+
 <p>Then we create a function called <code>backup_database()</code> that will actually do the backup.
 It will first create a directory where the backup files will be stores:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># The SUFFIX is set with the value of the first parameter passed to the function</span>
@@ -433,6 +453,7 @@ It will first create a directory where the backup files will be stores:</p>
 <span class="k">fi</span>
 </code></pre></div>
 
+
 <p>Then we check the values of the different backup types and run the <code>pg_dump</code> for each one set to yes. We'll look at the backup in tar format.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Control whether the option is set to &quot;yes&quot;</span>
 <span class="k">if</span> <span class="o">[</span> <span class="nv">$ENABLE_TAR_BACKUPS</span> <span class="o">=</span> <span class="s2">&quot;yes&quot;</span> <span class="o">]</span> 
@@ -447,6 +468,7 @@ It will first create a directory where the backup files will be stores:</p>
         <span class="k">fi</span>
 <span class="k">fi</span>
 </code></pre></div>
+
 
 <p>The <code>backup_database()</code> function will be called for daily, weekly and monthly backups. The Monthly backups are made on the first day of the month.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get what day of the month is the current day.</span>
@@ -464,6 +486,7 @@ DAY_OF <span class="nv">MONTH</span><span class="o">=</span><span class="sb">`</
         <span class="nb">exit</span> <span class="m">0</span><span class="p">;</span>
 <span class="k">fi</span>
 </code></pre></div>
+
 
 <p>Let's put all of this together to get our backup script. We can add some <code>echo</code> statements to log what the script is doing.</p>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
@@ -584,9 +607,10 @@ find <span class="nv">$BACKUP_DIR</span> -maxdepth <span class="m">1</span> -mti
 backup_database <span class="s2">&quot;-daily&quot;</span>
 
 <span class="nb">echo</span> -e <span class="s2">&quot;\n--------------------------------------------------&quot;</span>
-<span class="nv">ELAPSED_TIME</span><span class="o">=</span><span class="k">$((</span><span class="nv">$SECONDS</span> <span class="o">-</span> <span class="nv">$START_TIMES</span><span class="k">))</span>
+<span class="nv">ELAPSED_TIME</span><span class="o">=</span><span class="k">$((</span><span class="nv">$SECONDS</span> <span class="o">-</span> <span class="nv">$START_TIME</span><span class="k">))</span>
 <span class="nb">echo</span> <span class="s2">&quot;The backup took </span><span class="k">$((</span><span class="nv">$ELAPSED_TIME</span><span class="o">/</span><span class="m">60</span><span class="k">))</span><span class="s2"> min </span><span class="k">$((</span><span class="nv">$ELAPSED_TIME</span><span class="o">%</span><span class="m">60</span><span class="k">))</span><span class="s2"> sec&quot;</span>
 </code></pre></div>
+
 
 <p>We can now test the script by running it manually.</p>
 <div class="highlight"><pre><span></span><code>$ scripts/pg_backup.sh -c scripts/pg_backup.config
@@ -600,15 +624,18 @@ Starting tar format backup of the my_database database
 Starting plain format backup of the my_database database
 </code></pre></div>
 
+
 <h2>.pgpass</h2>
 <p>When the connection to the database requires a password, we can create a <code>.pgpass</code> file in our home directory to store the credentials. The file will contain one line per connection.
 Each line must have the following format:</p>
 <div class="highlight"><pre><span></span><code><span class="n">hostname</span><span class="o">:</span><span class="n">port</span><span class="o">:</span><span class="n">database</span><span class="o">:</span><span class="n">username</span><span class="o">:</span><span class="n">password</span>
 </code></pre></div>
 
+
 <p>For security reasons, we must disallow access to the file to world or group.</p>
 <div class="highlight"><pre><span></span><code>$ chmod <span class="m">0600</span> ~/.pgpass
 </code></pre></div>
+
 
 <p>The permissions should look like this</p>
 <div class="highlight"><pre><span></span><code>$ ls -al
@@ -617,6 +644,7 @@ Each line must have the following format:</p>
 ...
 </code></pre></div>
 
+
 <h2>Create a cron job</h2>
 <p>At this point, we should be able to backup our database by just running the <code>pg_backup.sh</code> script. This is already less work than typing the backup commands manually.
 The next step is to create a cron job to have the script executed by our system automatically at a given time.</p>
@@ -624,10 +652,12 @@ The next step is to create a cron job to have the script executed by our system 
 <div class="highlight"><pre><span></span><code>$ chmod +x /path/to/pg_backup.sh
 </code></pre></div>
 
+
 <p>Then, to create a cron job, run the <code>crontab -e</code> command. This will open the user crontab file in your favorite editor. All we have to do is add a line that define the job we want done.
 The line needs to follow this format:</p>
-<div class="highlight"><pre><span></span><code><span class="err">minutes hours day_of_month month day_of_week  command</span>
+<div class="highlight"><pre><span></span><code>minutes hours day_of_month month day_of_week  command
 </code></pre></div>
+
 
 <p>We can use the following operators:</p>
 <ul>
@@ -637,16 +667,19 @@ The line needs to follow this format:</p>
 <li><strong>The separator (/)</strong>: specifies a step value. "0-23/" can be used in hours field to run the command every other hour. Steps are also permitted after an asterisk: "*/2" == every two hours.</li>
 </ul>
 <p>Let say that we want our database to be backed up every day at 11pm. We would add the following line:</p>
-<div class="highlight"><pre><span></span><code><span class="err">00 23 * * * /path/to/pg_backup.sh -c /path/to/pg_backup.config</span>
+<div class="highlight"><pre><span></span><code>00 23 * * * /path/to/pg_backup.sh -c /path/to/pg_backup.config
 </code></pre></div>
+
 
 <p>If the hour of the backup is not important, we can use the <code>@daily</code> special string. This will execute our script every day at midnight.</p>
-<div class="highlight"><pre><span></span><code><span class="err">@daily /path/to/pg_backup.sh -c /path/to/pg_backup.config</span>
+<div class="highlight"><pre><span></span><code>@daily /path/to/pg_backup.sh -c /path/to/pg_backup.config
 </code></pre></div>
 
+
 <p>Or, as another example, if nobody is working on weekends and no changes are made to the database during those days, we may want to backup our database only on weekdays. In this case, we would add this line</p>
-<div class="highlight"><pre><span></span><code><span class="err">00 23 * * 1-5 /path/to/pg_backup.sh -c /path/to/pg_backup.config</span>
+<div class="highlight"><pre><span></span><code>00 23 * * 1-5 /path/to/pg_backup.sh -c /path/to/pg_backup.config
 </code></pre></div>
+
 
 <p>where <code>1-5</code> tells the system to run the job only from Monday (1) to Friday (5).</p>
 <h2>Get a notification email</h2>
@@ -656,18 +689,22 @@ In this last step, we are going to send an email with the output from the backup
 <div class="highlight"><pre><span></span><code>$ sudo apt install mailutils
 </code></pre></div>
 
+
 <p>We can now easily send emails from the command line using the <code>mailx</code> command:</p>
 <div class="highlight"><pre><span></span><code>$ mailx -s <span class="s2">&quot;my subject&quot;</span> recipient@example.com <span class="o">&lt;&lt;&lt;</span> <span class="s2">&quot;Some text goes there&quot;</span>
 </code></pre></div>
+
 
 <p>If we want to send the content of a file, we can use the <code>cat</code> command with a pipe <code>|</code>:</p>
 <div class="highlight"><pre><span></span><code>$ cat filename.txt <span class="p">|</span> mailx -s <span class="s2">&quot;content of filename.txt&quot;</span> recipient@example.com
 </code></pre></div>
 
+
 <p>Knowing this, we can modify our cron job command to have the output sent by email.
 Return in the crontab with <code>crontab -e</code> and modify the job as follow.</p>
-<div class="highlight"><pre><span></span><code><span class="err">00 23 * * * /path/to/pg_backup.sh -c /path/to/pg_backup.config 2&gt;&amp;1 | tee /path/to/pg_backup.log | mailx -s &quot;database backup for `date +\%Y-\%m-\%d&quot; recipient@example.com</span>
+<div class="highlight"><pre><span></span><code>00 23 * * * /path/to/pg_backup.sh -c /path/to/pg_backup.config 2&gt;&amp;1 | tee /path/to/pg_backup.log | mailx -s &quot;database backup for `date +\%Y-\%m-\%d&quot; recipient@example.com
 </code></pre></div>
+
 
 <p>In this cron job, the <code>2&gt;&amp;1</code> redirects errors (2 is the file descriptor for <code>stderr</code>) to the standard output (1 is the file descriptor for <code>stdout</code>). The output is then passed to the <code>tee</code> command that reads from a standard input and write to our pg_backup.log file. The file is finally passed to the <code>mailx</code> command that will send an email with our job's log as the body.</p>
 <h1>Conclusion</h1>
@@ -692,8 +729,6 @@ The script we wrote in this article will only backup one database at a time. We 
     <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
     <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
     <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
-    <li class="list-group-item"><a href="https://www.kaggle.com/gemartin"><i class="fa fa-kaggle-square fa-lg"></i> kaggle</a></li>
-    <li class="list-group-item"><a href="https://public.tableau.com/profile/guillaume.martin2427#!/"><i class="fa fa-tableau-square fa-lg"></i> tableau</a></li>
   </ul>
 </li>
 <!-- End Sidebar/Social -->
@@ -706,73 +741,52 @@ The script we wrote in this article will only backup one database at a time. We 
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
+      <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/tableau.html">tableau</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
+      <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -781,10 +795,31 @@ The script we wrote in this article will only backup one database at a time. We 
       <a href="./tag/redis.html">redis</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/scipy.html">scipy</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
     </li>
   </ul>
 </li>
