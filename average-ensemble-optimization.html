@@ -34,7 +34,7 @@
         <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
     <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
 
-    <link href="./theme/css/pygments/vs.css" rel="stylesheet">
+    <link href="./theme/css/pygments/default.css" rel="stylesheet">
     <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
         <link href="./static/css/custom.css" rel="stylesheet">
 
@@ -137,8 +137,7 @@ First, I load the data:</p>
 </code></pre></div>
 
 
-<div class="highlight"><pre><span></span><code><span class="err">[&#39;CRIM&#39; &#39;ZN&#39; &#39;INDUS&#39; &#39;CHAS&#39; &#39;NOX&#39; &#39;RM&#39; &#39;AGE&#39; &#39;DIS&#39; &#39;RAD&#39; &#39;TAX&#39; &#39;PTRATIO&#39;</span>
-<span class="err"> &#39;B&#39; &#39;LSTAT&#39;]</span>
+<div class="highlight"><pre><span></span><code>[&#39;CRIM&#39; &#39;ZN&#39; &#39;INDUS&#39; &#39;CHAS&#39; &#39;NOX&#39; &#39;RM&#39; &#39;AGE&#39; &#39;DIS&#39; &#39;RAD&#39; &#39;TAX&#39; &#39;PTRATIO&#39; &#39;B&#39; &#39;LSTAT&#39;]
 </code></pre></div>
 
 
@@ -189,9 +188,9 @@ I choose a simple linear regression and a single decision tree to get weaker bas
 We fit our model on a train set then we make predictions on a test set using the trained model. I am going to do the same for my ensemble. Here to fit the model is to find the best weights to calculate the average of the predictions from the base models. So to <em>'fit'</em> my ensemble I need predictions made on the training set but I can't make predictions using data the model has already seen in the training phase. So for each base model, I need to train on a part of the training set and make predictions on another part. This is what we do in cross-validation.</p>
 <p><img alt="oof predictions" src="/images/oof-predictions.png"></p>
 <p>I am going to do a 5 folds cross validation. For each iteration, I will:<br>
-- train the models on the train folds
-- get predictions on the validation fold
-- store the predictions in an array</p>
+- train the models on the train folds.<br>
+- get predictions on the validation fold.<br>
+- store the predictions in an array.  </p>
 <p>At the end of cross validation, I will have an array for each model with predictions made on the training set. I will use those predictions as features to build my ensemble.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">KFold</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_squared_error</span>
@@ -231,15 +230,15 @@ We fit our model on a train set then we make predictions on a test set using the
 <p>Now that I have the predictions on the train set, I can fit my models on all the train data to get predictions on the test set.<br>
 An alternative way would be to make predictions on the test set during cross validation and average the 5 predictions.<br>
 Create arrays to store the predictions:</p>
-<div class="highlight"><pre><span></span><code><span class="err">nrows_tst = X_test.shape[0]</span>
-<span class="err">mod1_oof_tst = np.zeros(nrows_tst)</span>
-<span class="err">mod2_oof_tst = np.zeros(nrows_tst)</span>
+<div class="highlight"><pre><span></span><code><span class="n">nrows_tst</span> <span class="o">=</span> <span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">mod1_oof_tst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nrows_tst</span><span class="p">)</span>
+<span class="n">mod2_oof_tst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nrows_tst</span><span class="p">)</span>
 </code></pre></div>
 
 
 <p>Then add those lines inside the CV script:</p>
-<div class="highlight"><pre><span></span><code><span class="err">mod1_oof_tst += model_1.predict(X_test) / 5</span>
-<span class="err">mod2_oof_tst += model_2.predict(X_test) / 5</span>
+<div class="highlight"><pre><span></span><code><span class="n">mod1_oof_tst</span> <span class="o">+=</span> <span class="n">model_1</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span>
+<span class="n">mod2_oof_tst</span> <span class="o">+=</span> <span class="n">model_2</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span>
 </code></pre></div>
 
 
@@ -301,8 +300,8 @@ I am going to chart the boxplots of the CV scores and plot the regression lines 
 </code></pre></div>
 
 
-<div class="highlight"><pre><span></span><code><span class="err">Model 1 CV score: mean = 43.2682; standard deviation = 8.6542</span>
-<span class="err">Model 2 CV score: mean = 39.3335; standard deviation = 10.3182</span>
+<div class="highlight"><pre><span></span><code>Model 1 CV score: mean = 43.2682; standard deviation = 8.6542
+Model 2 CV score: mean = 39.3335; standard deviation = 10.3182
 </code></pre></div>
 
 
@@ -382,10 +381,10 @@ To avoid finding a local minima, I will run the optimization multiple time setti
 </code></pre></div>
 
 
-<div class="highlight"><pre><span></span><code><span class="err">Optimized weights:</span>
-<span class="err">Model 1: 0.3726</span>
-<span class="err">Model 2: 0.6274</span>
-<span class="err">Best score: 37.1407</span>
+<div class="highlight"><pre><span></span><code>Optimized weights:
+Model 1: 0.3726
+Model 2: 0.6274
+Best score: 37.1407
 </code></pre></div>
 
 
@@ -435,10 +434,10 @@ I am going to look at the performance of the two base models, the unoptimized en
 </code></pre></div>
 
 
-<div class="highlight"><pre><span></span><code><span class="err">Model 1 test score = 46.9074</span>
-<span class="err">Model 2 test score = 40.2115</span>
-<span class="err">Unoptimized ensemble test score: 40.2323</span>
-<span class="err">Optimized ensemble test score: 39.5951</span>
+<div class="highlight"><pre><span></span><code>Model 1 test score = 46.9074
+Model 2 test score = 40.2115
+Unoptimized ensemble test score: 40.2323
+Optimized ensemble test score: 39.5951
 </code></pre></div>
 
 
@@ -476,19 +475,22 @@ After optimizing the weights, the ensemble's score improved to <code>39.5951</co
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/sql.html">sql</a>
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-2">
-      <a href="./tag/postgresql.html">postgresql</a>
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/matplotlib.html">matplotlib</a>
@@ -496,65 +498,62 @@ After optimizing the weights, the ensemble's score improved to <code>39.5951</co
     <li class="list-group-item tag-2">
       <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
-    <li class="list-group-item tag-2">
-      <a href="./tag/linux.html">linux</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/environment-variables.html">environment variables</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/virtual-environments.html">virtual environments</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/scipy.html">scipy</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/optimization.html">optimization</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmap.html">bitmap</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
     <li class="list-group-item tag-4">
       <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/redis.html">redis</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/json.html">json</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/analytics.html">analytics</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/conda.html">conda</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
     </li>
   </ul>
 </li>
