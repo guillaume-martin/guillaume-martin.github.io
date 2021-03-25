@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Visualization - Guillaume Martin</title>
+    <title>Calculate a running total in SQL - Guillaume Martin</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -9,16 +9,23 @@
 
 
 
+<link rel="canonical" href="https://guillaume-martin.github.io/sql-running-total.html">
 
-    <meta name="author" content="Guillaume Martin" />
-    <meta name="keywords" content="Visualization" />
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="database,sql,analytics" />
+        <meta name="description" content="How to use SQL window functions to calculate a running total" />
 
-    <!-- Open Graph tags -->
         <meta property="og:site_name" content="Guillaume Martin" />
-        <meta property="og:type" content="website"/>
-        <meta property="og:title" content="Guillaume Martin"/>
-        <meta property="og:url" content="https://guillaume-martin.github.io"/>
-        <meta property="og:description" content="Guillaume Martin"/>
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Calculate a running total in SQL"/>
+        <meta property="og:url" content="https://guillaume-martin.github.io/sql-running-total.html"/>
+        <meta property="og:description" content="How to use SQL window functions to calculate a running total"/>
+        <meta property="article:published_time" content="2021-03-25" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:tag" content="sql" />
+            <meta property="article:tag" content="analytics" />
+            <meta property="article:author" content="Guillaume Martin" />
 
 
 
@@ -33,8 +40,8 @@
         <link href="https://guillaume-martin.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Guillaume Martin ATOM Feed"/>
 
-        <link href="https://guillaume-martin.github.io/feeds/visualization.atom.xml" type="application/atom+xml" rel="alternate"
-              title="Guillaume Martin Visualization ATOM Feed"/>
+        <link href="https://guillaume-martin.github.io/feeds/database.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin Database ATOM Feed"/>
 </head>
 <body>
 
@@ -55,7 +62,7 @@ Guillaume Martin            </a>
                         <li >
                             <a href="https://guillaume-martin.github.io/category/analytics.html">Analytics</a>
                         </li>
-                        <li >
+                        <li class="active">
                             <a href="https://guillaume-martin.github.io/category/database.html">Database</a>
                         </li>
                         <li >
@@ -64,7 +71,7 @@ Guillaume Martin            </a>
                         <li >
                             <a href="https://guillaume-martin.github.io/category/machine-learning.html">Machine learning</a>
                         </li>
-                        <li class="active">
+                        <li >
                             <a href="https://guillaume-martin.github.io/category/visualization.html">Visualization</a>
                         </li>
             </ul>
@@ -82,41 +89,133 @@ Guillaume Martin            </a>
 <div class="container">
     <div class="row">
         <div class="col-sm-9">
-            <article>
-                <h2><a href="https://guillaume-martin.github.io/interactive-data-visualization-with-dash.html">Interactives data visualizations with Dash</a></h2>
-                <div class="summary"><p>A quick introduction to interactive visualizations using Dash.</p>
-                    <a class="btn btn-default btn-xs" href="https://guillaume-martin.github.io/interactive-data-visualization-with-dash.html">more ...</a>
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="https://guillaume-martin.github.io/sql-running-total.html"
+                       rel="bookmark"
+                       title="Permalink to Calculate a running total in SQL">
+                        Calculate a running total in SQL
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2021-03-25T00:00:00+08:00"> Thu 25 March 2021</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="https://guillaume-martin.github.io/tag/database.html">database</a>
+        /
+	<a href="https://guillaume-martin.github.io/tag/sql.html">sql</a>
+        /
+	<a href="https://guillaume-martin.github.io/tag/analytics.html">analytics</a>
+    
+</footer><!-- /.post-info -->                    </div>
                 </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://guillaume-martin.github.io/makeovermonday-2018wk48.html">Makeover Monday Week 48 - 2018</a></h2>
-                <div class="summary"><p>Compare the cost of a night out around the world</p>
-                    <a class="btn btn-default btn-xs" href="https://guillaume-martin.github.io/makeovermonday-2018wk48.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://guillaume-martin.github.io/best-stats-anim.html">"The best stats you've ever seen" with Matplotlib</a></h2>
-                <div class="summary"><p>Using Matplotlib to replicate a visualization presented by Hans Rosling in a TED talk.</p>
-                    <a class="btn btn-default btn-xs" href="https://guillaume-martin.github.io/best-stats-anim.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://guillaume-martin.github.io/makeovermonday-2018wk21.html">Makeover Monday Week 21 - 2018</a></h2>
-                <div class="summary"><p>Review of the Guardian's predictions for the Premier League 2017-18</p>
-                    <a class="btn btn-default btn-xs" href="https://guillaume-martin.github.io/makeovermonday-2018wk21.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://guillaume-martin.github.io/customize-matplotlib-charts.html">Customizing Matplotlib Charts</a></h2>
-                <div class="summary"><p>Explore the Matplotlib API and learn how to customize your charts.</p>
-                    <a class="btn btn-default btn-xs" href="https://guillaume-martin.github.io/customize-matplotlib-charts.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
+                <p>This post is an illustrating example for the article on <a href="https://guillaume-martin.github.io/sql-window-functions.html">SQL window functions</a>.</p>
+<p>A running total is the sum of a sequence of numbers that is updated every time a new number is added to the sequence.</p>
+<p>It looks like this:</p>
+<table>
+<thead>
+<tr>
+<th align="right">Amount</th>
+<th align="right">Running Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="right">2</td>
+<td align="right">2</td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td align="right">9</td>
+</tr>
+<tr>
+<td align="right">19</td>
+<td align="right">28</td>
+</tr>
+<tr>
+<td align="right">13</td>
+<td align="right">41</td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td align="right">45</td>
+</tr>
+<tr>
+<td align="right">9</td>
+<td align="right">54</td>
+</tr>
+</tbody>
+</table>
+<p>To illustrate how to calculate a running total using SQL, I will use the DVDrental database that can be downloaded <a href="https://www.postgresqltutorial.com/postgresql-sample-database/">here</a>.</p>
+<p>Lets say, that I want to get the running total of the daily payments.</p>
+<p>First, I create a CTE that sums up the daily payment amounts:</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span>
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<p>Then, I use a window function on the amount column:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">payment_date</span> <span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">running_total</span>
+</code></pre></div>
+
+
+<p>I use the ORDER BY statement to make sure that the sequence of payment amounts is in chronological order.
+Then I use the <code>ROWS UNBOUNDED PRECEDING</code> statement to include all the rows that are previous to the current row when I calculate the sum.</p>
+<p>The final query looks like this:</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span>
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> 
+    <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">payment_date</span> <span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">running_total</span>
+<span class="k">FROM</span> 
+    <span class="n">daily_amount</span>
+<span class="p">;</span>
+</code></pre></div>
+
+
+<p>It returns the following result set:
+<code>payment_date | amount  | running_total 
+--------------+---------+---------------
+ 2007-02-14   |  116.73 |        116.73
+ 2007-02-15   | 1188.92 |       1305.65
+ 2007-02-16   | 1154.18 |       2459.83
+ 2007-02-17   | 1188.17 |       3648.00
+ 2007-02-18   | 1275.98 |       4923.98
+ 2007-02-19   | 1290.90 |       6214.88
+ 2007-02-20   | 1219.09 |       7433.97
+ [...]</code></p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
 
         </div>
         <div class="col-sm-3" id="sidebar">
@@ -239,7 +338,7 @@ Guillaume Martin            </a>
    <div class="container">
       <hr>
       <div class="row">
-         <div class="col-xs-10">&copy; 2019 Guillaume Martin
+         <div class="col-xs-10">&copy; 2021 Guillaume Martin
             &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
             <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
             <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>

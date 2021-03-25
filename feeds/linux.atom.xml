@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin - Linux</title><link href="https://guillaume-martin.github.io/" rel="alternate"></link><link href="https://guillaume-martin.github.io/feeds/linux.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/</id><updated>2019-04-10T16:10:00+08:00</updated><entry><title>How to set environment variables in a conda virtual environment</title><link href="https://guillaume-martin.github.io/saving-environment-variables-in-conda.html" rel="alternate"></link><published>2019-04-10T13:15:00+08:00</published><updated>2019-04-10T16:10:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2019-04-10:/saving-environment-variables-in-conda.html</id><summary type="html">&lt;p&gt;How to save environment variables in a virtual environment set using conda.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Environment variables are useful to store sensitive data like API keys or passwords when we don't want them to be hard coded in our source code. But we often only use them in some specific circumstances and don't need to have them set all the time. In this short post, I am going to show how to save environment variables in a virtual environment set using conda.&lt;/p&gt;
+&lt;p&gt;First, we need to create the virtual environment using the &lt;code&gt;conda create&lt;/code&gt; command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ conda create --name my_environment
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This command will create a &lt;code&gt;my_environment&lt;/code&gt; subdirectory in the &lt;code&gt;anaconda3/env&lt;/code&gt; directory. &lt;/p&gt;
+&lt;p&gt;Next, we activate the environment:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class="nb"&gt;source&lt;/span&gt; activate my_environment
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now, we need to create scripts that will set our environment variables whenever we activate our virtual environment and unset them when we deactivate. The path to our environment directory is set as &lt;code&gt;$CONDA_PREFIX&lt;/code&gt;. We &lt;code&gt;cd&lt;/code&gt; to that directory and create a &lt;code&gt;/etc/conda/activate.d&lt;/code&gt; and a &lt;code&gt;/etc/conda/deactivate.d&lt;/code&gt; directory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$CONDA_PREFIX&lt;/span&gt;
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ mkdir -p ./etc/conda/activate.d
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ mkdir -p ./etc/conda/deactivate.d
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In each of those directories, we create a &lt;code&gt;env_var.sh&lt;/code&gt; script where we'll write the commands to set and unset our variables:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ touch ./etc/conda/activate.d/env_vars.sh
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ touch ./etc/conda/deactivate.d/env_vars.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In &lt;code&gt;activate.d/env_vars.sh&lt;/code&gt;, we add the &lt;code&gt;export&lt;/code&gt; commands to set our variables when the virtual environment is activated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="ch"&gt;#!/bin/sh&lt;/span&gt;
+
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;MY_VARIABLE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;some_value
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In &lt;code&gt;deactivate.d/env_vars.sh&lt;/code&gt;, we add the &lt;code&gt;unset&lt;/code&gt; commands to delete our variables when the virtual environment in deactivated.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="ch"&gt;#!/bin/sh&lt;/span&gt;
+
+&lt;span class="nb"&gt;unset&lt;/span&gt; MY_VARIABLE
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Let's test our setting. We need to reactivate our environment to get the variables set.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ conda deactivate
+$ conda activate my_environment
+&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$MY_VARIABLE&lt;/span&gt;
+some_value
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The environment variable has been set. Now, let's check if the variable is unset when we deactivate our environment:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;(&lt;/span&gt;my_environment&lt;span class="o"&gt;)&lt;/span&gt;$ conda deactivate
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$MY_VARIABLE&lt;/span&gt;
+
+$
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The &lt;code&gt;echo&lt;/code&gt; command returns an empty line, meaning that our variable has been unset.&lt;/p&gt;
+&lt;p&gt;Voilà! We now have a virtual environment with it's own environment variables.&lt;/p&gt;</content><category term="Linux"></category><category term="linux"></category><category term="environment variables"></category><category term="virtual environments"></category><category term="anaconda"></category><category term="conda"></category></entry></feed>

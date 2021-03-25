@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Calculate a running total percent in SQL - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="https://guillaume-martin.github.io/sql-running-total-percent.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="database,sql,analytics" />
+        <meta name="description" content="How to use SQL window functions to calculate a running total percentage" />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Calculate a running total percent in SQL"/>
+        <meta property="og:url" content="https://guillaume-martin.github.io/sql-running-total-percent.html"/>
+        <meta property="og:description" content="How to use SQL window functions to calculate a running total percentage"/>
+        <meta property="article:published_time" content="2021-03-25" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:tag" content="sql" />
+            <meta property="article:tag" content="analytics" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://guillaume-martin.github.io/theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="https://guillaume-martin.github.io/theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="https://guillaume-martin.github.io/theme/css/pygments/default.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://guillaume-martin.github.io/theme/css/style.css" type="text/css"/>
+        <link href="https://guillaume-martin.github.io/static/css/custom.css" rel="stylesheet">
+
+        <link href="https://guillaume-martin.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin ATOM Feed"/>
+
+        <link href="https://guillaume-martin.github.io/feeds/database.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Guillaume Martin Database ATOM Feed"/>
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="https://guillaume-martin.github.io/" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="https://guillaume-martin.github.io/category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="https://guillaume-martin.github.io/category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="https://guillaume-martin.github.io/category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="https://guillaume-martin.github.io/category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="https://guillaume-martin.github.io/category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="https://guillaume-martin.github.io/sql-running-total-percent.html"
+                       rel="bookmark"
+                       title="Permalink to Calculate a running total percent in SQL">
+                        Calculate a running total percent in SQL
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2021-03-25T00:00:00+08:00"> Thu 25 March 2021</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="https://guillaume-martin.github.io/tag/database.html">database</a>
+        /
+	<a href="https://guillaume-martin.github.io/tag/sql.html">sql</a>
+        /
+	<a href="https://guillaume-martin.github.io/tag/analytics.html">analytics</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>In this previous <a href="https://guillaume-martin.github.io/running-total-with-sql">post</a>, I show how to calculate a running total in SQL using window functions. In the example, I calculated the running total of the daily amount of payments.</p>
+<p>In this post, I want to get the daily running total over the month as well as the percentage of this running total over the month total.</p>
+<table>
+<thead>
+<tr>
+<th align="right">Month</th>
+<th align="right">Amount</th>
+<th align="right">Running Total</th>
+<th align="right">Running Total Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">5.9%</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">13</td>
+<td align="right">14</td>
+<td align="right">82.4%</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">15</td>
+<td align="right">88.2%</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">17</td>
+<td align="right">100.0%</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">26.7%</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">19</td>
+<td align="right">23</td>
+<td align="right">60.5%</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">15</td>
+<td align="right">38</td>
+<td align="right">100.0%</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">18.2%</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">18</td>
+<td align="right">22</td>
+<td align="right">100.0%</td>
+</tr>
+</tbody>
+</table>
+<p>I create a CTE where I calculate the payments amount per day. I also add a column with the month using the <code>data_part()</code> function on the payment date.</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment_date</span><span class="p">)</span> <span class="k">AS</span> <span class="k">month</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment_date</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<p>Then, from this CTE, I create another one that returns the monthly total and the running total over each month.
+To do so, I use a window function with a <code>PARTITION BY month</code> statement that partitions my data on the month. Because I partitioned my data, when I use the <code>ROWS UNBOUNDED PRECEDING</code> statement, only all the amounts from the beginning of the current month are added. </p>
+<div class="highlight"><pre><span></span><code><span class="n">monthly_running_total</span> <span class="k">AS</span> <span class="p">(</span>
+<span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="k">month</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="k">month</span><span class="p">)</span> <span class="k">AS</span> <span class="n">monthly_total</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="k">month</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">payment_date</span> <span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">running_total</span>
+<span class="k">FROM</span>
+    <span class="n">daily_amount</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<p>Finally, I execute a <code>SELECT</code> statement on this CTE where I calculate the percentage of the running total over the month's total: </p>
+<p><span class="math">\(running\ total\ percent = \frac{running\ total}{month\ total}\times100\)</span></p>
+<div class="highlight"><pre><span></span><code><span class="n">ROUND</span><span class="p">(</span><span class="n">running_total</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">monthly_total</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">||</span> <span class="s1">&#39;%&#39;</span> <span class="k">AS</span> <span class="n">running_percent</span>
+</code></pre></div>
+
+
+<p>Here's the final query:</p>
+<div class="highlight"><pre><span></span><code><span class="k">WITH</span> <span class="n">daily_amount</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment_date</span><span class="p">)</span> <span class="k">AS</span> <span class="k">month</span>
+        <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">AS</span> <span class="n">amount</span>
+    <span class="k">FROM</span> 
+        <span class="n">payment</span>
+    <span class="k">GROUP</span> <span class="k">BY</span> 
+        <span class="n">payment_date</span><span class="p">::</span><span class="nb">date</span>
+        <span class="p">,</span> <span class="n">date_part</span><span class="p">(</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">payment_date</span><span class="p">)</span>
+<span class="p">),</span> <span class="n">monthly_running_total</span> <span class="k">AS</span> <span class="p">(</span>
+<span class="k">SELECT</span> 
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="k">month</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="k">month</span><span class="p">)</span> <span class="k">AS</span> <span class="n">monthly_total</span>
+    <span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="k">month</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">payment_date</span> <span class="k">ROWS</span> <span class="n">UNBOUNDED</span> <span class="n">PRECEDING</span><span class="p">)</span> <span class="k">AS</span> <span class="n">running_total</span>
+<span class="k">FROM</span>
+    <span class="n">daily_amount</span>
+<span class="p">)</span>
+<span class="k">SELECT</span>
+    <span class="n">payment_date</span>
+    <span class="p">,</span> <span class="k">month</span>
+    <span class="p">,</span> <span class="n">amount</span>
+    <span class="p">,</span> <span class="n">monthly_total</span>
+    <span class="p">,</span> <span class="n">running_total</span>
+    <span class="p">,</span> <span class="n">ROUND</span><span class="p">(</span><span class="n">running_total</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">monthly_total</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">||</span> <span class="s1">&#39;%&#39;</span> <span class="k">AS</span> <span class="n">running_percent</span>
+<span class="k">FROM</span>
+    <span class="n">monthly_running_total</span>
+<span class="p">;</span>
+</code></pre></div>
+
+
+<p>The returned results set looks like this:</p>
+<div class="highlight"><pre><span></span><code> <span class="n">payment_date</span> <span class="o">|</span> <span class="k">month</span> <span class="o">|</span> <span class="n">amount</span>  <span class="o">|</span> <span class="n">monthly_total</span> <span class="o">|</span> <span class="n">running_total</span> <span class="o">|</span> <span class="n">running_percent</span> 
+<span class="c1">--------------+-------+---------+---------------+---------------+-----------------</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span>  <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>        <span class="mi">116</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">1</span><span class="p">.</span><span class="mi">4</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">15</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">92</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">1305</span><span class="p">.</span><span class="mi">65</span> <span class="o">|</span> <span class="mi">15</span><span class="p">.</span><span class="mi">6</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">16</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span> <span class="mi">1154</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">2459</span><span class="p">.</span><span class="mi">83</span> <span class="o">|</span> <span class="mi">29</span><span class="p">.</span><span class="mi">5</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">17</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span> <span class="mi">1188</span><span class="p">.</span><span class="mi">17</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">3648</span><span class="p">.</span><span class="mi">00</span> <span class="o">|</span> <span class="mi">43</span><span class="p">.</span><span class="mi">7</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">18</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span> <span class="mi">1275</span><span class="p">.</span><span class="mi">98</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">4923</span><span class="p">.</span><span class="mi">98</span> <span class="o">|</span> <span class="mi">59</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span> <span class="mi">1290</span><span class="p">.</span><span class="mi">90</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">6214</span><span class="p">.</span><span class="mi">88</span> <span class="o">|</span> <span class="mi">74</span><span class="p">.</span><span class="mi">4</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span> <span class="mi">1219</span><span class="p">.</span><span class="mi">09</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">7433</span><span class="p">.</span><span class="mi">97</span> <span class="o">|</span> <span class="mi">89</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">21</span>   <span class="o">|</span>     <span class="mi">2</span> <span class="o">|</span>  <span class="mi">917</span><span class="p">.</span><span class="mi">87</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>       <span class="mi">8351</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">01</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2808</span><span class="p">.</span><span class="mi">24</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>       <span class="mi">2808</span><span class="p">.</span><span class="mi">24</span> <span class="o">|</span> <span class="mi">11</span><span class="p">.</span><span class="mi">8</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">02</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2550</span><span class="p">.</span><span class="mi">05</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>       <span class="mi">5358</span><span class="p">.</span><span class="mi">29</span> <span class="o">|</span> <span class="mi">22</span><span class="p">.</span><span class="mi">4</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">16</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span>  <span class="mi">299</span><span class="p">.</span><span class="mi">28</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>       <span class="mi">5657</span><span class="p">.</span><span class="mi">57</span> <span class="o">|</span> <span class="mi">23</span><span class="p">.</span><span class="mi">7</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">17</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2442</span><span class="p">.</span><span class="mi">16</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>       <span class="mi">8099</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span> <span class="mi">33</span><span class="p">.</span><span class="mi">9</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">18</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2701</span><span class="p">.</span><span class="mi">76</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>      <span class="mi">10801</span><span class="p">.</span><span class="mi">49</span> <span class="o">|</span> <span class="mi">45</span><span class="p">.</span><span class="mi">2</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">19</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2617</span><span class="p">.</span><span class="mi">69</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>      <span class="mi">13419</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span> <span class="mi">56</span><span class="p">.</span><span class="mi">2</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">20</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2669</span><span class="p">.</span><span class="mi">89</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>      <span class="mi">16089</span><span class="p">.</span><span class="mi">07</span> <span class="o">|</span> <span class="mi">67</span><span class="p">.</span><span class="mi">4</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">21</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2868</span><span class="p">.</span><span class="mi">27</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>      <span class="mi">18957</span><span class="p">.</span><span class="mi">34</span> <span class="o">|</span> <span class="mi">79</span><span class="p">.</span><span class="mi">4</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">22</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2586</span><span class="p">.</span><span class="mi">79</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>      <span class="mi">21544</span><span class="p">.</span><span class="mi">13</span> <span class="o">|</span> <span class="mi">90</span><span class="p">.</span><span class="mi">2</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">23</span>   <span class="o">|</span>     <span class="mi">3</span> <span class="o">|</span> <span class="mi">2342</span><span class="p">.</span><span class="mi">43</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span>      <span class="mi">23886</span><span class="p">.</span><span class="mi">56</span> <span class="o">|</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">05</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span>  <span class="mi">273</span><span class="p">.</span><span class="mi">36</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>        <span class="mi">273</span><span class="p">.</span><span class="mi">36</span> <span class="o">|</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">06</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">2077</span><span class="p">.</span><span class="mi">14</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>       <span class="mi">2350</span><span class="p">.</span><span class="mi">50</span> <span class="o">|</span> <span class="mi">8</span><span class="p">.</span><span class="mi">2</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">07</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">1984</span><span class="p">.</span><span class="mi">28</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>       <span class="mi">4334</span><span class="p">.</span><span class="mi">78</span> <span class="o">|</span> <span class="mi">15</span><span class="p">.</span><span class="mi">2</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">08</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">2227</span><span class="p">.</span><span class="mi">84</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>       <span class="mi">6562</span><span class="p">.</span><span class="mi">62</span> <span class="o">|</span> <span class="mi">23</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">09</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">2067</span><span class="p">.</span><span class="mi">86</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>       <span class="mi">8630</span><span class="p">.</span><span class="mi">48</span> <span class="o">|</span> <span class="mi">30</span><span class="p">.</span><span class="mi">2</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">10</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">1973</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">10603</span><span class="p">.</span><span class="mi">66</span> <span class="o">|</span> <span class="mi">37</span><span class="p">.</span><span class="mi">1</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">11</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">1940</span><span class="p">.</span><span class="mi">32</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">12543</span><span class="p">.</span><span class="mi">98</span> <span class="o">|</span> <span class="mi">43</span><span class="p">.</span><span class="mi">9</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">12</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">1930</span><span class="p">.</span><span class="mi">48</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">14474</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span> <span class="mi">50</span><span class="p">.</span><span class="mi">7</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">26</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span>  <span class="mi">347</span><span class="p">.</span><span class="mi">21</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">14821</span><span class="p">.</span><span class="mi">67</span> <span class="o">|</span> <span class="mi">51</span><span class="p">.</span><span class="mi">9</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">27</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">2673</span><span class="p">.</span><span class="mi">57</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">17495</span><span class="p">.</span><span class="mi">24</span> <span class="o">|</span> <span class="mi">61</span><span class="p">.</span><span class="mi">3</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">28</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">2622</span><span class="p">.</span><span class="mi">73</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">20117</span><span class="p">.</span><span class="mi">97</span> <span class="o">|</span> <span class="mi">70</span><span class="p">.</span><span class="mi">4</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">29</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">2717</span><span class="p">.</span><span class="mi">60</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">22835</span><span class="p">.</span><span class="mi">57</span> <span class="o">|</span> <span class="mi">80</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">30</span>   <span class="o">|</span>     <span class="mi">4</span> <span class="o">|</span> <span class="mi">5723</span><span class="p">.</span><span class="mi">89</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span>      <span class="mi">28559</span><span class="p">.</span><span class="mi">46</span> <span class="o">|</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+ <span class="mi">2007</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">14</span>   <span class="o">|</span>     <span class="mi">5</span> <span class="o">|</span>  <span class="mi">514</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span>        <span class="mi">514</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span>        <span class="mi">514</span><span class="p">.</span><span class="mi">18</span> <span class="o">|</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span><span class="o">%</span>
+<span class="p">(</span><span class="mi">32</span> <span class="k">rows</span><span class="p">)</span>
+</code></pre></div>
+
+
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="https://guillaume-martin.github.io/"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="https://guillaume-martin.github.io/tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="https://guillaume-martin.github.io/tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="https://guillaume-martin.github.io/tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="https://guillaume-martin.github.io/tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="https://guillaume-martin.github.io/tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="https://guillaume-martin.github.io/tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="https://guillaume-martin.github.io/tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="https://guillaume-martin.github.io/tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="https://guillaume-martin.github.io/tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="https://guillaume-martin.github.io/tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="https://guillaume-martin.github.io/tag/virtual-environments.html">virtual environments</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2021 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="https://guillaume-martin.github.io/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://guillaume-martin.github.io/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="https://guillaume-martin.github.io/theme/js/respond.min.js"></script>
+
+    <script src="https://guillaume-martin.github.io/static/js/custom.js"></script>
+
+
+
+</body>
+</html>
