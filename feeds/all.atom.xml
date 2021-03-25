@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/" rel="alternate"></link><link href="https://guillaume-martin.github.io/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/</id><updated>2021-03-25T00:00:00+08:00</updated><entry><title>Calculate a running total in SQL</title><link href="https://guillaume-martin.github.io/sql-running-total.html" rel="alternate"></link><published>2021-03-25T00:00:00+08:00</published><updated>2021-03-25T00:00:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2021-03-25:/sql-running-total.html</id><summary type="html">&lt;p&gt;How to use SQL window functions to calculate a running total&lt;/p&gt;</summary><content type="html">&lt;p&gt;This post is an illustrating example for the article on &lt;a href="https://guillaume-martin.github.io/sql-window-functions.html"&gt;SQL window functions&lt;/a&gt;.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Guillaume Martin</title><link href="https://guillaume-martin.github.io/" rel="alternate"></link><link href="https://guillaume-martin.github.io/feeds/all.atom.xml" rel="self"></link><id>https://guillaume-martin.github.io/</id><updated>2021-03-25T12:42:00+08:00</updated><entry><title>Calculate a running total in SQL</title><link href="https://guillaume-martin.github.io/sql-running-total.html" rel="alternate"></link><published>2021-03-25T00:00:00+08:00</published><updated>2021-03-25T12:42:00+08:00</updated><author><name>Guillaume Martin</name></author><id>tag:guillaume-martin.github.io,2021-03-25:/sql-running-total.html</id><summary type="html">&lt;p&gt;How to use SQL window functions to calculate a running total&lt;/p&gt;</summary><content type="html">&lt;p&gt;This post is an illustrating example for the article on &lt;a href="https://guillaume-martin.github.io/sql-window-functions.html"&gt;SQL window functions&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;A running total is the sum of a sequence of numbers that is updated every time a new number is added to the sequence.&lt;/p&gt;
 &lt;p&gt;It looks like this:&lt;/p&gt;
 &lt;table&gt;
@@ -78,8 +78,9 @@ Then I use the &lt;code&gt;ROWS UNBOUNDED PRECEDING&lt;/code&gt; statement to in
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;It returns the following result set:
-&lt;code&gt;payment_date | amount  | running_total 
+&lt;p&gt;It returns the following result set:  &lt;/p&gt;
+&lt;p&gt;&lt;code&gt;text
+ payment_date | amount  | running_total 
 --------------+---------+---------------
  2007-02-14   |  116.73 |        116.73
  2007-02-15   | 1188.92 |       1305.65
