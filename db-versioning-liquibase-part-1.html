@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Schema version control with Liquibase - Part 1: the basics - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="./db-versioning-liquibase-part-1.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="postgresql,dba,version control,database" />
+        <meta name="description" content="Explore the basics of Liquibase, an open-source tool to manage database schema changes." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Schema version control with Liquibase - Part 1: the basics"/>
+        <meta property="og:url" content="./db-versioning-liquibase-part-1.html"/>
+        <meta property="og:description" content="Explore the basics of Liquibase, an open-source tool to manage database schema changes."/>
+        <meta property="article:published_time" content="2021-12-15" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="postgresql" />
+            <meta property="article:tag" content="dba" />
+            <meta property="article:tag" content="version control" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/default.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./db-versioning-liquibase-part-1.html"
+                       rel="bookmark"
+                       title="Permalink to Schema version control with Liquibase - Part 1: the basics">
+                        Schema version control with Liquibase - Part 1: the basics
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2021-12-15T12:55:00+08:00"> Wed 15 December 2021</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/postgresql.html">postgresql</a>
+        /
+	<a href="./tag/dba.html">dba</a>
+        /
+	<a href="./tag/version-control.html">version control</a>
+        /
+	<a href="./tag/database.html">database</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h1>Introduction</h1>
+<p>Version control is already widely adopted in software development. It is not that common in database management. 
+When you are working with several environments (e.g. development, staging, production) it is not easy to keep the schema of your database synchronized across those environments. You may also want to keep a history of the changes that are made to your schema.</p>
+<p>Why do you need to put your database under version control? You cannot use a single database for all the phases of development. If you connect to your production database for development or testing, you're up for a disaster. You however need to have an authoritative version of your database schema so everybody who needs to work on it knows what is the latest version.</p>
+<p>Liquibase is an application that can help database managers put their schema under version control. All changes are stored in text files making it easy to also use git with your project. The text files format accepted are XML, YAML, JSON, and SQL. It supports all major relational database systems and NoSQL systems. You can find the list on the Liquibase <a href="https://www.liquibase.org/get-started/databases">website</a>.</p>
+<p>Going through the basics and some usage examples is quite long. I decided to cut this article into three parts. In this first part, I will explain the key concepts of Liquibase. In part two, I will explain how to use Liquibase to manage the schema of a single database. Finally, in the third and last part, I will show how you can use Liquibase to synchronize your database schema between multiple environments.</p>
+<h1>Database versioning principles</h1>
+<h2>The three rules of database work</h2>
+<p>In a series on database versioning that Scott Allen wrote on his blog Ode to Code, he states three rules to follow when working on databases.</p>
+<ol>
+<li>
+<p>Never use a shared database for development work.<br>
+The developers may overwrite each other changes or break the code on someone else's machine.</p>
+</li>
+<li>
+<p>Always have a single, authoritative source for your schema.<br>
+Everybody should know where the official schema is and be able to deploy it easily on their machine.</p>
+</li>
+<li>
+<p>Always version your database.<br>
+The goals of versioning are:  </p>
+<ul>
+<li>to always be able to propagate the changes from a development environment to the test and production ones.  </li>
+<li>to be able to recreate a database as it was at any given point in time.  </li>
+</ul>
+</li>
+</ol>
+<h2>Steps to versioning databases</h2>
+<ol>
+<li>
+<p>Wait for the schema to settle in. Don't start versioning on day 1 of a project
+At the beginning of a project, there will be a lot of changes made to your schema. There's no need to track all of them. Wait until the schema gets into a more stable state.</p>
+</li>
+<li>
+<p>Create a baseline
+This is your starting point for database versioning. From this point on, you will track all the changes that are made to the schema with your versioning system. 
+In this step, you also need to create a table in your database where you will record all the schema changes. It should at least contain the date of the change and the name of the script that was executed. You can add other columns like the author, the version number, etc... We will see later that Liquibase takes care of this.</p>
+</li>
+<li>
+<p>Push to a repository
+You need a central place where to store your official database schema so anybody who needs it in your organization knows where to find it.</p>
+</li>
+<li>
+<p>Write schema change scripts for all changes
+Any new change that is made to the schema requires a schema change script. There are some rules to follow to make it work well:</p>
+<ul>
+<li>Once the script is published into source control, it cannot be changed. </li>
+<li>The tool that applies the updates is responsible for updating the table you created in step 2 to store the schema changes.</li>
+<li>Always backup your database before applying the changes.</li>
+</ul>
+</li>
+</ol>
+<p>Finally, remember that it's never too late to start doing the right thing. You still can start versioning if the database has been used for years. You start at step 2, you create a baseline and start version control from there.</p>
+<h1>Liquibase concepts</h1>
+<p>Now that I went through the basics of database versioning, I can explain some Liquibase concepts that we need to understand before we start using it.</p>
+<h2>Changelog</h2>
+<p>The changelog is just a file where all the changes made to the database schema are saved. It is used by Liquibase to look for any changes that have not been made yet and execute them. There are four accepted formats:
+- SQL
+- XML
+- JSON
+- YAML</p>
+<p>While it is possible to write all your changes in a single file, it is best practice to work with multiple files. The most common way to organize your changes is to group them in changelog files by major release. To make it work, you need to have a master changelog file that points to all your changelogs. I will explain how to set up your changelog files in part 2.</p>
+<h2>Changesets</h2>
+<p>The changesets are the changes that are saved in the changelog. One changeset should represent a single change, so if you want to create a new table and add a column to another one, you have to write two changesets. You have to tag each changeset with an <em>author</em> and an <em>id</em> attributes like this: <code>author:id</code>. Tags must be unique as they are used to identify your changesets uniquely. </p>
+<h2>Labels and Contexts</h2>
+<p>Both <code>contexts</code> and <code>labels</code> allow you to specify which changesets will be deployed when you run the <code>update</code> command. There are some differences so you should carefully choose which one to use. They differ in who has the power to select what changesets Liquibase will execute: the changeset author or the deployment manager.
+Here is how to know which one is appropriate:
+- If the changeset author needs to specify the logic based on the environment that Liquibase run in, use <code>context</code>.
+- If the person running Liquibase needs to choose the changesets to run, use <code>labels</code>.
+- If you don't need logic, there is no difference between <code>labels</code> and <code>contexts</code>.</p>
+<p>When in doubt, use <code>context</code> because it makes deployment easier.</p>
+<p>Simply put:
+- <code>contexts</code> are for choosing the environment.
+- <code>labels</code> are for choosing changesets.
+- </p>
+<h2>DATABASECHANGELOG table</h2>
+<p>The DATABASECHANGELOG table is a table that Liquibase will create in your database to log all the changes that were made. A new record is added for every changeset that is executed.   </p>
+<p>The main columns of the table are:<br>
+- ID: the id value you entered in your changeset tag.<br>
+- AUTHOR: the author value you entered in your changeset tag.<br>
+- FILENAME: the name of the changelog file where the changeset was saved.<br>
+- DATEEXECUTED: the timestamp of when the changeset was executed.<br>
+- COMMENTS: the comments you added to your changeset. This is where you should describe what the changeset do.<br>
+- CONTEXTS: the changeset's labels.<br>
+- LABELS: the changeset's labels.<br>
+- DEPLOYMENT_ID: a unique id that identify all the changesets that were executed at the same time.  </p>
+<h2>DATABASECHANGELOGLOCK table</h2>
+<p>This is another table created by Liquibase. This one is used by Liquibase to ensure that there's only one instance of Liquibase running at a time.</p>
+<h2>liquibase.properties file</h2>
+<p>This is a text file where you can save your Liquibase configurations like the database credentials, the name of your changelog file, etc. ... You can also set the name of the DATABASECHANGELOG and DATABASECHANGELOGLOCK tables to make them match your database naming conventions.<br>
+Here are some common values you can set in your properties file:  </p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>changeLogFile</td>
+<td>Path to the changelog</td>
+</tr>
+<tr>
+<td>referenceDriver</td>
+<td>Driver class name for the source database</td>
+</tr>
+<tr>
+<td>referenceUrl</td>
+<td>Source database for performing comparisons</td>
+</tr>
+<tr>
+<td>referenceUsername</td>
+<td>Username of source database</td>
+</tr>
+<tr>
+<td>referencePassword</td>
+<td>Password of source database</td>
+</tr>
+<tr>
+<td>driver</td>
+<td>Driver class name for the target database</td>
+</tr>
+<tr>
+<td>url</td>
+<td>Target database that is compared to the source database</td>
+</tr>
+<tr>
+<td>username</td>
+<td>Username of target database</td>
+</tr>
+<tr>
+<td>password</td>
+<td>Password for target database</td>
+</tr>
+<tr>
+<td>classpath</td>
+<td>Directories and jar files to search for changelog and extensions (separated by <code>:</code>)</td>
+</tr>
+<tr>
+<td>changeSetAuthor</td>
+<td>Specifies the author of auto-generated changesets</td>
+</tr>
+<tr>
+<td>changeSetContext</td>
+<td>Specified the contexts for changesets in the generated changelog.</td>
+</tr>
+<tr>
+<td>contexts</td>
+<td>Specifies changesets contexts to be executed</td>
+</tr>
+<tr>
+<td>databaseChangeLogLockTableName</td>
+<td>Specifies the name of the changelog lock table</td>
+</tr>
+<tr>
+<td>databaseChangeLogTableName</td>
+<td>Specigies the name of the changelog table</td>
+</tr>
+</tbody>
+</table>
+<h1>Basic commands</h1>
+<p>Now that we are familiar with the basic concepts, we can have a look at the some commands we will have to use to manage our schema.</p>
+<h2>status</h2>
+<p>This command returns the list of pending changesets. Without any option, the command displays the number of changes. We can add the <code>--verbose</code> option to see the changesets that Liquibase will execute.</p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --changeLogFile<span class="o">=</span>changelog.xml <span class="se">\</span>
+    --url<span class="o">=</span>jdbc:postgresql://localhost:5432/mydb <span class="se">\</span>
+    --driver<span class="o">=</span>org.postgresql.Driver <span class="se">\</span>
+    --username<span class="o">=</span>postgres <span class="se">\</span>
+    --password<span class="o">=</span>postgres <span class="se">\</span>
+    status --verbose
+<span class="m">1</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.2:5432/mydb
+     changelogs/views/00001-user-view.sql::3::Guillaume
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<h2>snapshot</h2>
+<p>This command takes a snapshot of the current state of the database. The output is either a JSON or YAML file, depending on the value of the <code>snapshotFormat</code> parameter you entered when running the command.</p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --changeLogFile<span class="o">=</span>changelog.sql <span class="se">\</span>
+    --username<span class="o">=</span>postgres <span class="se">\</span>
+    --password<span class="o">=</span>postgres <span class="se">\</span>
+    --url<span class="o">=</span>jdbc:postgresql://172.17.0.2:5432/mydb <span class="se">\</span>
+    --outputFile<span class="o">=</span>snapshot.yml <span class="se">\</span>
+    --snapshotFormat<span class="o">=</span>yaml <span class="se">\</span>
+    snapshot
+<span class="o">[</span>...<span class="o">]</span>
+Output saved to /liquibase/snapshot.yml
+Liquibase <span class="nb">command</span> <span class="s1">&#39;snapshot&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>If you want to get a snapshot of the reference database that is specified by <code>referenceUrl</code> in the liquibase.properties file, you have to use the <code>snapshotReference</code> comand.</p>
+<p>Here is a sample of a snapshot in YAML format. I am showing only the header, the <em>users</em> table, and two columns.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">snapshot</span><span class="p">:</span>
+  <span class="nt">created</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2021-12-14T07:15:40.403</span>
+  <span class="nt">database</span><span class="p">:</span>
+    <span class="nt">productVersion</span><span class="p">:</span> <span class="s">&#39;13.2&#39;</span>
+    <span class="nt">shortName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgresql</span>
+    <span class="nt">majorVersion</span><span class="p">:</span> <span class="s">&#39;13&#39;</span>
+    <span class="nt">minorVersion</span><span class="p">:</span> <span class="s">&#39;2&#39;</span>
+    <span class="nt">user</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+    <span class="nt">productName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PostgreSQL</span>
+    <span class="nt">url</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jdbc:postgresql://172.17.0.2:5432/mydb</span>
+  <span class="nt">objects</span><span class="p">:</span>
+    <span class="nt">liquibase.structure.core.Catalog</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">catalog</span><span class="p">:</span>
+        <span class="nt">default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mydb</span>
+        <span class="nt">snapshotId</span><span class="p">:</span> <span class="s">&#39;9737100&#39;</span>
+<span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+    <span class="p p-Indicator">-</span> <span class="nt">column</span><span class="p">:</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">username</span>
+        <span class="nt">nullable</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">order</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2!{java.lang.Integer}</span>
+        <span class="nt">relation</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Table#9737146</span>
+        <span class="nt">snapshotId</span><span class="p">:</span> <span class="s">&#39;9737149&#39;</span>
+        <span class="nt">type</span><span class="p">:</span>
+          <span class="nt">characterOctetLength</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10!{java.lang.Integer}</span>
+          <span class="nt">columnSize</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10!{java.lang.Integer}</span>
+          <span class="nt">columnSizeUnit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">BYTE!{liquibase.structure.core.DataType$ColumnSizeUnit}</span>
+          <span class="nt">dataTypeId</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12!{java.lang.Integer}</span>
+          <span class="nt">radix</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10!{java.lang.Integer}</span>
+          <span class="nt">typeName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">varchar</span>
+<span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+    <span class="p p-Indicator">-</span> <span class="nt">primaryKey</span><span class="p">:</span>
+        <span class="nt">backingIndex</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Index#9737147</span>
+        <span class="nt">columns</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Column#9737148</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">users_pkey</span>
+        <span class="nt">snapshotId</span><span class="p">:</span> <span class="s">&#39;9737151&#39;</span>
+        <span class="nt">table</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Table#9737146</span>
+<span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+    <span class="p p-Indicator">-</span> <span class="nt">table</span><span class="p">:</span>
+        <span class="nt">columns</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Column#9737148</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Column#9737149</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Column#9737150</span>
+        <span class="nt">default_tablespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+        <span class="nt">indexes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Index#9737147</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">users</span>
+        <span class="nt">primaryKey</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.PrimaryKey#9737151</span>
+        <span class="nt">schema</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">liquibase.structure.core.Schema#9737101</span>
+        <span class="nt">snapshotId</span><span class="p">:</span> <span class="s">&#39;9737146&#39;</span>
+</code></pre></div>
+
+
+<h2>diff</h2>
+<p>This command compares two databases and generates a text file listing the differences. It will compare tables, views, and indexes. The differences are grouped into three categories:
+- Missing: objects in the source database that don't exist in the target database.
+- Unexpected: objects in the target database that don't exist in the source database.
+- Changed: objects that exist in the target database but are different from the corresponding object in the source database.</p>
+<p>When running this command, you need to specify a reference database and a target database.</p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --outputFile<span class="o">=</span>diff.txt <span class="se">\</span>
+    --driver<span class="o">=</span>org.postgresql.Driver <span class="se">\</span>
+    --url<span class="o">=</span>jdbc:postgresql://localhost:5432/db_prod <span class="se">\</span>
+    --username<span class="o">=</span>postgres <span class="se">\</span>
+    --password<span class="o">=</span>postgres <span class="se">\</span>
+    --referenceUrl<span class="o">=</span>jdbc:postgresql//localhost:5432/db_stag <span class="se">\</span>
+    --referenceUsername<span class="o">=</span>postgres <span class="se">\</span>
+    --referencePassword<span class="o">=</span>postgres <span class="se">\</span>
+    diff
+</code></pre></div>
+
+
+<p>It is also possible to use a snapshot as reference. It is useful if you want to see all the changes that have been made to a database since a given point in time.</p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --url<span class="o">=</span>offline:postgresql?snapshot<span class="o">=</span>mySnapshot.json <span class="se">\</span>
+    --referenceUrl<span class="o">=</span><span class="s2">&quot;jdbc:postgresql://localhost:5432/mydb&quot;</span> <span class="se">\</span>
+    --referenceUsername<span class="o">=</span>&lt;USERNAME&gt; <span class="se">\</span>
+    --referencePassword<span class="o">=</span>&lt;PASSWORD&gt; <span class="se">\</span>
+    diff   
+</code></pre></div>
+
+
+<p>Here is a sample from a diff.txt file I generated. We can see that three tables are missing. It means that those tables exist in the <em>Reference Database</em> but are not in the <em>Comparison Database</em>. </p>
+<div class="highlight"><pre><span></span><code>Reference Database: postgres @ jdbc:postgresql://172.17.0.2:5432/mydb (Default Schema: public)
+Comparison Database: postgres @ jdbc:postgresql://172.17.0.4:5432/mydb (Default Schema: public)
+Compared Schemas: public
+Product Name: EQUAL
+Product Version: EQUAL
+Missing Catalog(s): NONE
+Unexpected Catalog(s): NONE
+Changed Catalog(s): NONE
+Missing Column(s): 
+[...]
+Missing Table(s): 
+     database_change_log
+     database_change_log_lock
+     users
+</code></pre></div>
+
+
+<h2>changlogSync</h2>
+<p>This command will mark all undeployed changes in the changelog as executed in the DATABASECHANGELOG table. This way, the next time you run an update, Liquibase will ignore all the changes up to that point. We will typically use it to set a baseline for a new database environment.</p>
+<div class="highlight"><pre><span></span><code>liquibase --changelogFile<span class="o">=</span>mychangelog.postgresql.sql changelogSync
+</code></pre></div>
+
+
+<h2>diffChangeLog</h2>
+<p>Like the diff command, diffChangeLog compares two databases and identifies the differences. But diffChangeLog will generate a list of changesets in an XML changelog file. We will typically use it to synchronize two schemas.</p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+   --changeLogFile<span class="o">=</span>dbchangelog.xml <span class="se">\</span>
+   --outputFile<span class="o">=</span>diff.txt <span class="se">\</span>
+    --driver<span class="o">=</span>org.postgresql.Driver <span class="se">\</span>
+    --url<span class="o">=</span>jdbc:postgresql://localhost:5432/db_prod <span class="se">\</span>
+    --username<span class="o">=</span>postgres <span class="se">\</span>
+    --password<span class="o">=</span>postgres <span class="se">\</span>
+    --referenceUrl<span class="o">=</span>jdbc:postgresql//localhost:5432/db_stag <span class="se">\</span>
+    --referenceUsername<span class="o">=</span>postgres <span class="se">\</span>
+    --referencePassword<span class="o">=</span>postgres <span class="se">\</span>
+    diffChangeLog
+</code></pre></div>
+
+
+<p>If you want to generate an SQL changelog file, add the database type in the file name:</p>
+<div class="highlight"><pre><span></span><code>--changeLogFile<span class="o">=</span>changelog.postgresql.sql
+</code></pre></div>
+
+
+<p>The categories of objects included in the changelog are:</p>
+<ul>
+<li>Catalog</li>
+<li>Column</li>
+<li>Foreign Key</li>
+<li>Index</li>
+<li>Primary Key</li>
+<li>Schema</li>
+<li>Sequence</li>
+<li>Procedure</li>
+<li>Unique Constraints</li>
+<li>View</li>
+</ul>
+<h2>generateChangeLog</h2>
+<p>This command generates a changelog file with all the changesets required to recreate the database in its current state. </p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --changeLogFile<span class="o">=</span>dbchangelog.xml <span class="se">\</span>
+    --driver<span class="o">=</span>org.postgresql.Driver <span class="se">\</span>
+    --url<span class="o">=</span>jdbc:postgresql://localhost:5432/mydb <span class="se">\</span>
+    --username<span class="o">=</span>postgres <span class="se">\</span>
+    --password<span class="o">=</span>postgres <span class="se">\</span>
+    generateChangeLog
+</code></pre></div>
+
+
+<p>The extension of the changelog files determines the format of the changelog. Accepted extensions are <code>.xml</code>, <code>.json</code>, <code>.sql</code>. When generating an SQL file, you need to specify the database type: <code>dbchangelog.postgresql.sql</code>.</p>
+<p>You can specify which schema to include in the changelog file:</p>
+<div class="highlight"><pre><span></span><code>--schema<span class="o">=</span>schema_1,schema_2,schema_3 <span class="se">\</span>
+--includeSchema<span class="o">=</span>True
+</code></pre></div>
+
+
+<h2>update</h2>
+<p>This command deploys all the changes in the changelog that have not been deployed yet. Those are the changes that were shown in the output of the <code>status</code> command. </p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --changeLogFile<span class="o">=</span>changelog.xml <span class="se">\</span>
+    --driver<span class="o">=</span>org.postgresql.Driver <span class="se">\</span>
+    --url<span class="o">=</span>jdbc:postgresql://localhost:5432/mydb <span class="se">\</span>
+    --liquibaseSchemaName<span class="o">=</span>public <span class="se">\</span>
+    --username<span class="o">=</span>postgres <span class="se">\</span>
+    --password<span class="o">=</span>postgres <span class="se">\</span>
+    update
+</code></pre></div>
+
+
+<p>You can filter the changesets that will be deployed using the <code>--labels</code> and <code>--contexts</code> parameters.</p>
+<h2>tag</h2>
+<p>We use the <code>tag</code> command to mark the current state of the database. Liquibase will update the value of the tag column in the last row of the DATABASECHANGELOG table. It then serves as a reference point when running the <code>rollback &lt;tag&gt;</code> command.
+To set a tag, we have to execute the following command:</p>
+<div class="highlight"><pre><span></span><code>liquibase tag &lt;tag_value&gt;
+</code></pre></div>
+
+
+<h2>rollback</h2>
+<p>The rollback command is a way to cancel changes that have been made to your schema. There are three ways to rollback:
+- <code>rollback &lt;tag&gt;</code>: revert all changes made after the specified tag. It requires that a tag has been set, i.e. there is at list one row in the DATABASECHANGELOG table that contains a value in the tag column.
+- <code>rollbackToDate</code>: revert all the changes from the current date to the specified date and time.
+- <code>rollbackCount</code>: revert a specified number of changesets.</p>
+<h1>Conclusion</h1>
+<p>There are more commands and concepts to learn, but there's enough here to get starting doing version control on your database schema. 
+In the next part, I will show how to work on a single database project. </p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dba.html">dba</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/version-control.html">version control</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2021 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+
+</body>
+</html>
