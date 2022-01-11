@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Generating daily reports of your RDS PostgreSQL database - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="./rds-postgresql-daily-reports.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="postgresql,database,dba,logs,pgbadger,aws,rds,optimization" />
+        <meta name="description" content="Create daily reports from a PostgreSQL RDS instance&#39;s logs using pgbadger." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Generating daily reports of your RDS PostgreSQL database"/>
+        <meta property="og:url" content="./rds-postgresql-daily-reports.html"/>
+        <meta property="og:description" content="Create daily reports from a PostgreSQL RDS instance&#39;s logs using pgbadger."/>
+        <meta property="article:published_time" content="2022-01-11" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="postgresql" />
+            <meta property="article:tag" content="database" />
+            <meta property="article:tag" content="dba" />
+            <meta property="article:tag" content="logs" />
+            <meta property="article:tag" content="pgbadger" />
+            <meta property="article:tag" content="aws" />
+            <meta property="article:tag" content="rds" />
+            <meta property="article:tag" content="optimization" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/default.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./rds-postgresql-daily-reports.html"
+                       rel="bookmark"
+                       title="Permalink to Generating daily reports of your RDS PostgreSQL database">
+                        Generating daily reports of your RDS PostgreSQL database
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2022-01-11T08:47:00+08:00"> Tue 11 January 2022</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/postgresql.html">postgresql</a>
+        /
+	<a href="./tag/database.html">database</a>
+        /
+	<a href="./tag/dba.html">dba</a>
+        /
+	<a href="./tag/logs.html">logs</a>
+        /
+	<a href="./tag/pgbadger.html">pgbadger</a>
+        /
+	<a href="./tag/aws.html">aws</a>
+        /
+	<a href="./tag/rds.html">rds</a>
+        /
+	<a href="./tag/optimization.html">optimization</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h1>Introduction</h1>
+<p>Logs are a good place to look for issues when you want to optimize your database. When using PostgreSQL, we can use <a href="https://github.com/darold/pgbadger">pgbadger</a> to make it easier. pgbadger is an open-source application that parses PostgreSQL logs and generates detailed reports with graphs.<br>
+In this article, I am going to explain my setup to download log files from an AWS RDS instance and generate daily reports.</p>
+<h1>Setup RDS to log events</h1>
+<h2>Create a parameter group</h2>
+<p>For our logs to be informative, we will have to change some parameters in the configuration of our PostgreSQL instance. When we create an instance on RDS, it comes with a set of default parameters that we cannot modify. To use our custom settings, we need to create a new parameter group.
+On the RDS page, click on <em>Parameter groups</em> in the left menu.<br>
+<img alt="9b0ee43c4e795fc625a35ad984ddb832.png" src="images/9b0ee43c4e795fc625a35ad984ddb832.png"></p>
+<p>Then click the <em>Create parameter group</em> button.<br>
+<img alt="fad32b137ded9c7105974f4628b9990a.png" src="images/fad32b137ded9c7105974f4628b9990a.png"></p>
+<p>Fill the form as follow:
+- Select group family. It should be the same as your instance.
+- Select Type. Select <code>DB Parameter Group</code>.
+- Enter a meaningful Group name. 
+- Enter a description (optional). We can add some more details describing this parameter group.<br>
+<img alt="74c03d95fc5efab124a032d3016d6eaa.png" src="images/74c03d95fc5efab124a032d3016d6eaa.png"></p>
+<p>Then click <em>Create</em>.
+The parameter group should appear in the list:<br>
+<img alt="51e4da0557ac35f21cc052f16cc61fb7.png" src="images/51e4da0557ac35f21cc052f16cc61fb7.png"></p>
+<h2>Edit the parameters</h2>
+<p>We can now set our own values for the database configuration. Open the  parameter group and click <em>Edit parameters</em><br>
+<img alt="ac25fbdd191331ee0399b438c6710b86.png" src="images/ac25fbdd191331ee0399b438c6710b86.png"></p>
+<p>To find the parameter we want to change, we can type its name in the filter box. Once we get the parameter, we can change the value in the Value column:<br>
+<img alt="796834e370c0f61d20de38a49e945946.png" src="images/796834e370c0f61d20de38a49e945946.png"></p>
+<p>We repeat the operation for all the parameters we need to modify. Below are the values we need to set to have effective logging. They come from the pgbadger <a href="https://github.com/darold/pgbadger#postgresql-configuration">documentation</a>.  </p>
+<div class="highlight"><pre><span></span><code>log_checkpoints = on
+log_connections = on
+log_disconnections = on
+log_lock_waits = on
+log_temp_files = 0
+log_autovacuum_min_duration = 0
+log_error_verbosity = default
+log_statement = off
+lc_messages=&#39;C&#39;
+log_min_duration_statement=1000
+</code></pre></div>
+
+
+<p><code>log_min_duration_statement</code> is in ms. There is no right or wrong value. It all depends on our use case. If we set it to 0, the system will log all the queries. When this option is set, the system will also log the SQL statement. If we don't need it and just want to log the query duration, we can disable this parameter by setting its value to <code>-1</code>. Set the time value for <code>log_duration</code> instead.<br>
+It can be interesting to know what queries have an execution time that is too high, so I'll keep the <code>log_min_duration_statement</code>. In my example, I will log all the queries that take more than 1s to run.<br>
+Once we set all our parameters, we can preview the changes<br>
+<img alt="e137fd6c8293833736aa7d480b86ed68.png" src="images/e137fd6c8293833736aa7d480b86ed68.png"></p>
+<p>Click <em>Save changes</em> if everything is ok.  </p>
+<h2>Apply the new parameters to the database</h2>
+<p>Our parameter group is ready. We need to assign it to our database instance.<br>
+We go back to the databases page, select the instance we want to apply changes to, and click the <em>Modify</em> button. <br>
+<img alt="63dcee7cd9ed92a34710c650c656fd91.png" src="images/63dcee7cd9ed92a34710c650c656fd91.png"></p>
+<p>We then scroll down to the <em>Additional configuration</em> section and under <em>Database options</em> select the parameter group we want to use.<br>
+<img alt="d3a342920f67f87158f09a7ddca783d1.png" src="images/d3a342920f67f87158f09a7ddca783d1.png"></p>
+<p>Click <em>Continue</em><br>
+Choose when you want to apply the changes. Click on <em>Modify DB instance</em><br>
+<img alt="6c921d6894b99345130ea9567c7b8a39.png" src="images/6c921d6894b99345130ea9567c7b8a39.png"></p>
+<h1>Create a new user</h1>
+<p>Before we leave the AWS console, we need to create a user. For the AWS command-line tool to work, we need to save a user's credentials. For security reasons, we are not going to use the root account or a user with admin privileges. Instead, we are going to create a user who is only allowed to download the log files. If our machine gets compromised, the consequences will be minimal.<br>
+Go to the IAM page and click <em>Add users</em> button<br>
+<img alt="7097ecea88aeedaa8d2ba9c14eba23ee.png" src="images/7097ecea88aeedaa8d2ba9c14eba23ee.png"></p>
+<ul>
+<li>
+<p>Set the user name<br>
+<img alt="96c6ca00b56f175ec70bdd1542ed0cbd.png" src="images/96c6ca00b56f175ec70bdd1542ed0cbd.png"></p>
+</li>
+<li>
+<p>Select credentials. We only need access key<br>
+<img alt="028d1db7546e909ee931a00f4cf6709b.png" src="images/028d1db7546e909ee931a00f4cf6709b.png"></p>
+</li>
+<li>
+<p>Select Attach existing policies<br>
+<img alt="20178b58ce0d83ca01e363a6ac24fb6e.png" src="images/20178b58ce0d83ca01e363a6ac24fb6e.png"></p>
+</li>
+<li>
+<p>Click <em>Create Policy</em><br>
+<img alt="be1ba17cec575ce35844cbc500a047d5.png" src="images/be1ba17cec575ce35844cbc500a047d5.png"></p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="s2">&quot;rds:DownloadDBLogFilePortion&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:rds:us-east-1:123456789012:db:database-1&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>The <code>Effect</code> and <code>Action</code> attributes must have those values.<br>
+We can specify the Amazon Resource Name of our database to limit the permission to that database only. If we want to grant permission to all databases, we would type <code>"Resource": "arn:aws:rds:us-east-1:&lt;account_id&gt;:db:*"</code>.  </p>
+<p>To increase security, we can also limit the permissions to a specific IP address. By adding a <code>Condition</code> bloc in the statement, I allow this use to download log files from a specific IP only. </p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="s2">&quot;rds:DownloadDBLogFilePortion&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:rds:us-east-1:123456789012:db:database-1&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;Condition&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;IpAddress&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;aws:SourceIp&quot;</span><span class="p">:</span> <span class="s2">&quot;111.222.333.444&quot;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+<p>The next screen is for adding tags. We can skip this step.<br>
+The last screen is for reviewing the policy. Add a name and a description then click on <em>Create Policy</em><br>
+<img alt="42fb41806b433baf675d7a848f7e5932.png" src="images/42fb41806b433baf675d7a848f7e5932.png"></p>
+<p>Back in the user creation screen, click the refresh button. The new policy will appear in the list. Select it and continue the user creation process<br>
+<img alt="693d7f169e211ad5802fb703faea890c.png" src="images/693d7f169e211ad5802fb703faea890c.png"></p>
+<p>In the last screen, review the user data. Click <em>Create User</em> if everything is ok.<br>
+<img alt="06c84a21bbe30c3edb34e2f8f75f2d7d.png" src="images/06c84a21bbe30c3edb34e2f8f75f2d7d.png"></p>
+<p>We arrive at the credentials page. This is the only time AWS will show us those credentials. It is important to save them in a safe place like a password manager.<br>
+<img alt="e0b250bc6ce9ee0fce1a0b2502e4d74a.png" src="images/e0b250bc6ce9ee0fce1a0b2502e4d74a.png"></p>
+<h1>Download the log files</h1>
+<p>We can download the files from our local machine using the AWS command-line tool. In this section, I will explain how to install the tool and how to use the command to download the log files. </p>
+<h2>Install <em>aws-cli</em> tools</h2>
+<p>I am running Debian. I can install the AES client from the official repository. Then I run the <code>aws configure command</code> to set the access key.</p>
+<div class="highlight"><pre><span></span><code>$ sudo apt update <span class="o">&amp;&amp;</span> sudo apt install awscli
+$ aws configure
+AWS Access Key ID <span class="o">[</span>None<span class="o">]</span>: &lt;access_key_id&gt;
+AWS Secret Access Key <span class="o">[</span>None<span class="o">]</span>: &lt;secret_access_key&gt;
+Default region name <span class="o">[</span>None<span class="o">]</span>: us-east-1
+Default output format <span class="o">[</span>None<span class="o">]</span>: 
+</code></pre></div>
+
+
+<p>The <code>configure</code> commands creates two files in a <code>.aws</code> directory:</p>
+<div class="highlight"><pre><span></span><code>~/
+    |_ .aws
+          |_ config
+            |_ credentials
+</code></pre></div>
+
+
+<p>The <em>config</em> file contains the default region:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[default]</span>
+<span class="na">region</span> <span class="o">=</span> <span class="s">us-east-1</span>
+</code></pre></div>
+
+
+<p>The <em>credentials</em> file contains the access key data:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[default]</span>
+<span class="na">aws_access_key_id</span> <span class="o">=</span> <span class="s">&lt;access_key_id&gt;</span>
+<span class="na">aws_secret_access_key</span> <span class="o">=</span> <span class="s">&lt;secret_access_key&gt;</span>
+</code></pre></div>
+
+
+<p>Those files can be edited manually to update the information or create other profiles.<br>
+There are more instructions on how to <a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html">install the latest version of the tool</a> or how to <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html">create named profiles</a> on AWS website.</p>
+<h2>Download log files</h2>
+<p>To download log files, we need to run the <code>download-db-log-file-portion</code> command. Here is an example:</p>
+<div class="highlight"><pre><span></span><code>$ aws rds download-db-log-file-portion <span class="se">\</span>
+    --db-instance-identifier database-1 <span class="se">\</span>
+      --log-file-name error/postgresql.log.2021-12-14-02 <span class="se">\</span>
+      --starting-token <span class="m">0</span> <span class="se">\</span>
+      --output text &gt; /path/to/logs/postgresql.log.2021-12-14-02
+</code></pre></div>
+
+
+<p>Where the options are:
+- <code>--db-instance-identifier</code>: This is the name of the DB instance we want to download the log files from.
+- <code>--log-file-name</code>: The name of the log file to download.
+- <code>--starting-token 0</code>: The starting-token option is used for paginating. We need to set it to 0 to download the entire file.
+- <code>--output</code>: We save the output to a file. </p>
+<p>In this example, we are downloading a log file for our <em>database-1</em> instance. We are asking for the log file of December 14th, 2021 at 2 AM UTC. The output will be saved as plain text to a file called <em>postgresql.log.2021-12-14-02</em>.</p>
+<h1>Generate reports with pgbadger</h1>
+<h2>Install pgbadger</h2>
+<p>There is a pg badger package in the Debian repository. At the time of writing it is at version 10.3 which is behind the latest version available from the Github repository. </p>
+<div class="highlight"><pre><span></span><code>$ apt show pgbadger <span class="p">|</span> grep Version
+Version: <span class="m">10</span>.3-2
+</code></pre></div>
+
+
+<p>We can install this version by simply running the <code>apt install -y pgbadger</code>.  </p>
+<p>To install the latest version, download the tarball from the <a href="https://github.com/darold/pgbadger/releases">releases</a> page, then run the following commands:</p>
+<div class="highlight"><pre><span></span><code>$ tar xzf pgbadger-11.x.tar.gz
+$ <span class="nb">cd</span> pgbadger-11.x/
+$ perl Makefile.PL
+$ make <span class="o">&amp;&amp;</span> sudo make install
+</code></pre></div>
+
+
+<h2>Generate a report from a log file</h2>
+<p>To generate a report from a given log file, we run the following command:</p>
+<div class="highlight"><pre><span></span><code>$ pgbadger -f stderr -o /path/to/report.html -p <span class="s1">&#39;%t:%r:%u@%d:[%p]:&#39;</span> /path/to/logs/postgresql.log.2021-12-14-02
+</code></pre></div>
+
+
+<p>Where the options are:
+- <code>-f</code>, <code>--format</code>: specify the format of the logs. pgbadger should be able to autodetect the format, but it may fail to do so. The possible values are syslog, syslog2, stderr, jsonlog, csv, and pgbouncer.
+- <code>-o</code>, <code>--outfile</code>: defines the name of the file where the report is saved. If not specified, the report is created as <em>out.html</em>.
+- <code>-p</code>, <code>--prefix</code>: the value of the custom log_line prefix as defined in postgresql.conf. Use it if not using the standard prefix. When downloading from AWS RDS, we need to use <code>%t:%r:%u@%d:[%p]:</code> unless we changed the prefix in the instance settings.</p>
+<p>If there is more than one database running on the instance, we can specify what database we want the report for by adding the <code>-d &lt;database_name&gt;</code> option.  </p>
+<p>Some common options are:
+- <code>-d</code>: database name
+- <code>-o</code> output file
+-  <code>-O</code>: output directory
+-  <code>-Z</code>: timezone in number of hours from GMT (<code>+/-XX</code>)</p>
+<h1>Automate this</h1>
+<p>As always, we don't want to spend time every day doing something that could be automated. The added value is in analyzing the report and optimizing the database. So we're going to create a script that downloads the logs of the previous day and generates a report. Then we'll create a cron job to run the script every morning. When we get to work, the report will be ready.</p>
+<h2>Create a script</h2>
+<p>The script will take two parameters: the instance identifier and the date of the logs we want. We will have the cron job generate the previous day's date. This way, we still can run the script manually to generate the report of any day we want (given that the files are still available in RDS).<br>
+Let's say we'll call our script <em>rds-logs-report</em>. To execute it we would have to type <code>./rds-logs-report &lt;instance_id&gt; &lt;date&gt;</code>.  </p>
+<p>We first save the parameters in an <code>instance</code> and a <code>logdate</code> variables.  </p>
+<div class="highlight"><pre><span></span><code><span class="nv">instance</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nv">logdate</span><span class="o">=</span><span class="nv">$2</span>
+</code></pre></div>
+
+
+<p>We also set the base directory where the logs will be downloaded and the reports saved. Then we create a directory for the downloads and one for the reports. Inside those directories, each instance will have its folder.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Setup a directory where the logs and reports will be saved</span>
+<span class="nv">basedir</span><span class="o">=</span>/path/to/logs/dir
+
+<span class="c1"># Directory where the log files are downloaded</span>
+<span class="nv">logdir</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">basedir</span><span class="si">}</span><span class="s2">/logs/</span><span class="si">${</span><span class="nv">instance</span><span class="si">}</span><span class="s2">&quot;</span>
+mkdir -p <span class="nv">$logdir</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -ne <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+    <span class="nb">echo</span> <span class="s2">&quot;Failed to create </span><span class="si">${</span><span class="nv">logdir</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">exit</span> <span class="m">1</span>
+<span class="k">fi</span>
+
+<span class="c1"># Directory where the reports are saved</span>
+<span class="nv">reportdir</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">basedir</span><span class="si">}</span><span class="s2">/reports/</span><span class="si">${</span><span class="nv">instance</span><span class="si">}</span><span class="s2">&quot;</span>
+mkdir -p <span class="nv">$reportdir</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -ne <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+    <span class="nb">echo</span> <span class="s2">&quot;Failed to create </span><span class="si">${</span><span class="nv">reportdir</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">exit</span> <span class="m">1</span>
+<span class="k">fi</span>
+</code></pre></div>
+
+
+<p>We are now ready to download the log files. There is one file per hour with a suffix going from <em>00</em> to <em>23</em>. We are going to iterate through the names of the files and append the output to a single log file for the day. To do so, we add the <code>--output text &gt;&gt; $logdir/$logfile</code> option to the <code>download-db-log-file-portion command</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> h in <span class="k">$(</span>seq <span class="m">0</span> <span class="m">23</span><span class="k">)</span> 
+<span class="k">do</span>
+    <span class="k">if</span> <span class="o">[</span> <span class="si">${#</span><span class="nv">h</span><span class="si">}</span> -eq <span class="m">1</span> <span class="o">]</span>
+    <span class="k">then</span>
+        <span class="nv">h</span><span class="o">=</span><span class="s2">&quot;0</span><span class="si">${</span><span class="nv">h</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">fi</span>
+    <span class="nv">logportion</span><span class="o">=</span><span class="s2">&quot;error/postgresql.log.</span><span class="si">${</span><span class="nv">logdate</span><span class="si">}</span><span class="s2">-</span><span class="si">${</span><span class="nv">h</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">echo</span> <span class="s2">&quot;Downloading </span><span class="si">${</span><span class="nv">logportion</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    aws rds download-db-log-file-portion <span class="se">\</span>
+        --db-instance-identifier <span class="nv">$instance</span> <span class="se">\</span>
+          --log-file-name <span class="nv">$logportion</span> <span class="se">\</span>
+          --starting-token <span class="m">0</span> <span class="se">\</span>
+          --output text &gt;&gt; <span class="nv">$logdir</span>/<span class="nv">$logfile</span> 
+<span class="k">done</span>
+</code></pre></div>
+
+
+<p>We now have all our logs saved in one file. We just have to use <em>pgbadger</em> to generate the report.</p>
+<div class="highlight"><pre><span></span><code>pgbadger <span class="se">\</span>
+    -f stderr <span class="se">\</span>
+    -p <span class="s2">&quot;%t:%r:%u@%d:[%p]:&quot;</span> <span class="se">\</span>
+    -o <span class="s2">&quot;</span><span class="si">${</span><span class="nv">reportdir</span><span class="si">}</span><span class="s2">/logs-report-</span><span class="si">${</span><span class="nv">logdate</span><span class="si">}</span><span class="s2">.html&quot;</span> <span class="se">\</span>
+    <span class="nv">$logdir</span>/<span class="nv">$logfile</span> 
+</code></pre></div>
+
+
+<p>Once we are done, we can archive the log file in a tarball and delete the file to save space on our disk:</p>
+<div class="highlight"><pre><span></span><code>tar -czf <span class="s2">&quot;</span><span class="si">${</span><span class="nv">logdir</span><span class="si">}</span><span class="s2">/</span><span class="si">${</span><span class="nv">logfile</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span> <span class="nv">$logdir</span>/<span class="nv">$logfile</span>
+rm <span class="nv">$logdir</span>/<span class="nv">$logfile</span>
+</code></pre></div>
+
+
+<p>We're done. The report is saved in <em>/path/to/logs/dir/reports/instance_id/logs-report-log_date.html</em>.<br>
+You can find the entire script <a href="https://gist.github.com/guillaume-martin/f82ee33aaccfb671bac75253ef070f2c">here</a>.</p>
+<h2>Create a cron job</h2>
+<p>Now that we have a script that downloads the files and generates the reports automatically,  we can create a cron job that runs it every day.<br>
+The <code>date --date="yesterday" +\%Y-\%m-\%d</code> instruction will output the date of the previous day.  </p>
+<p>In the following exemple, I run the scripts every morning at 8:10 Tuesday to Saturday to generate the report from the previous day logs.  </p>
+<div class="highlight"><pre><span></span><code><span class="m">10</span> <span class="m">8</span> * * <span class="m">2</span>-6 /path/to/rds-logs-report &lt;instance_id&gt; <span class="sb">`</span>date --date<span class="o">=</span><span class="s2">&quot;yesterday&quot;</span> +<span class="se">\%</span>Y-<span class="se">\%</span>m-<span class="se">\%</span>d<span class="sb">`</span>
+</code></pre></div>
+
+
+<h1>Conclusion</h1>
+<p>We're all set. Every morning, there will be a report waiting for us. I didn't go through the report in this article because it was out of scope, but there is a <a href="https://severalnines.com/database-blog/postgresql-log-analysis-pgbadger">post from severalnines</a> that describes the different sections. </p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/dba.html">dba</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/rds.html">rds</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/aws.html">aws</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/version-control.html">version control</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/pgbadger.html">pgbadger</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2022 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+
+</body>
+</html>
