@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Schema version control with Liquibase - Part 3: single database project - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="./db-versioning-liquibase-part-2.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="postgresql,dba,version control" />
+        <meta name="description" content="Manage a single database schema with Liquibase." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Schema version control with Liquibase - Part 3: single database project"/>
+        <meta property="og:url" content="./db-versioning-liquibase-part-2.html"/>
+        <meta property="og:description" content="Manage a single database schema with Liquibase."/>
+        <meta property="article:published_time" content="2022-02-07" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="postgresql" />
+            <meta property="article:tag" content="dba" />
+            <meta property="article:tag" content="version control" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/default.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./db-versioning-liquibase-part-2.html"
+                       rel="bookmark"
+                       title="Permalink to Schema version control with Liquibase - Part 3: single database project">
+                        Schema version control with Liquibase - Part 3: single database project
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2022-02-07T08:45:00+08:00"> Mon 07 February 2022</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/postgresql.html">postgresql</a>
+        /
+	<a href="./tag/dba.html">dba</a>
+        /
+	<a href="./tag/version-control.html">version control</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h1>Introduction</h1>
+<p>In Part 1, I went through the basic concepts of Liquibase. We now have a good enough understanding of how it works to start working with a database. In this Part 2, I am going to show how to manage a single database, single environment project. We are first going to set up our project. Then we'll write and execute our first changeset. We will finally see how to make more changes and use the rollback command.</p>
+<h1>Setting up your Liquibase project</h1>
+<p>First, we are going to set the changelogs where we'll save all our changes made to the database. Then, we'll write our <code>liquibase.properties</code> file where we can save all our settings.</p>
+<h2>Setup Changelog</h2>
+<p>In this section, I am going to set up the changelog files for PostgreSQL. As I mentioned earlier, changelog files can be written in four different formats: XML, JSON, YAML, and SQL. 
+SQL is what we use every day when working on our databases so I'll use that format. It makes the changesets easier to write and to read. I also want to be able to have multiple changelog files so they don't grow too large. To do this, I need to create an XML master changelog that tells Liquibase where are the SQL changelog files.</p>
+<p>In my project directory, I create a <code>changelog-master.xml</code> file and a <code>changelogs</code> folder where I'll save all my changelog files. It should look like this:</p>
+<div class="highlight"><pre><span></span><code>project/
+    |_ changelog-master.xml
+    |_ changelogs/
+        |_ changelog_1.sql
+        |_ changelog_2.sql
+        |_ ...
+</code></pre></div>
+
+
+<p>In the <code>changelog-master.xml</code> file, I add the following lines:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>  
+
+<span class="nt">&lt;databaseChangeLog</span>  
+        <span class="na">xmlns=</span><span class="s">&quot;http://www.liquibase.org/xml/ns/dbchangelog&quot;</span>  
+        <span class="na">xmlns:xsi=</span><span class="s">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span>  
+        <span class="na">xsi:schemaLocation=</span><span class="s">&quot;http://www.liquibase.org/xml/ns/dbchangelog </span>
+<span class="s">        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd&quot;</span><span class="nt">&gt;</span>
+
+    <span class="nt">&lt;includeAll</span> <span class="na">path=</span><span class="s">&quot;changelogs/&quot;</span> <span class="na">relativeToChangelogFile=</span><span class="s">&quot;true&quot;</span><span class="nt">/&gt;</span>
+
+<span class="nt">&lt;/databaseChangeLog&gt;</span>
+</code></pre></div>
+
+
+<p>The <code>&lt;includeAll&gt;</code> tag specifies the directory that contains all our changelog files.</p>
+<h2>Setup liquibase.properties</h2>
+<p>I create the <code>liquibase.properties</code> file in my project's directory:</p>
+<div class="highlight"><pre><span></span><code>project/
+    |_ liquibase.properties
+    |_ master_changelog.xml
+    |_ changelogs/
+</code></pre></div>
+
+
+<p>I introduced the most commonly used options in <a href="https://guillaume-martin.github.io/db-versioning-liquibase-part-1.html">part 1</a> of this series.
+In our project, we are interested in:
+- Pointing to the master changelog file so we don't have to type the information every time we run a command.
+- Enter the database connection information (driver, host, username, and password)
+- Set up how Liquibase should log our activity.
+- Set the name of the DATABASECHANGELOG and DATABASECHANGELOGLOCK table to match our database naming convention.</p>
+<div class="highlight"><pre><span></span><code># Specify the changelog file
+classpath: /liquibase/changelog
+changeLogFile: changelog-master.xml
+
+# Database settings
+driver: org.postgresql.Driver
+url: jdbc:postgresql://172.18.0.2:5432/mydb
+username: postgres
+password: postgres
+
+
+# Setup log level
+# OFF, ERROR, WARN, INFO, DEBUG, TRACE, ALL
+logLevel: INFO
+logFile: /liquibase/changelog/logs/liquibase.log
+
+# Set the name of the liquibase DB tables
+databaseChangeLogTableName: database_changelog
+databaseChangeLogLockTableName: database_changelog_lock
+</code></pre></div>
+
+
+<h1>Writing our first changeset</h1>
+<p>We're all set. We're going to start with a single database. I'll write the first changelog that will create the database and our first table.<br>
+Changelog files are executed sequentially, we need to keep this in mind when choosing our naming convention for the changelog files. As I am working on a simple example, I will just start every changelog file name with a sequence number. You can use any other convention you want, as long as the files will remain ordered correctly.   </p>
+<p>I create the file <code>changelogs/001-initiate-database.postgresql.sql</code>. I then write my changesets in this file. It is good practice to one changeset for each change we make. In my case, I'll write one change case that creates the database and one changeset that creates the table.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+<span class="cm">/* </span>
+<span class="cm"> * This changelog creates the users table</span>
+<span class="cm"> *</span>
+<span class="cm"> * Author: Guillaume Martin</span>
+<span class="cm"> * Date: 2021-11-30</span>
+<span class="cm"> */</span>
+
+<span class="c1">-- changeset guillaume:001:01</span>
+<span class="c1">-- comment: create users table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">users</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">SERIAL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span>
+    <span class="p">,</span> <span class="n">username</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="p">,</span> <span class="n">password</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="p">);</span>
+<span class="c1">-- rollback DROP TABLE users;</span>
+</code></pre></div>
+
+
+<p>Let's go through the elements of this script.<br>
+At the top of the file, I wrote <code>-- liquibase formatted sql</code>. This is just to tell Liquibase that what is following is written in SQL.<br>
+Then, I added a comment block using <code>/* */</code>. You don't have to do it, but it is always good to explain what this changelog is about. It will help your future self or a coworker who will have to review the history of changes.<br>
+The <code>-- changeset guillaume:001:01</code> line starts a changeset. The author is <code>guillaume</code> and the id is <code>001:01</code>. You always need to add <code>author:id</code> after <code>changeset</code>. You can use whatever works for you for the id. In this example, I use the sequence number of the changelog and the sequence number of the changeset.<br>
+The <code>-- comment: create database</code> line lets you add a comment that will be saved in the DATABASECHANGELOG table. Type a short description of what this changeset is doing.<br>
+After the comment line, we can type the SQL statement we want to execute. Try to have only one statement per changeset. <br>
+After the SQL statement, we add a rollback instruction that tells Liquibase what to do when we roll back this changeset. It is just a SQL statement that reverses what is done by the SQL statement we just added to our changeset. It looks like this: <code>-- rollback DROP DATABASE mydb;</code>.<br>
+We repeat the same thing for all the changesets we want to add to this changelog file.  </p>
+<h1>Update the database</h1>
+<p>Our changeset is ready to be executed. We first run the <code>status</code> command to see what are the pending changes that Liquibase is going to execute.</p>
+<div class="highlight"><pre><span></span><code>$ liquibase status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+Liquibase Community <span class="m">4</span>.6.2 by Liquibase
+<span class="m">1</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.2:5432/mydb
+     changelogs/001-create-users-table.postgresq.sql::001:01::guillaume
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can see that there's only one pending changeset. When you use the <code>--verbose</code> option, you get more details on what is pending. In our example, it is this line:</p>
+<div class="highlight"><pre><span></span><code>changelogs/001-create-users-table.postgresq.sql::001:01::guillaume
+</code></pre></div>
+
+
+<p>Liquibase is going to execute the changeset <code>guillaume:001:01</code> from the <code>001-create-users-table.postgresq.sql</code> changelog file.
+It is what we expect. Let's update the database</p>
+<div class="highlight"><pre><span></span><code>$ liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties update
+<span class="o">[</span>...<span class="o">]</span>
+Liquibase Community <span class="m">4</span>.6.2 by Liquibase
+Skipping auto-registration
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can now check what happened in our database.</p>
+<div class="highlight"><pre><span></span><code>mydb=# \dt
+                  List of relations
+ Schema |           Name           | Type  |  Owner   
+--------+--------------------------+-------+----------
+ public | database_changelog       | table | postgres
+ public | database_changelog_lock  | table | postgres
+ public | users                    | table | postgres
+(3 rows)
+</code></pre></div>
+
+
+<p>Liquibase has created a <code>database_changelog</code> and a <code>database_changelog_lock</code> table. AS we saw earlier, those tables are used by Liquibase to manage the changes. We'll look at the <code>database_change_log</code> table later.
+There is also a new <code>users</code> table. This is the table that we wanted to create in our changeset. </p>
+<div class="highlight"><pre><span></span><code>mydb=# \d+ users
+                                                         Table &quot;public.users&quot;
+  Column  |          Type          | Collation | Nullable |              Default              | Storage  | Stats target | Description 
+----------+------------------------+-----------+----------+-----------------------------------+----------+--------------+-------------
+ id       | integer                |           | not null | nextval(&#39;users_id_seq&#39;::regclass) | plain    |              | 
+ username | character varying(10)  |           |          |                                   | extended |              | 
+ password | character varying(100) |           |          |                                   | extended |              | 
+Indexes:
+    &quot;users_pkey&quot; PRIMARY KEY, btree (id)
+Access method: heap
+</code></pre></div>
+
+
+<p>All the columns are here with the correct data types. The update was successful.</p>
+<p>Let's have a look at what is in the <code>database_changelog</code> table.</p>
+<div class="highlight"><pre><span></span><code>mydb=# SELECT * FROM database_changelog;
+-[ RECORD 1 ]-+----------------------------------------------------------
+id            | 001:01
+author        | guillaume
+filename      | changelog/changelogs/001-create-users-table.postgresq.sql
+dateexecuted  | 2021-12-02 09:50:40.93064
+orderexecuted | 1
+exectype      | EXECUTED
+md5sum        | 8:518ae699e8c46dc100c1af590f370738
+description   | sql
+comments      | create users table
+tag           | 
+liquibase     | 4.6.2
+contexts      | 
+labels        | 
+deployment_id | 8438640623
+</code></pre></div>
+
+
+<p>In the first three columns, we can find the author, id, and file of the changeset that was executed. In the <code>exectype</code> column, we can see that the changeset has been executed and the <code>dateexecuted</code> columns give us the time it happened.
+The <code>exectype</code> column tells us how the changeset was executed. It works like a status. The possible values are EXECUTED, FAILED, SKIPPED, RERAN, and MARK_RAN.<br>
+The md5sum is a checksum of the changeset and is here to detect changes that may occur to it after it was executed.<br>
+The description is autogenerated. It is the comment that you wrote in your changeset that is going to help you and others understand what this changeset did without having to look for it in all your changelogs.<br>
+The deployment id is a unique identifier that is given to all the changesets that were deployed together.  </p>
+<h2>Use a tag to mark the initial state</h2>
+<p>Now that we have executed our first changeset, we are going to tag it to mark the initial state of our database. </p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties tag version <span class="m">0</span>
+<span class="o">[</span>...<span class="o">]</span>
+Successfully tagged <span class="s1">&#39;postgres@jdbc:postgresql://172.17.0.2:5432/mydb&#39;</span>
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;tag&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>I called that tag <code>version 0</code> but you can use whatever fits with your workflow. 
+Now, let's see what happened in the <code>database_change_log</code> table:</p>
+<div class="highlight"><pre><span></span><code>mydb=# SELECT * FROM database_changelog;
+-[ RECORD 1 ]-+----------------------------------------------------------
+id            | 001:01
+author        | guillaume
+filename      | changelog/changelogs/001-create-users-table.postgresq.sql
+dateexecuted  | 2021-12-02 09:50:40.93064
+orderexecuted | 1
+exectype      | EXECUTED
+md5sum        | 8:518ae699e8c46dc100c1af590f370738
+description   | sql
+comments      | create users table
+tag           | version 0
+liquibase     | 4.6.2
+contexts      | 
+labels        | 
+deployment_id | 8438640623
+</code></pre></div>
+
+
+<p>The <code>tag</code> column has been updated in the record of our first update. </p>
+<h2>Make a change: Add an email column</h2>
+<p>Oops! I forgot to add an email column in the <em>users</em> table. Let's write a changeset to correct this.<br>
+First, I create a new changelog file: <code>002-add-email-to-users.postgresql.sql</code>.<br>
+Then, I add a changeset that will modify the <em>users</em> table to add an email column.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+<span class="c1">-- changeset guillaume:002:01</span>
+<span class="c1">-- comment: add email column to users</span>
+<span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">users</span>
+<span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">email</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">);</span>
+<span class="c1">-- rollback ALTER TABLE users DROP COLUMN email;</span>
+</code></pre></div>
+
+
+<p>Now, I can update my schema:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties update
+<span class="o">[</span>...<span class="o">]</span>
+Skipping auto-registration
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can verify that our table has been updated:</p>
+<div class="highlight"><pre><span></span><code>mydb=# \d users
+                                                         Table &quot;public.users&quot;
+  Column  |          Type          | Collation | Nullable |              Default              | Storage  | Stats target | Description 
+----------+------------------------+-----------+----------+-----------------------------------+----------+--------------+-------------
+ id       | integer                |           | not null | nextval(&#39;users_id_seq&#39;::regclass) | plain    |              | 
+ username | character varying(10)  |           |          |                                   | extended |              | 
+ password | character varying(100) |           |          |                                   | extended |              | 
+ email    | character varying(50)  |           |          |                                   | extended |              | 
+</code></pre></div>
+
+
+<p>The new email column is here. Let's have a look at what happened in the <code>database_change_log</code> table:</p>
+<div class="highlight"><pre><span></span><code>mydb=# SELECT * FROM database_changelog;
+-[ RECORD 1 ]-+-----------------------------------------------------------
+id            | 001:01
+author        | guillaume
+filename      | changelog/changelogs/001-create-users-table.postgresq.sql
+[...]
+-[ RECORD 2 ]-+-----------------------------------------------------------
+id            | 002:01
+author        | guillaume
+filename      | changelog/changelogs/002-add-email-to-users.postgresql.sql
+dateexecuted  | 2021-12-02 09:59:25.57433
+orderexecuted | 2
+exectype      | EXECUTED
+md5sum        | 8:9007fc87ab61ac625e7c8630f6dab5b9
+description   | sql
+comments      | add email column to users
+tag           | 
+liquibase     | 4.6.2
+contexts      | 
+labels        | 
+deployment_id | 8439165359
+</code></pre></div>
+
+
+<p>We have a new record that shows the execution of our last changeset. </p>
+<h2>Rollback last change</h2>
+<p>Actually, I don't need that email column in the <em>users</em> table. Let's cancel the last change we made. I previously added a <code>version 0</code> tag to the last change I made before adding the email column. I can ask Liquibase to remove all the changes that were made after that version using the <code>rollback</code> command.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties rollback version <span class="m">0</span>
+<span class="o">[</span>...<span class="o">]</span>
+Rolling Back Changeset:changelogs/002-add-email-to-users.postgresql.sql::002:01::guillaume
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;rollback&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>If we look at the <code>users</code> table, we can see that the email column is gone.</p>
+<div class="highlight"><pre><span></span><code>mydb=# \d users
+                                                         Table &quot;public.users&quot;
+  Column  |          Type          | Collation | Nullable |              Default              | Storage  | Stats target | Description 
+----------+------------------------+-----------+----------+-----------------------------------+----------+--------------+-------------
+ id       | integer                |           | not null | nextval(&#39;users_id_seq&#39;::regclass) | plain    |              | 
+ username | character varying(10)  |           |          |                                   | extended |              | 
+ password | character varying(100) |           |          |                                   | extended |              | 
+</code></pre></div>
+
+
+<p>The record of the second changeset execution has also been removed from the <code>database_change_log</code> file.</p>
+<div class="highlight"><pre><span></span><code>mydb=# SELECT * FROM database_changelog;
+-[ RECORD 1 ]-+----------------------------------------------------------
+id            | 001:01
+author        | guillaume
+filename      | changelog/changelogs/001-create-users-table.postgresq.sql
+dateexecuted  | 2021-12-02 09:50:40.93064
+orderexecuted | 1
+exectype      | EXECUTED
+md5sum        | 8:518ae699e8c46dc100c1af590f370738
+description   | sql
+comments      | create users table
+tag           | version 0
+liquibase     | 4.6.2
+contexts      | 
+labels        | 
+deployment_id | 8438640623
+</code></pre></div>
+
+
+<p>You need to be careful with the next updates. The changeset for adding the email column is still there and is not marked as executed. Liquibase will execute it again the next time you run the <code>update</code> command. We can see this by checking the status:</p>
+<div class="highlight"><pre><span></span><code>liquibase status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+<span class="m">1</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.2:5432/mydb
+     changelogs/002-add-email-to-users.postgresql.sql::002:01::guillaume
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>You will have to either modify the changeset to make it do what you want or just delete it.</p>
+<h1>Using git to put our project under version control</h1>
+<p>All the project information is in plain text files. It is easy now to create a repository that will track all the changes we make to our changelogs and properties files.
+Having your changelogs in a central repository also allows everybody to access
+the latest version of your schema.</p>
+<h1>Starting version control in an existing project.</h1>
+<p>Even if our database has been up and running for years, it is never too late to do things right. We still can setup version control in our project.</p>
+<h2>1. Set up the project for Liquibase</h2>
+<p>The first thing to do is to add the master changelog and properties files. Then, we create the directories that will hold our changelogs.</p>
+<h2>2. Generate the baseline</h2>
+<p>The next step is to generate a changelog where we record all the changesets required to build the database as it currently is. The idea is to make our project look like we used Liquibase from the beginning. To do so, we run the <code>generate-changelog</code> command. Liquibase will create a new changelog file that contains all the changesets. It is wise at this point to control what those changesets to make sure that everything is ok. If we run all those changesets on a blank database, we should get a new database that is in the same state as the one we are using. 
+Note that the community edition of Liquibase will not generate changesets for stored procedures, triggers, and functions. We would have to either write those ourselves or get a licance for the pro version.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties generate-changelog --changelog-file<span class="o">=</span>/liquibase/changelog/changelogs/000-baseline-changelog.sql
+<span class="o">[</span>...<span class="o">]</span>
+BEST PRACTICE: The changelog generated by diffChangeLog/generateChangeLog should be inspected <span class="k">for</span> correctness and completeness before being deployed.
+
+When generating formatted SQL changelogs, it is important to decide <span class="k">if</span> batched statements
+should be split or not.  For storedlogic objects, the default behavior is <span class="s1">&#39;splitStatements:false&#39;</span>
+.All other objects default to <span class="s1">&#39;splitStatements:true&#39;</span>.  See https://docs.liquibase.org <span class="k">for</span> additional information.
+
+Generated changelog written to /liquibase/changelog/changelogs/000-baseline-changelog.sql
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;generate-changelog&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>The changelog that was generated looks like this:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+<span class="c1">-- changeset ?:1643243662057-1</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="ss">&quot;public&quot;</span><span class="p">.</span><span class="ss">&quot;users&quot;</span> <span class="p">(</span><span class="ss">&quot;id&quot;</span> <span class="nb">INTEGER</span> <span class="k">GENERATED</span> <span class="k">BY</span> <span class="k">DEFAULT</span> <span class="k">AS</span> <span class="k">IDENTITY</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="ss">&quot;username&quot;</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="ss">&quot;password&quot;</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="ss">&quot;email&quot;</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="k">CONSTRAINT</span> <span class="ss">&quot;users_pkey&quot;</span> <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="ss">&quot;id&quot;</span><span class="p">));</span>
+</code></pre></div>
+
+
+<h2>3. Populate the tracking table</h2>
+<p>We don't want Liquibase to execute the changesets we just generated the next time we run the update command. We are going to record those changesets as executed in the DATABASECHANGELOG table. 
+We first run the <code>changelog-sync-sql</code> command. This will generate a SQL file with statements to insert rows into the DATABASECHANGELOG table. It should create one row per changeset. We control that the insert statements are ok.
+Once we confirmed that the inserts can be executed safely, we run the <code>changelog-sync</code> command. This will execute the actual SQL statements that populate the DATABASECHANGELOG with all the changesets required to generate the database up this point.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties changelog-sync-sql --output-file<span class="o">=</span>/liquibase/changelog/output/changelog-sync-sql.sql
+</code></pre></div>
+
+
+<p>The command should generate the following file</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- *********************************************************************</span>
+<span class="c1">-- SQL to add all changesets to database history table</span>
+<span class="c1">-- *********************************************************************</span>
+<span class="c1">-- Change Log: changelog/changelog-master.xml</span>
+<span class="c1">-- Ran at: 1/27/22, 12:49 AM</span>
+<span class="c1">-- Against: postgres@jdbc:postgresql://172.17.0.2:5432/mydb</span>
+<span class="c1">-- Liquibase version: 4.7.0</span>
+<span class="c1">-- *********************************************************************</span>
+
+<span class="c1">-- Create Database Lock Table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog_lock</span> <span class="p">(</span><span class="n">ID</span> <span class="nb">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">LOCKED</span> <span class="nb">BOOLEAN</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">LOCKGRANTED</span> <span class="k">TIMESTAMP</span> <span class="k">WITHOUT</span> <span class="k">TIME</span> <span class="k">ZONE</span><span class="p">,</span> <span class="n">LOCKEDBY</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="k">CONSTRAINT</span> <span class="n">database_changelog_lock_pkey</span> <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">ID</span><span class="p">));</span>
+
+<span class="c1">-- Initialize Database Lock Table</span>
+<span class="k">DELETE</span> <span class="k">FROM</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog_lock</span><span class="p">;</span>
+
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog_lock</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="k">FALSE</span><span class="p">);</span>
+
+<span class="c1">-- Lock Database</span>
+<span class="k">UPDATE</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog_lock</span> <span class="k">SET</span> <span class="n">LOCKED</span> <span class="o">=</span> <span class="k">TRUE</span><span class="p">,</span> <span class="n">LOCKEDBY</span> <span class="o">=</span> <span class="s1">&#39;6ee28069134f (172.17.0.4)&#39;</span><span class="p">,</span> <span class="n">LOCKGRANTED</span> <span class="o">=</span> <span class="s1">&#39;2022-01-27 00:49:53.064&#39;</span> <span class="k">WHERE</span> <span class="n">ID</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> <span class="n">LOCKED</span> <span class="o">=</span> <span class="k">FALSE</span><span class="p">;</span>
+
+<span class="c1">-- Create Database Change Log Table</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog</span> <span class="p">(</span><span class="n">ID</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">AUTHOR</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">FILENAME</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">DATEEXECUTED</span> <span class="k">TIMESTAMP</span> <span class="k">WITHOUT</span> <span class="k">TIME</span> <span class="k">ZONE</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">ORDEREXECUTED</span> <span class="nb">INTEGER</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">EXECTYPE</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">MD5SUM</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">35</span><span class="p">),</span> <span class="n">DESCRIPTION</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">COMMENTS</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">TAG</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">LIQUIBASE</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">20</span><span class="p">),</span> <span class="n">CONTEXTS</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">LABELS</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">DEPLOYMENT_ID</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span>
+
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">AUTHOR</span><span class="p">,</span> <span class="n">FILENAME</span><span class="p">,</span> <span class="n">DATEEXECUTED</span><span class="p">,</span> <span class="n">ORDEREXECUTED</span><span class="p">,</span> <span class="n">MD5SUM</span><span class="p">,</span> <span class="n">DESCRIPTION</span><span class="p">,</span> <span class="n">COMMENTS</span><span class="p">,</span> <span class="n">EXECTYPE</span><span class="p">,</span> <span class="n">CONTEXTS</span><span class="p">,</span> <span class="n">LABELS</span><span class="p">,</span> <span class="n">LIQUIBASE</span><span class="p">,</span> <span class="n">DEPLOYMENT_ID</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">&#39;1643243662057-1&#39;</span><span class="p">,</span> <span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="s1">&#39;changelog/changelogs/000-baseline-changelog.sql&#39;</span><span class="p">,</span> <span class="n">NOW</span><span class="p">(),</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;8:d66eaafb21a0c267d2429a6594c51ba3&#39;</span><span class="p">,</span> <span class="s1">&#39;sql&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;EXECUTED&#39;</span><span class="p">,</span> <span class="k">NULL</span><span class="p">,</span> <span class="k">NULL</span><span class="p">,</span> <span class="s1">&#39;4.7.0&#39;</span><span class="p">,</span> <span class="s1">&#39;3244593731&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Release Database Lock</span>
+<span class="k">UPDATE</span> <span class="k">public</span><span class="p">.</span><span class="n">database_changelog_lock</span> <span class="k">SET</span> <span class="n">LOCKED</span> <span class="o">=</span> <span class="k">FALSE</span><span class="p">,</span> <span class="n">LOCKEDBY</span> <span class="o">=</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">LOCKGRANTED</span> <span class="o">=</span> <span class="k">NULL</span> <span class="k">WHERE</span> <span class="n">ID</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</code></pre></div>
+
+
+<p>We can see that the script is going to create the <em>database_changelog_lock</em> and the <em>database_changelog</em> tables. It will then insert a new row in the <em>database_changelog</em> table to mark our baseline changlog as executed. The SQL code look ok, we can run the <code>changelog-sync</code> command to actually execute this script.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties changelog-sync
+<span class="o">[</span>...<span class="o">]</span>
+Starting Liquibase at <span class="m">00</span>:58:36 <span class="o">(</span>version <span class="m">4</span>.7.0 <span class="c1">#1140 built at 2022-01-07 19:26+0000)</span>
+<span class="o">[</span>...<span class="o">]</span>
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;changelog-sync&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can see in our database that the two tables have been created:</p>
+<div class="highlight"><pre><span></span><code>mydb=# \dt
+                  List of relations
+ Schema |          Name           | Type  |  Owner
+--------+-------------------------+-------+----------
+ public | database_changelog      | table | postgres
+ public | database_changelog_lock | table | postgres
+ public | users                   | table | postgres
+(3 rows)
+</code></pre></div>
+
+
+<p>We can also check if the baseline changelog has been added to the <em>database_changelog</em> table:</p>
+<div class="highlight"><pre><span></span><code>mydb=# SELECT * FROM database_changelog;
+-[ RECORD 1 ]-+------------------------------------------------
+id            | 1643243662057-1
+author        | ?
+filename      | changelog/changelogs/000-baseline-changelog.sql
+dateexecuted  | 2022-01-27 00:58:37.668223
+orderexecuted | 1
+exectype      | EXECUTED
+md5sum        | 8:d66eaafb21a0c267d2429a6594c51ba3
+description   | sql
+comments      |
+tag           |
+liquibase     | 4.7.0
+contexts      |
+labels        |
+deployment_id | 3245117524
+</code></pre></div>
+
+
+<p>Finaly, if we check the status of Liquibase, it should tell us that everything is up to date:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase.properties status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+postgres@jdbc:postgresql://172.17.0.2:5432/mydb is up to date
+Logs saved to /liquibase/changelog/logs/liquibase.log
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We now have a baseline. Any change we do from now on will be made with Liquibase.</p>
+<h1>Conclusion</h1>
+<p>We have seen in this part how to manage a project with a single database. It is quite useful to keep track of all the changes you make to your schema. 
+Another benefit of using Liquibase is that we can keep the schema of our database synchronized between different environments so we always work on the same version. We will see how to do that in the next part of this series.
+In the third and final part of this series, I will explain how to use Liquibase with multiple environments.</p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/dba.html">dba</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/version-control.html">version control</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/aws.html">aws</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/rds.html">rds</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/pgbadger.html">pgbadger</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2022 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+
+</body>
+</html>
