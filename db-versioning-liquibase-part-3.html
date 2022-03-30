@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Schema version control with Liquibase - Part 3: multiple databases project - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="./db-versioning-liquibase-part-3.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="postgresql,dba,version control" />
+        <meta name="description" content="Keep databases schemas in sync across multiple environments with Liquibase." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Schema version control with Liquibase - Part 3: multiple databases project"/>
+        <meta property="og:url" content="./db-versioning-liquibase-part-3.html"/>
+        <meta property="og:description" content="Keep databases schemas in sync across multiple environments with Liquibase."/>
+        <meta property="article:published_time" content="2022-03-29" />
+            <meta property="article:section" content="Database" />
+            <meta property="article:tag" content="postgresql" />
+            <meta property="article:tag" content="dba" />
+            <meta property="article:tag" content="version control" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="./theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="./theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="./theme/css/pygments/default.css" rel="stylesheet">
+    <link rel="stylesheet" href="./theme/css/style.css" type="text/css"/>
+        <link href="./static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="./" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="./category/analytics.html">Analytics</a>
+                        </li>
+                        <li class="active">
+                            <a href="./category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="./category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="./category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="./category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="./db-versioning-liquibase-part-3.html"
+                       rel="bookmark"
+                       title="Permalink to Schema version control with Liquibase - Part 3: multiple databases project">
+                        Schema version control with Liquibase - Part 3: multiple databases project
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2022-03-29T09:05:00+08:00"> Tue 29 March 2022</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="./tag/postgresql.html">postgresql</a>
+        /
+	<a href="./tag/dba.html">dba</a>
+        /
+	<a href="./tag/version-control.html">version control</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h1>Introduction</h1>
+<p>In <a href="https://guillaume-martin.github.io/db-versioning-liquibase-part-1.html">part 1</a> of this series on Liquibase, I introduced the main concepts we need to know to start working with Liquibase. In <a href="https://guillaume-martin.github.io/db-versioning-liquibase-part-2.html">part 2</a>, I explained how to manage changes on a single database schema. In development, we more often have to deal with multiple environments: development, staging, production, etc…  Each environment may not need to have the same schema. We may need some extra tables in the staging environment that we don't want in the production one. We also need to have a reference schema with all the objects that are required for our app to work.
+In this article, I will explain how to manage a database across multiple environments, and how to compare schemas and apply changes in a specific environment.</p>
+<h1>Set up the properties files</h1>
+<p>The properties files store the defaults values of the options we need when we run a Liquibase command. Among other things, it stores the database connection information. We are going to create one properties file per environment. Depending on which environment we want to apply the changes to, we will use the appropriate properties files.
+As an example, I am going to create one file for a staging environment and one file for a production environment.</p>
+<p>For the staging environment, I create a <em>liquibase-stag.properties</em> file</p>
+<div class="highlight"><pre><span></span><code><span class="n">classPath:</span> /<span class="n">liquibase</span><span class="o">/</span><span class="n">changelog</span>
+<span class="n">changelogFile:</span> <span class="n">changelog-master</span>.<span class="n">xml</span>
+
+<span class="c1"># Database connection </span>
+<span class="n">driver:</span> <span class="n">org</span>.<span class="n">postgresql</span>.<span class="n">Driver</span>
+<span class="n">url:</span> <span class="n">jdbc:postgresql:</span>//<span class="mf">172.17.0.3</span>:<span class="mi">5432</span><span class="o">/</span><span class="n">mydb</span>
+<span class="n">username:</span> <span class="n">postgres</span>
+<span class="n">password:</span> <span class="n">postgres</span>
+
+
+<span class="c1"># Database tables names</span>
+<span class="n">databaseChangeLogTableName:</span> <span class="n">database_changelog</span>
+<span class="n">databaseChangeLogLockTableName:</span> <span class="n">database_changelog_lock</span>
+</code></pre></div>
+
+
+<p>I create another file for the production environment. I call it <em>liquibase-prod.properties</em>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">classPath:</span> /<span class="n">liquibase</span><span class="o">/</span><span class="n">changelog</span>
+<span class="n">changelogFile:</span> <span class="n">changelog-master</span>.<span class="n">xml</span>
+
+
+<span class="c1"># Database connection </span>
+<span class="n">driver:</span> <span class="n">org</span>.<span class="n">postgresql</span>.<span class="n">Driver</span>
+<span class="n">url:</span> <span class="n">jdbc:postgresql:</span>//<span class="mf">172.17.0.2</span>:<span class="mi">5432</span><span class="o">/</span><span class="n">mydb</span>
+<span class="n">username:</span> <span class="n">postgres</span>
+<span class="n">password:</span> <span class="n">postgres</span>
+
+<span class="c1"># Database tables names</span>
+<span class="n">databaseChangeLogTableName:</span> <span class="n">database_changelog</span>
+<span class="n">databaseChangeLogLockTableName:</span> <span class="n">database_changelog_lock</span>
+</code></pre></div>
+
+
+<p>Both files point to the same changelog. Next, we'll look at how to select the changesets we want to execute in a given environment. 
+For now, the only difference is the database connection information. We will add more lines as we need them.</p>
+<h1>Using contexts</h1>
+<p>Because we are working with multiple environments, we need to be able to choose what changesets we want to execute when working in a given environment. To do so, we are going to use <em>contexts</em>. 
+When we write a changeset, we add a context that will tell Liquibase when it should execute it.
+Here is an example of a changelog containing several changesets:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+
+<span class="c1">-- changeset guillaume:001 </span>
+<span class="c1">-- comment create global_table in all environments</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">global_table</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">integer</span>
+<span class="p">);</span>
+<span class="c1">-- rollback DROP TABLE global_table;</span>
+
+<span class="c1">-- changeset guillaume:002 context:staging</span>
+<span class="c1">-- comment create stating_table in staging environment</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">staging_table</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">integer</span>
+<span class="p">);</span>
+<span class="c1">-- rollback DROP TABLE staging_table;</span>
+
+
+<span class="c1">-- changeset guillaume:003 context:production</span>
+<span class="c1">-- comment create production_table in production environment</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span>  <span class="n">production_table</span><span class="p">(</span>
+    <span class="n">id</span> <span class="nb">integer</span>
+<span class="p">)</span>
+<span class="c1">-- rollback DROP TABLE production_table;</span>
+
+
+<span class="c1">-- changeset guillaume:004 context:&quot;production or staging&quot;</span>
+<span class="c1">-- comment create stag_prod_table in both staging and production environment</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">stag_prod_table</span><span class="p">(</span>
+    <span class="n">id</span> <span class="nb">integer</span>
+<span class="p">);</span>
+<span class="c1">-- rollback DROP TABLE stag_prod_table;</span>
+</code></pre></div>
+
+
+<p>There are four changesets:
+- 001: global_table should be created in all environments
+- 002: staging_table should be created in the staging environment only
+- 003: production_table should be created in the production environment only
+- 004: stag_prod_table should be created in the staging and production environments but not in other ones.</p>
+<p>When we run Liquibase, we need to specify in which context(s) we are executing the changesets. To do so, we add the <code>--contexts</code> option to the command, like this:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/path/to/master-changelog.xml --contexts<span class="o">=</span>production
+</code></pre></div>
+
+
+<p>We can also specify the contexts in our properties files. As we already created properties files for each of our environments, we add the context option:</p>
+<div class="highlight"><pre><span></span><code><span class="n">contexts</span><span class="o">:</span> <span class="n">production</span>
+</code></pre></div>
+
+
+<p>We can now look how Liquibase would execute the changesets using the <code>status</code> command.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties status --verbose
+Liquibase Community <span class="m">4</span>.8.0 by Liquibase
+<span class="m">3</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.2:5432/mydb
+     changelogs/001-use-contexts.sql::001::guillaume
+     changelogs/001-use-contexts.sql::003::guillaume
+     changelogs/001-use-contexts.sql::004::guillaume
+</code></pre></div>
+
+
+<p>Liquibase will only execute the changesets 001, 003, and 004. Those changesets either don't have a context (001) or have <em>production</em> in their contexts (003 and 004).</p>
+<p>Let's check the staging environment:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-stag.properties status --verbose
+<span class="m">3</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.3:5432/mydb
+     changelogs/001-use-contexts.sql::001::guillaume
+     changelogs/001-use-contexts.sql::002::guillaume
+     changelogs/001-use-contexts.sql::004::guillaume
+</code></pre></div>
+
+
+<p>Liquibase will only execute the changesets 001, 002, and 004. Those changesets either don't have a context (001) or have <em>staging</em> in their contexts.</p>
+<p>Let's run <code>update</code> to apply those changes.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-stag.properties update
+<span class="o">[</span>...<span class="o">]</span>
+Running Changeset: changelogs/001-use-contexts.sql::001::guillaume
+Running Changeset: changelogs/001-use-contexts.sql::002::guillaume
+Running Changeset: changelogs/001-use-contexts.sql::004::guillaume
+Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</span> was executed successfully.
+
+liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties update
+Running Changeset: changelogs/001-use-contexts.sql::001::guillaume
+Running Changeset: changelogs/001-use-contexts.sql::003::guillaume
+Running Changeset: changelogs/001-use-contexts.sql::004::guillaume
+Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can look at the tables that Liquibase created in our databases:
+- In the production environment: </p>
+<div class="highlight"><pre><span></span><code><span class="err">\</span><span class="n">d</span>
+                  <span class="n">List</span> <span class="k">of</span> <span class="n">relations</span>
+ <span class="k">Schema</span> <span class="o">|</span>          <span class="n">Name</span>           <span class="o">|</span> <span class="k">Type</span>  <span class="o">|</span>  <span class="k">Owner</span>
+<span class="c1">--------+-------------------------+-------+----------</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog</span>      <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog_lock</span> <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">global_table</span>            <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">production_table</span>        <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">stag_prod_table</span>         <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+</code></pre></div>
+
+
+<ul>
+<li>In the staging environment:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="err">\</span><span class="n">d</span>
+                  <span class="n">List</span> <span class="k">of</span> <span class="n">relations</span>
+ <span class="k">Schema</span> <span class="o">|</span>          <span class="n">Name</span>           <span class="o">|</span> <span class="k">Type</span>  <span class="o">|</span>  <span class="k">Owner</span>
+<span class="c1">--------+-------------------------+-------+----------</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog</span>      <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog_lock</span> <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">global_table</span>            <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">stag_prod_table</span>         <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+ <span class="k">public</span> <span class="o">|</span> <span class="n">staging_table</span>           <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+</code></pre></div>
+
+
+<p>Everything seems to be in order.</p>
+<h1>Comparing databases</h1>
+<p>One thing that we will have to do when working in multiple environments is to compare the schemas. The Liquibase <code>Diff</code> command is an easy way to do it.
+Before we keep going, I want to make a change to the global table. First, I create a new changelog <code>002-add-column.sql</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+<span class="c1">-- changeset guillaume:001 context:staging</span>
+<span class="c1">-- comment add new_column to global_table</span>
+<span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">glogbal_table</span>
+<span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">new_column</span> <span class="nb">varchar</span>
+<span class="c1">-- rollback ALTER TABLE DROP COLUMN</span>
+</code></pre></div>
+
+
+<p>Then I execute the changeset:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-stag.properties update
+</code></pre></div>
+
+
+<p>Liquibase created a new column in the staging environment:</p>
+<div class="highlight"><pre><span></span><code>mydb=# \d global_table
+                   Table &quot;public.global_table&quot;
+   Column   |       Type        | Collation | Nullable | Default
+------------+-------------------+-----------+----------+---------
+ id         | integer           |           |          |
+ new_column | character varying |           |          |
+</code></pre></div>
+
+
+<p>Liquibase didn't create the column in production:</p>
+<div class="highlight"><pre><span></span><code>mydb=# \d global_table
+            Table &quot;public.global_table&quot;
+ Column |  Type   | Collation | Nullable | Default
+--------+---------+-----------+----------+---------
+ id     | integer | 
+</code></pre></div>
+
+
+<p>To compare the two databases, we need to connect to two of them. The problem is that for now, each of our properties files contains only the credentials for one database.
+We need to add the connection information to the reference database. To do so, we add the following lines to <code>liquibase-prod.properties</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="err"># Reference database settings</span>
+<span class="c">referenceDriver: org.postgresql.Driver</span>
+<span class="c">referenceUrl: jdbc:postgresql://172.17.0.3:5432/mydb</span>
+<span class="c">referenceUsername: postgres</span>
+<span class="c">referencePassword: postgres</span>
+</code></pre></div>
+
+
+<h2>Generate a Diff file</h2>
+<p>The <code>Diff</code> command generates a text file that lists the differences between two schemas.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties diff &gt; output/diff.txt
+</code></pre></div>
+
+
+<p>The saved output looks like this:</p>
+<div class="highlight"><pre><span></span><code>Reference Database: postgres @ jdbc:postgresql://172.17.0.3:5432/mydb (Default Schema: public)
+Comparison Database: postgres @ jdbc:postgresql://172.17.0.2:5432/mydb (Default Schema: public)
+Compared Schemas: public
+Product Name: EQUAL
+Product Version: EQUAL
+Missing Catalog(s): NONE
+Unexpected Catalog(s): NONE
+Changed Catalog(s): NONE
+Missing Column(s):
+     public.staging_table.id
+     public.global_table.new_column
+Unexpected Column(s):
+     public.production_table.id
+Changed Column(s): NONE
+Missing Foreign Key(s): NONE
+Unexpected Foreign Key(s): NONE
+Changed Foreign Key(s): NONE
+Missing Index(s): NONE
+Unexpected Index(s): NONE
+Changed Index(s): NONE
+Missing Primary Key(s): NONE
+Unexpected Primary Key(s): NONE
+Changed Primary Key(s): NONE
+Missing Schema(s): NONE
+Unexpected Schema(s): NONE
+Changed Schema(s): NONE
+Missing Sequence(s): NONE
+Unexpected Sequence(s): NONE
+Changed Sequence(s): NONE
+Missing Table(s):
+     staging_table
+Unexpected Table(s):
+     production_table
+Changed Table(s): NONE
+Missing Unique Constraint(s): NONE
+Unexpected Unique Constraint(s): NONE
+Changed Unique Constraint(s): NONE
+Missing View(s): NONE
+Unexpected View(s): NONE
+Changed View(s): NONE
+</code></pre></div>
+
+
+<p>We can see that there is a missing table (staging_table). It means that the table exists in the staging environment (reference database) but not in the production environment. 
+There is also an unexpected table (production_table). Unexpected items don't exist in the reference database.
+Under missing columns, we can also find the column we added to <em>global_table</em> in the staging environment but not in the production one.
+We can decide what changes we need to make and write the changesets that will make those changes. Another option is to have Liquibase generate those changesets automatically using the <code>diff-changelog</code> command.</p>
+<h2>diff-changelog</h2>
+<p>The <code>diff-changelog</code> command compares two schemas and generates a changelog file containing deployable changesets.</p>
+<div class="highlight"><pre><span></span><code>liquibase <span class="se">\</span>
+    --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties <span class="se">\</span>
+    --changelog-file<span class="o">=</span>/liquibase/changelog/changelogs/003 -diff-changelog.postgresql.sql <span class="se">\</span>
+    diff-changelog
+</code></pre></div>
+
+
+<p>The command will create a file (<em>003-diff-changelog.postgresql.sql</em>) that contains the changesets we need to execute to have both schemas synchronized:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+<span class="c1">-- changeset ?:1646872728968-1</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="ss">&quot;public&quot;</span><span class="p">.</span><span class="ss">&quot;staging_table&quot;</span> <span class="p">(</span><span class="ss">&quot;id&quot;</span> <span class="nb">INTEGER</span><span class="p">);</span>
+
+<span class="c1">-- changeset ?:1646872728968-2</span>
+<span class="k">ALTER</span> <span class="k">TABLE</span> <span class="ss">&quot;public&quot;</span><span class="p">.</span><span class="ss">&quot;global_table&quot;</span> <span class="k">ADD</span> <span class="ss">&quot;new_column&quot;</span> <span class="nb">VARCHAR</span><span class="p">;</span>
+
+<span class="c1">-- changeset ?:1646872728968-3</span>
+<span class="k">DROP</span> <span class="k">TABLE</span> <span class="ss">&quot;public&quot;</span><span class="p">.</span><span class="ss">&quot;production_table&quot;</span><span class="p">;</span>
+</code></pre></div>
+
+
+<p>It is important to review the generated changelog before executing it. In the above example, we can see that one of the changesets deletes the <em>production_table</em> table because it does not exist in the reference database.
+There is another flaw with automatically generated changelogs. Liquibase does not understand the semantics of the change. For example, if we change the name of a column, Liquibase will see that a column has been deleted and another one added. It will generate a changeset to drop the old column and a changeset to create a new one, which can lead to data loss.</p>
+<p>We can check what the <code>update</code> command would do.</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+<span class="m">3</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.2:5432/mydb
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-1::?
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-2::?
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-3::?
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-stag.properties status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+<span class="m">3</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.3:5432/mydb
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-1::?
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-2::?
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-3::?
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>The three changesets generated by Liquibase will be executed in both the production and staging environments. It is not really what we want. Liquibase is going to create the stag_table in production and create the global_table.new_column in the staging environment (where it already exists).
+It is why reviewing the changelogs that Liquibase automatically generated is important. In our example, we need to add a context to changeset 2 and remove the two other ones.
+I would also add a <code>rollback</code> statement to the changeset we kept.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- liquibase formatted sql</span>
+
+<span class="c1">-- changeset ?:1646872728968-2 context:production</span>
+<span class="k">ALTER</span> <span class="k">TABLE</span> <span class="ss">&quot;public&quot;</span><span class="p">.</span><span class="ss">&quot;global_table&quot;</span> <span class="k">ADD</span> <span class="ss">&quot;new_column&quot;</span> <span class="nb">VARCHAR</span><span class="p">;</span>
+<span class="c1">-- rollback ALTER TABLE global_table DROP COLUMN IF EXISTS new_column;</span>
+</code></pre></div>
+
+
+<p>Only one changeset will now apply to our production database:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+<span class="m">1</span> change sets have not been applied to postgres@jdbc:postgresql://172.17.0.2:5432/mydb
+     changelogs/003-diff-changelog.postgresql.sql::1646872728968-2::?
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>No change will be made to the staging database:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-stag.properties status --verbose
+<span class="o">[</span>...<span class="o">]</span>
+postgres@jdbc:postgresql://172.17.0.3:5432/mydb is up to date
+Liquibase <span class="nb">command</span> <span class="s1">&#39;status&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can now run the update on the production database:</p>
+<div class="highlight"><pre><span></span><code>liquibase --defaults-file<span class="o">=</span>/liquibase/changelog/liquibase-prod.properties update
+<span class="o">[</span>...<span class="o">]</span>
+Running Changeset: changelogs/003-diff-changelog.postgresql.sql::1646872728968-2::?
+Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</span> was executed successfully.
+</code></pre></div>
+
+
+<p>We can check that Liquibase added a new column to global_table in production:</p>
+<div class="highlight"><pre><span></span><code><span class="err">mydb=# \d global_table </span>
+<span class="err">                   Table &quot;public.global_table&quot;</span>
+<span class="err">   Column   |       Type        | Collation | Nullable | Default </span>
+<span class="err">------------+-------------------+-----------+----------+---------</span>
+<span class="err"> id         | integer           |           |          | </span>
+<span class="err"> new_column | character varying |           |          | </span>
+</code></pre></div>
+
+
+<h1>Conclusion</h1>
+<p>That's it! We can now manage our database schema changes in a centralized way. We have a single authoritative source for our schema that can easily be shared with people who need it. We can also easily use this source to restore the schema to its current state or roll back to a previous one. Finally, we are also able to synchronize our schema across multiple environments.
+If you need more information on how to use Liquibase, you can find the documentation on all the commands <a href="https://docs.liquibase.com/commands/home.html">here</a>.</p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="./tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="./tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/version-control.html">version control</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="./tag/dba.html">dba</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/rds.html">rds</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/pgbadger.html">pgbadger</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/aws.html">aws</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2022 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="./theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="./theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="./theme/js/respond.min.js"></script>
+
+    <script src="./static/js/custom.js"></script>
+
+
+
+</body>
+</html>
