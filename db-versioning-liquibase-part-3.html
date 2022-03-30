@@ -126,36 +126,36 @@ In this article, I will explain how to manage a database across multiple environ
 <p>The properties files store the defaults values of the options we need when we run a Liquibase command. Among other things, it stores the database connection information. We are going to create one properties file per environment. Depending on which environment we want to apply the changes to, we will use the appropriate properties files.
 As an example, I am going to create one file for a staging environment and one file for a production environment.</p>
 <p>For the staging environment, I create a <em>liquibase-stag.properties</em> file</p>
-<div class="highlight"><pre><span></span><code><span class="n">classPath:</span> /<span class="n">liquibase</span><span class="o">/</span><span class="n">changelog</span>
-<span class="n">changelogFile:</span> <span class="n">changelog-master</span>.<span class="n">xml</span>
+<div class="highlight"><pre><span></span><code>classPath: /liquibase/changelog
+changelogFile: changelog-master.xml
 
-<span class="c1"># Database connection </span>
-<span class="n">driver:</span> <span class="n">org</span>.<span class="n">postgresql</span>.<span class="n">Driver</span>
-<span class="n">url:</span> <span class="n">jdbc:postgresql:</span>//<span class="mf">172.17.0.3</span>:<span class="mi">5432</span><span class="o">/</span><span class="n">mydb</span>
-<span class="n">username:</span> <span class="n">postgres</span>
-<span class="n">password:</span> <span class="n">postgres</span>
+# Database connection 
+driver: org.postgresql.Driver
+url: jdbc:postgresql://172.17.0.3:5432/mydb
+username: postgres
+password: postgres
 
 
-<span class="c1"># Database tables names</span>
-<span class="n">databaseChangeLogTableName:</span> <span class="n">database_changelog</span>
-<span class="n">databaseChangeLogLockTableName:</span> <span class="n">database_changelog_lock</span>
+# Database tables names
+databaseChangeLogTableName: database_changelog
+databaseChangeLogLockTableName: database_changelog_lock
 </code></pre></div>
 
 
 <p>I create another file for the production environment. I call it <em>liquibase-prod.properties</em>.</p>
-<div class="highlight"><pre><span></span><code><span class="n">classPath:</span> /<span class="n">liquibase</span><span class="o">/</span><span class="n">changelog</span>
-<span class="n">changelogFile:</span> <span class="n">changelog-master</span>.<span class="n">xml</span>
+<div class="highlight"><pre><span></span><code>classPath: /liquibase/changelog
+changelogFile: changelog-master.xml
 
 
-<span class="c1"># Database connection </span>
-<span class="n">driver:</span> <span class="n">org</span>.<span class="n">postgresql</span>.<span class="n">Driver</span>
-<span class="n">url:</span> <span class="n">jdbc:postgresql:</span>//<span class="mf">172.17.0.2</span>:<span class="mi">5432</span><span class="o">/</span><span class="n">mydb</span>
-<span class="n">username:</span> <span class="n">postgres</span>
-<span class="n">password:</span> <span class="n">postgres</span>
+# Database connection 
+driver: org.postgresql.Driver
+url: jdbc:postgresql://172.17.0.2:5432/mydb
+username: postgres
+password: postgres
 
-<span class="c1"># Database tables names</span>
-<span class="n">databaseChangeLogTableName:</span> <span class="n">database_changelog</span>
-<span class="n">databaseChangeLogLockTableName:</span> <span class="n">database_changelog_lock</span>
+# Database tables names
+databaseChangeLogTableName: database_changelog
+databaseChangeLogLockTableName: database_changelog_lock
 </code></pre></div>
 
 
@@ -254,30 +254,30 @@ Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</spa
 
 <p>We can look at the tables that Liquibase created in our databases:
 - In the production environment: </p>
-<div class="highlight"><pre><span></span><code><span class="err">\</span><span class="n">d</span>
-                  <span class="n">List</span> <span class="k">of</span> <span class="n">relations</span>
- <span class="k">Schema</span> <span class="o">|</span>          <span class="n">Name</span>           <span class="o">|</span> <span class="k">Type</span>  <span class="o">|</span>  <span class="k">Owner</span>
-<span class="c1">--------+-------------------------+-------+----------</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog</span>      <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog_lock</span> <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">global_table</span>            <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">production_table</span>        <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">stag_prod_table</span>         <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+<div class="highlight"><pre><span></span><code>\d
+                  List of relations
+ Schema |          Name           | Type  |  Owner
+--------+-------------------------+-------+----------
+ public | database_changelog      | table | postgres
+ public | database_changelog_lock | table | postgres
+ public | global_table            | table | postgres
+ public | production_table        | table | postgres
+ public | stag_prod_table         | table | postgres
 </code></pre></div>
 
 
 <ul>
 <li>In the staging environment:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="err">\</span><span class="n">d</span>
-                  <span class="n">List</span> <span class="k">of</span> <span class="n">relations</span>
- <span class="k">Schema</span> <span class="o">|</span>          <span class="n">Name</span>           <span class="o">|</span> <span class="k">Type</span>  <span class="o">|</span>  <span class="k">Owner</span>
-<span class="c1">--------+-------------------------+-------+----------</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog</span>      <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">database_changelog_lock</span> <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">global_table</span>            <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">stag_prod_table</span>         <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
- <span class="k">public</span> <span class="o">|</span> <span class="n">staging_table</span>           <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">postgres</span>
+<div class="highlight"><pre><span></span><code>\d
+                  List of relations
+ Schema |          Name           | Type  |  Owner
+--------+-------------------------+-------+----------
+ public | database_changelog      | table | postgres
+ public | database_changelog_lock | table | postgres
+ public | global_table            | table | postgres
+ public | stag_prod_table         | table | postgres
+ public | staging_table           | table | postgres
 </code></pre></div>
 
 
@@ -321,11 +321,11 @@ Before we keep going, I want to make a change to the global table. First, I crea
 
 <p>To compare the two databases, we need to connect to two of them. The problem is that for now, each of our properties files contains only the credentials for one database.
 We need to add the connection information to the reference database. To do so, we add the following lines to <code>liquibase-prod.properties</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="err"># Reference database settings</span>
-<span class="c">referenceDriver: org.postgresql.Driver</span>
-<span class="c">referenceUrl: jdbc:postgresql://172.17.0.3:5432/mydb</span>
-<span class="c">referenceUsername: postgres</span>
-<span class="c">referencePassword: postgres</span>
+<div class="highlight"><pre><span></span><code># Reference database settings
+referenceDriver: org.postgresql.Driver
+referenceUrl: jdbc:postgresql://172.17.0.3:5432/mydb
+referenceUsername: postgres
+referencePassword: postgres
 </code></pre></div>
 
 
@@ -466,12 +466,12 @@ Liquibase <span class="nb">command</span> <span class="s1">&#39;update&#39;</spa
 
 
 <p>We can check that Liquibase added a new column to global_table in production:</p>
-<div class="highlight"><pre><span></span><code><span class="err">mydb=# \d global_table </span>
-<span class="err">                   Table &quot;public.global_table&quot;</span>
-<span class="err">   Column   |       Type        | Collation | Nullable | Default </span>
-<span class="err">------------+-------------------+-----------+----------+---------</span>
-<span class="err"> id         | integer           |           |          | </span>
-<span class="err"> new_column | character varying |           |          | </span>
+<div class="highlight"><pre><span></span><code>mydb=# \d global_table 
+                   Table &quot;public.global_table&quot;
+   Column   |       Type        | Collation | Nullable | Default 
+------------+-------------------+-----------+----------+---------
+ id         | integer           |           |          | 
+ new_column | character varying |           |          | 
 </code></pre></div>
 
 
@@ -506,16 +506,16 @@ If you need more information on how to use Liquibase, you can find the documenta
   <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
   <ul class="list-group " id="tags">
     <li class="list-group-item tag-1">
-      <a href="./tag/sql.html">sql</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/python.html">python</a>
+      <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/visualization.html">visualization</a>
@@ -530,7 +530,13 @@ If you need more information on how to use Liquibase, you can find the documenta
       <a href="./tag/dba.html">dba</a>
     </li>
     <li class="list-group-item tag-3">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-3">
       <a href="./tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-3">
       <a href="./tag/optimization.html">optimization</a>
@@ -538,17 +544,44 @@ If you need more information on how to use Liquibase, you can find the documenta
     <li class="list-group-item tag-3">
       <a href="./tag/tableau.html">tableau</a>
     </li>
-    <li class="list-group-item tag-3">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
-    </li>
-    <li class="list-group-item tag-3">
-      <a href="./tag/linux.html">linux</a>
-    </li>
     <li class="list-group-item tag-4">
       <a href="./tag/cron.html">cron</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/pgbadger.html">pgbadger</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/rds.html">rds</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -557,55 +590,22 @@ If you need more information on how to use Liquibase, you can find the documenta
       <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/sysadmin.html">sysadmin</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/rds.html">rds</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/redis.html">redis</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmap.html">bitmap</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/logs.html">logs</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
       <a href="./tag/segmentation.html">segmentation</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/virtual-environments.html">virtual environments</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/pgbadger.html">pgbadger</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/aws.html">aws</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/scipy.html">scipy</a>
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
     </li>
   </ul>
 </li>
