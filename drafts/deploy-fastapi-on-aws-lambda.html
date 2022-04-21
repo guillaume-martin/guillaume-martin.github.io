@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Deploy a FastAPI app in AWS Lambda - Guillaume Martin</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="../drafts/deploy-fastapi-on-aws-lambda.html">
+
+        <meta name="author" content="Guillaume Martin" />
+        <meta name="keywords" content="python,aws,api,devops,lambda" />
+        <meta name="description" content="How I deployed a Fast API application on AWS Lambda." />
+
+        <meta property="og:site_name" content="Guillaume Martin" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Deploy a FastAPI app in AWS Lambda"/>
+        <meta property="og:url" content="../drafts/deploy-fastapi-on-aws-lambda.html"/>
+        <meta property="og:description" content="How I deployed a Fast API application on AWS Lambda."/>
+        <meta property="article:published_time" content="2022-04-21" />
+            <meta property="article:section" content="posts" />
+            <meta property="article:tag" content="python" />
+            <meta property="article:tag" content="aws" />
+            <meta property="article:tag" content="api" />
+            <meta property="article:tag" content="devops" />
+            <meta property="article:tag" content="lambda" />
+            <meta property="article:author" content="Guillaume Martin" />
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="../theme/css/bootstrap.flatly.min.css" type="text/css"/>
+    <link href="../theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="../theme/css/pygments/default.css" rel="stylesheet">
+    <link rel="stylesheet" href="../theme/css/style.css" type="text/css"/>
+        <link href="../static/css/custom.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="../" class="navbar-brand">
+Guillaume Martin            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="../category/analytics.html">Analytics</a>
+                        </li>
+                        <li >
+                            <a href="../category/database.html">Database</a>
+                        </li>
+                        <li >
+                            <a href="../category/linux.html">Linux</a>
+                        </li>
+                        <li >
+                            <a href="../category/machine-learning.html">Machine learning</a>
+                        </li>
+                        <li >
+                            <a href="../category/visualization.html">Visualization</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+
+<!-- Banner -->
+<!-- End Banner -->
+
+<!-- Content Container -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="../drafts/deploy-fastapi-on-aws-lambda.html"
+                       rel="bookmark"
+                       title="Permalink to Deploy a FastAPI app in AWS Lambda">
+                        Deploy a FastAPI app in AWS Lambda
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2022-04-21T12:30:00+08:00"> Thu 21 April 2022</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="../tag/python.html">python</a>
+        /
+	<a href="../tag/aws.html">aws</a>
+        /
+	<a href="../tag/api.html">api</a>
+        /
+	<a href="../tag/devops.html">devops</a>
+        /
+	<a href="../tag/lambda.html">lambda</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <h1>Introduction</h1>
+<p>I recently developed a small API that I chose to deploy on AWS Lambda. As I searched on Internet on how to do it, I couldn't find one source that explained everything I had to do to make it work. In this article, I am going to show how I managed to deploy my application.  </p>
+<h1>Prerequisites</h1>
+<h2>Set up the Python environment</h2>
+<p>First, we need a Python virtual environment. It will be packaged with the application later and uploaded to the Lambda function so it has all the required dependencies.  </p>
+<div class="highlight"><pre><span></span><code>python -m virtualenv venv
+<span class="nb">source</span> venv/bin/activate
+</code></pre></div>
+
+
+<p>Next, we install the required packages:  </p>
+<div class="highlight"><pre><span></span><code>pip install fastapi uvicorn mangum
+</code></pre></div>
+
+
+<ul>
+<li><strong>FastAPI</strong>: The framework I use to build my API.</li>
+<li><strong>uvicorn</strong>: ASGI web server implementation for Python.</li>
+<li><strong>mangum</strong>: An adapter for running ASGI applications in AWS Lambda.</li>
+</ul>
+<h2>Install AWS CLI</h2>
+<p>This step is optional. We can do all the operations manually from the AWS console. However, it is faster to use the command-line tool. It let us update the code of the Lambda function in one command instead of multiple steps we would have to do manually.
+To install the client in Linux, run the following commands:</p>
+<div class="highlight"><pre><span></span><code>curl <span class="s2">&quot;https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip&quot;</span> -o <span class="s2">&quot;awscliv2.zip&quot;</span>
+unzip awscliv2.zip
+sudo ./aws/install
+</code></pre></div>
+
+
+<h2>Configure AWS CLI</h2>
+<p>To use the AWS command-line tool, we need to save our credentials and some configurations. The easiest way to configure the application is to run the <code>aws configure</code> command:</p>
+<div class="highlight"><pre><span></span><code>aws configure
+AWS Access Key ID <span class="o">[</span>None<span class="o">]</span>: AKIAIOSFODNN7EXAMPLE
+AWS Secret Access Key <span class="o">[</span>None<span class="o">]</span>: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Default region name <span class="o">[</span>None<span class="o">]</span>: us-east-1
+Default output format <span class="o">[</span>None<span class="o">]</span>: json
+</code></pre></div>
+
+
+<h1>The FastAPI application</h1>
+<p>Our application is going to have this architecture. It allows us to scale up by adding endpoints and to manage multiple versions of our API.</p>
+<div class="highlight"><pre><span></span><code>project/
+    |_ venv/
+    |_ app/
+        |_ __init__.py
+        |_ main.py
+        |_ api/
+            |_ __init__.py
+            |_ api_v1/
+                |_ __init__.py
+                |_ api.py
+                |_ endpoints/
+                    |_ __init__.py/
+                    |_ myapp.py
+</code></pre></div>
+
+
+<h2>app/main.py</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="kn">from</span> <span class="nn">app.api.api_v1.api</span> <span class="kn">import</span> <span class="n">router</span> <span class="k">as</span> <span class="n">api_router</span>
+<span class="kn">from</span> <span class="nn">mangum</span> <span class="kn">import</span> <span class="n">Mangum</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">api_router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;/api/v1&#39;</span><span class="p">)</span>
+
+<span class="c1"># Wrap the app in a handler for the Lambda function</span>
+<span class="n">handler</span> <span class="o">=</span> <span class="n">Mangum</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</code></pre></div>
+
+
+<h2>app/api/api_v1/api.py</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">APIRouter</span>
+
+<span class="kn">from</span> <span class="nn">.endpoints</span> <span class="kn">import</span> <span class="n">myapp</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">()</span>
+
+<span class="n">router</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">myapp</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;/myapp&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Myapp&#39;</span><span class="p">])</span>
+</code></pre></div>
+
+
+<h2>app/api/api_v1/endpoints/myapp.py</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">APIRouter</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">()</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s2">&quot;It works!&quot;</span>
+</code></pre></div>
+
+
+<h2>Test the application</h2>
+<p>We can now test the application.
+- Start the webserver with <code>uvicorn</code></p>
+<div class="highlight"><pre><span></span><code>uvicorn main:app --host <span class="m">0</span>.0.0.0 --port <span class="m">8000</span>
+</code></pre></div>
+
+
+<ul>
+<li>Send a GET request to the endpoint  </li>
+</ul>
+<div class="highlight"><pre><span></span><code>curl http://0.0.0.0:8000/api/v1/myapp/
+<span class="s2">&quot;It works!&quot;</span>
+</code></pre></div>
+
+
+<h1>AWS setup</h1>
+<p>Our application is (almost) ready. We can start working on our AWS resources.</p>
+<h2>Create a Lambda application</h2>
+<p>First, we create a lambda function that will run our code.</p>
+<ul>
+<li>
+<p>Navigate to the Lambda page and click <em>Create function</em>.<br>
+<img alt="Click Create function" src="images/fastapi-lambda/lambda-click-create-lambda.png"></p>
+</li>
+<li>
+<p>Select <em>Author from scratch</em>.  </p>
+</li>
+<li>Enter the function's name.  </li>
+<li>Choose the runtime (Python3.9).  </li>
+<li>Click the <em>Create function</em> button.<br>
+<img alt="Function creation" src="images/fastapi-lambda/lambda-fct-creation.png">  </li>
+</ul>
+<p>At this point, we are on the Lambda function page. We need to update the handler to point to the one we created in our code (i.e. <code>handler = Mangum(app)</code> in main.py).
+- Scroll down to <em>Runtime settings</em> and click the <em>Edit</em> button.<br>
+- Set Handler to <code>app.main.handler</code>:<br>
+<img alt="Set Lambda handler" src="images/fastapi-lambda/lambda-handler.png">  </p>
+<h2>Create an API Gateway</h2>
+<p>Now that our Lambda function exists, we need an API Gateway to run our API.
+- Navigate to the API gateway page.<br>
+- Choose the API type (REST API) and click the <em>Build</em> button.
+<img alt="Choose REST API" src="images/fastapi-lambda/apigtw-choose-rest-api.png"><br>
+- Select <em>Rest</em>, <em>New API</em>, and enter the API name.
+<img alt="Create API Gateway" src="images/fastapi-lambda/apigtw-create-api-gateway.png"> 
+- Click the <em>Create API</em> button.</p>
+<h2>Create a proxy method for all other requests</h2>
+<ul>
+<li>Click <em>Actions</em> and select <em>Create Resource</em>.  </li>
+<li>Check <em>Configure as proxy</em>.  </li>
+<li>CLick <em>Create Resource</em>.<br>
+<img alt="Configure as proxy" src="images/fastapi-lambda/apigtw-configure-proxy.png">  </li>
+</ul>
+<p>We can see that a new resource has been added (<code>/{proxy+}</code>). There is also an <code>ANY</code>. These are the methods that are accepted by the API. <code>ANY</code> means that all the methods are accepted. 
+We select the method and set the Lambda function called by the API. <br>
+<img alt="API resource" src="images/fastapi-lambda/apigtw-resource.png"></p>
+<p><img alt="API Gateway setup" src="images/fastapi-lambda/apigtw-all-resources-setup.png">  </p>
+<p>Add permission to the Lambda function when prompted.    </p>
+<h2>Deploy API</h2>
+<p>Our API Gateway is ready. We can deploy it.
+- In <em>Actions</em> menu, select <em>Deploy API</em><br>
+<img alt="Deploy API" src="images/fastapi-lambda/apigtw-deploy-api.png"> <br>
+- Select <em>New Stage</em>.<br>
+- Enter the new stage name.<br>
+<img alt="New stage" src="images/fastapi-lambda/apigtw-deploy-api-new-stage-setup.png"><br>
+- Click <em>Deploy</em>.  </p>
+<p>We are redirected to the stage editor page. At the top of the page, we can see the <em>Invoke URL</em> that is pointing to our API:<br>
+<img alt="Invoke URL" src="images/fastapi-lambda/apigtw-invoke-url.png">  </p>
+<p>We will have to send our requests to that URL. But before we can do it, we need to upload our application code to the Lambda function.</p>
+<h1>Upload the application to Lambda</h1>
+<h2>Package the virtual environment</h2>
+<p>The Lambda function will need all the dependencies required to run our application. We create a zip file that will contain all the packages we installed in our virtual environment:  </p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> venv/lib/python3.9/site-packages/
+zip -r9 ../../../../myapp.zip .
+</code></pre></div>
+
+
+<p>We add our application source code:  </p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> ../../../../
+zip -g ./myapp.zip -r app
+</code></pre></div>
+
+
+<h2>Update the Lambda function</h2>
+<p>Using the AWS CLI, we can update the Lambda function's code directly.  </p>
+<div class="highlight"><pre><span></span><code>aws lambda update-function-code --function-name myapp-lambda --zip-file fileb://myapp.zip --publish
+</code></pre></div>
+
+
+<h2>Test the API</h2>
+<p>Everything should be working now. We send a GET request to our endpoint to test:  </p>
+<div class="highlight"><pre><span></span><code>curl https://ab1ah50v54.execute-api.us-east-1.amazonaws.com/prod/api/v1/myapp/
+<span class="s2">&quot;It works!&quot;</span>
+</code></pre></div>
+
+
+<h1>Setup an authorizer to secure our application</h1>
+<p>Our application is up and running. Currently, anyone with the URL of our API can send requests. This poses some serious security concerns. We need to make our API secure.<br>
+To do so, we are going to create another Lambda function that will work as an authorizer. Any request sent to the API will have to contain an authorization token. The API Gateway will verify with the authorizer that the token is valid.<br>
+If the token is authorized, the request is forwarded to the API endpoint.  </p>
+<h2>Create a Lambda authorizer function</h2>
+<ul>
+<li>Navigate to Lambda function and Click the <em>Create function</em> button.  </li>
+<li>Select <em>Author from scratch</em>.  </li>
+<li>Enter the function's name.  </li>
+<li>Select the runtime.  </li>
+<li>Click <em>Create function</em>.<br>
+<img alt="Create auth function" src="images/fastapi-lambda/lambda-auth-create-function.png"></li>
+</ul>
+<p>The code required for the verification of the token is simple. We can type it directly in the Lambda function.<br>
+The code needs to extract the <code>authorizationToken</code> from the event. It then compares it with the valid token. If the tokens are the same, then the authorization is set to <code>Allow</code>. If the two tokens are different, the authorization is set to <code>Deny</code>.<br>
+After validating the event's token, we build a response that is formatted like an AWS policy document.  </p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">APITOKEN</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;APITOKEN&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">lambda_handler</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="c1"># Validate the token provided with the request</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">event_token</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;authorizationToken&#39;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span> <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="s1">&#39;Bad Request&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="k">if</span> <span class="n">event_token</span> <span class="o">==</span> <span class="n">APITOKEN</span><span class="p">:</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="s1">&#39;Allow&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="s1">&#39;Deny&#39;</span>
+
+    <span class="c1"># Construct and return the response</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;policyDocument&quot;</span><span class="p">:</span> <span class="p">{</span> 
+            <span class="s2">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Action&quot;</span><span class="p">:</span> <span class="s2">&quot;execute-api:Invoke&quot;</span><span class="p">,</span> 
+                    <span class="s2">&quot;Resource&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;arn:aws:execute-api:&lt;region&gt;:&lt;account_number&gt;:&lt;api_gateway_id&gt;/*/*/*&quot;</span><span class="p">],</span> 
+                    <span class="s2">&quot;Effect&quot;</span><span class="p">:</span> <span class="n">auth</span>
+                <span class="p">}</span>
+            <span class="p">]</span> 
+        <span class="p">}</span>        
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">response</span>
+</code></pre></div>
+
+
+<p>In this code, you will have to replace <code>&lt;region&gt;</code>, <code>&lt;account_number&gt;</code>, and <code>&lt;api_gateway_id&gt;</code> with the correct values.  </p>
+<ul>
+<li>Click the <em>Deploy</em> button to save your changes.  </li>
+</ul>
+<h2>Save Environment Variables</h2>
+<p>In the authorizer script, we get the API token from an environment variable: <code>APITOKEN = os.environ.get('APITOKEN')</code>.<br>
+For this to work, we need to save our token as an environment variable.<br>
+From you authorizer Lambda function page:<br>
+- Open the <em>Configuration</em> tab and select <em>Environment variables</em> in the left menu.<br>
+- Click the <em>Edit</em> button<br>
+<img alt="Env Var" src="images/fastapi-lambda/lambda-auth-env-var.png"><br>
+- Click the <em>Add environment variable</em> button<br>
+<img alt="Add env var" src="images/fastapi-lambda/lambda-auth-add-env-var.png">  </p>
+<ul>
+<li>Set the key to <code>APITOKEN</code> and enter a long random alphanumeric string in the value field.  </li>
+<li>Click <em>Save</em><br>
+<img alt="Set env var" src="images/fastapi-lambda/lambda-auth-set-env-var.png">  </li>
+</ul>
+<h2>Setup API Gateway to use the authorizer</h2>
+<p>We need to set our API Gateway to call our authorizer before processing the request.
+- Navigate to the API Gateway page.<br>
+- Select <em>Authorizers</em> in the left menu and click <em>Create New Authorizer</em><br>
+<img alt="Create new authorizer" src="images/fastapi-lambda/apigtw-auth-create-new-authorizer.png"></p>
+<ul>
+<li>Enter the authorizer's name.</li>
+<li>Select type (Lambda).  </li>
+<li>Enter the Lambda authorizer function's name.  </li>
+<li>Under <em>Lambda Event Payload</em> select <em>Token</em>.  </li>
+<li>In <em>Token Source</em> enter <code>authorizationToken</code>.  </li>
+<li>Disable caching if it is not required.    </li>
+<li>Click the <em>Create</em> button  <br>
+<img alt="Set new authorizer" src="images/fastapi-lambda/apigtw-auth-set-new-authorizer.png">  </li>
+</ul>
+<p>Now that our authorizer is set, we need to tell our API Gateway to use it when handling requests.<br>
+- Select <em>Resources</em> in the left menu, then <code>ANY</code> and <em>Method Request</em>.<br>
+<img alt="" src="images/fastapi-lambda/apigtw-auth-enable-select-request.png"><br>
+- In the settings, expand the <em>Authorization</em> dropdown and select the Lambda authorizer function<br>
+<img alt="" src="images/fastapi-lambda/apigtw-auth-enable-select-authorizer.png">  </p>
+<p>For those changes to be effective, we need to re-deploy the API. Open <em>Actions</em> and select <em>Deploy API</em> to update the API Gateway</p>
+<h1>Test our application</h1>
+<div class="highlight"><pre><span></span><code><span class="c1"># Testing without authorizationToken</span>
+curl <span class="s1">&#39;https://ab1ah50v54.execute-api.us-east-1.amazonaws.com/prod/api/v1/myapp/&#39;</span>
+<span class="o">{</span><span class="s2">&quot;message&quot;</span>:<span class="s2">&quot;Unauthorized&quot;</span><span class="o">}</span>
+<span class="c1"># Testing with wrong auhorizationToken</span>
+curl -H <span class="s1">&#39;authorizationToken: foo&#39;</span>  <span class="s1">&#39;https://ab1ah50v54.execute-api.us-east-1.amazonaws.com/prod/api/v1/myapp/&#39;</span>
+<span class="o">{</span><span class="s2">&quot;Message&quot;</span>:<span class="s2">&quot;User is not authorized to access this resource&quot;</span><span class="o">}</span>
+<span class="c1"># Testing with correct authorizationToken</span>
+curl -H <span class="s1">&#39;authorizationToken: mysecrettoken&#39;</span> <span class="s1">&#39;https://ab1ah50v54.execute-api.us-east-1.amazonaws.com/prod/api/v1/myapp/&#39;</span>
+<span class="s2">&quot;It works!&quot;</span>
+</code></pre></div>
+
+
+<p>It works! We have deployed our API on the cloud and made it secure.  </p>
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
+
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://twitter.com/gmartinfr"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/guillaumemartin"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+    <li class="list-group-item"><a href="https://github.com/guillaume-martin"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
+
+<!-- Sidebar/Tag Cloud -->
+<li class="list-group-item">
+  <a href="../"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+  <ul class="list-group " id="tags">
+    <li class="list-group-item tag-1">
+      <a href="../tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="../tag/database.html">database</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="../tag/sql.html">sql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="../tag/postgresql.html">postgresql</a>
+    </li>
+    <li class="list-group-item tag-1">
+      <a href="../tag/visualization.html">visualization</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="../tag/version-control.html">version control</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="../tag/dba.html">dba</a>
+    </li>
+    <li class="list-group-item tag-2">
+      <a href="../tag/analytics.html">analytics</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="../tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="../tag/matplotlib.html">matplotlib</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="../tag/makeovermonday.html">makeovermonday</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="../tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="../tag/optimization.html">optimization</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/aws.html">aws</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/json.html">json</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/dash.html">dash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/marketing.html">marketing</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/pgbadger.html">pgbadger</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/rds.html">rds</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/environment-variables.html">environment variables</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/sysadmin.html">sysadmin</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="../tag/scipy.html">scipy</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Tag Cloud -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<!-- End Content Container -->
+
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2022 Guillaume Martin
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="../theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="../theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="../theme/js/respond.min.js"></script>
+
+    <script src="../static/js/custom.js"></script>
+
+
+
+</body>
+</html>
