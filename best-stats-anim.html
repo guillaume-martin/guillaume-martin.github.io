@@ -21,7 +21,7 @@
         <meta property="og:url" content="./best-stats-anim.html"/>
         <meta property="og:description" content="Using Matplotlib to replicate a visualization presented by Hans Rosling in a TED talk."/>
         <meta property="article:published_time" content="2018-07-12" />
-            <meta property="article:section" content="Visualization" />
+            <meta property="article:section" content="Data" />
             <meta property="article:tag" content="visualization" />
             <meta property="article:tag" content="python" />
             <meta property="article:tag" content="matplotlib" />
@@ -56,23 +56,17 @@ Guillaume Martin            </a>
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
             <ul class="nav navbar-nav">
-                        <li >
-                            <a href="./category/analytics.html">Analytics</a>
+                        <li class="active">
+                            <a href="./category/data.html">Data</a>
                         </li>
                         <li >
                             <a href="./category/database.html">Database</a>
                         </li>
                         <li >
+                            <a href="./category/development.html">Development</a>
+                        </li>
+                        <li >
                             <a href="./category/linux.html">Linux</a>
-                        </li>
-                        <li >
-                            <a href="./category/machine-learning.html">Machine learning</a>
-                        </li>
-                        <li >
-                            <a href="./category/posts.html">Posts</a>
-                        </li>
-                        <li class="active">
-                            <a href="./category/visualization.html">Visualization</a>
                         </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -375,22 +369,19 @@ I am going to save it as a gif to display it on this post:</p>
   <a href="./"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
   <ul class="list-group " id="tags">
     <li class="list-group-item tag-1">
-      <a href="./tag/postgresql.html">postgresql</a>
-    </li>
-    <li class="list-group-item tag-1">
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
+      <a href="./tag/python.html">python</a>
+    </li>
+    <li class="list-group-item tag-1">
       <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/python.html">python</a>
-    </li>
-    <li class="list-group-item tag-2">
-      <a href="./tag/analytics.html">analytics</a>
+      <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/version-control.html">version control</a>
@@ -398,14 +389,17 @@ I am going to save it as a gif to display it on this post:</p>
     <li class="list-group-item tag-2">
       <a href="./tag/dba.html">dba</a>
     </li>
-    <li class="list-group-item tag-3">
-      <a href="./tag/makeovermonday.html">makeovermonday</a>
-    </li>
-    <li class="list-group-item tag-3">
-      <a href="./tag/matplotlib.html">matplotlib</a>
+    <li class="list-group-item tag-2">
+      <a href="./tag/analytics.html">analytics</a>
     </li>
     <li class="list-group-item tag-3">
       <a href="./tag/linux.html">linux</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/tableau.html">tableau</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/makeovermonday.html">makeovermonday</a>
     </li>
     <li class="list-group-item tag-3">
       <a href="./tag/aws.html">aws</a>
@@ -414,13 +408,7 @@ I am going to save it as a gif to display it on this post:</p>
       <a href="./tag/optimization.html">optimization</a>
     </li>
     <li class="list-group-item tag-3">
-      <a href="./tag/tableau.html">tableau</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/pgbadger.html">pgbadger</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
+      <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/virtual-environments.html">virtual environments</a>
@@ -429,31 +417,7 @@ I am going to save it as a gif to display it on this post:</p>
       <a href="./tag/rds.html">rds</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/bitmap.html">bitmap</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/marketing.html">marketing</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/segmentation.html">segmentation</a>
-    </li>
-    <li class="list-group-item tag-4">
       <a href="./tag/redis.html">redis</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/environment-variables.html">environment variables</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/lambda.html">lambda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/sysadmin.html">sysadmin</a>
@@ -462,28 +426,58 @@ I am going to save it as a gif to display it on this post:</p>
       <a href="./tag/api.html">api</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/scipy.html">scipy</a>
+      <a href="./tag/environment-variables.html">environment variables</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
+      <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/devops.html">devops</a>
+      <a href="./tag/machine-learning.html">machine learning</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/logs.html">logs</a>
+      <a href="./tag/json.html">json</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/bitmap.html">bitmap</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
+      <a href="./tag/dash.html">dash</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/cron.html">cron</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/json.html">json</a>
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/pgbadger.html">pgbadger</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/lambda.html">lambda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/segmentation.html">segmentation</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/devops.html">devops</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmapist.html">bitmapist</a>
     </li>
   </ul>
 </li>
