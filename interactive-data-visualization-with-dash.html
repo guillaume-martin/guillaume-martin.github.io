@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Interactives data visualizations with Dash - Guillaume Martin</title>
+    <title>Interactive data visualizations with Dash - Guillaume Martin</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -17,7 +17,7 @@
 
         <meta property="og:site_name" content="Guillaume Martin" />
         <meta property="og:type" content="article"/>
-        <meta property="og:title" content="Interactives data visualizations with Dash"/>
+        <meta property="og:title" content="Interactive data visualizations with Dash"/>
         <meta property="og:url" content="./interactive-data-visualization-with-dash.html"/>
         <meta property="og:description" content="A quick introduction to interactive visualizations using Dash."/>
         <meta property="article:published_time" content="2019-09-16" />
@@ -89,8 +89,8 @@ Guillaume Martin            </a>
                 <h1>
                     <a href="./interactive-data-visualization-with-dash.html"
                        rel="bookmark"
-                       title="Permalink to Interactives data visualizations with Dash">
-                        Interactives data visualizations with Dash
+                       title="Permalink to Interactive data visualizations with Dash">
+                        Interactive data visualizations with Dash
                     </a>
                 </h1>
             </header>
@@ -118,7 +118,7 @@ Guillaume Martin            </a>
                 </div>
                 <h1>Introduction</h1>
 <p>Dash is a data visualization framework built from Flask and React. It is a powerful tool for building interactive dashboards that allow inputs from the user and can handle data streaming.
-Because it is built from Flask, it is also easy to embed analytics applications into other web applications developped with the Flask framework.</p>
+Because it is built from Flask, it is also easy to embed analytics applications into other web applications developed with the Flask framework.</p>
 <p>In this article, I will explore the basic functionalities of Dash that one should know to start making interactive analytic applications.</p>
 <h1>Initializing the application</h1>
 <p>The application is initialized in about the same way as a Flask application:</p>
@@ -131,7 +131,7 @@ Because it is built from Flask, it is also easy to embed analytics applications 
 </code></pre></div>
 
 
-<p>Set <code>debug</code> to true when developping so you don't have to restart the server to see the changes you made.</p>
+<p>Set <code>debug</code> to true when developing so you don't have to restart the server to see the changes you made.</p>
 <p>The Dash application can be split in two parts: <strong>layout</strong> and <strong>interactivity</strong>.
 The layout part is where we set the organization of the page.
 The interactivity part consists of:
@@ -149,7 +149,7 @@ The main attributes are:
 - <strong>id</strong>: set the id of the component.
 - <strong>style</strong>: inline styling of the component.</p>
 <p>Example:
-In this example, we are going to create a simple page. There is a main division that contains a headline and another division. The second division contains a praragraph. So, to build this page in HTML, we would use the <code>&lt;div&gt;</code>, <code>&lt;h1&gt;</code> and <code>&lt;p&gt;</code> tags. In Dash, we just have to use the <code>Div()</code>, <code>H1()</code> and <code>P()</code> components from the <code>dash_html_components</code> library.</p>
+In this example, we are going to create a simple page. There is a main division that contains a headline and another division. The second division contains a paragraph. So, to build this page in HTML, we would use the <code>&lt;div&gt;</code>, <code>&lt;h1&gt;</code> and <code>&lt;p&gt;</code> tags. In Dash, we just have to use the <code>Div()</code>, <code>H1()</code> and <code>P()</code> components from the <code>dash_html_components</code> library.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">dash_html_components</span> <span class="k">as</span> <span class="nn">html</span>
 
 <span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">([</span>
@@ -426,7 +426,7 @@ The output in the callback will tell Dash what to do with the value returned by 
 <p>To update the graph automatically at certain intervals, we add the <code>dcc.Interval</code> component to our layout.
 We'll set three attributes:
 - <strong>id</strong>: this is the id of the component used as a reference for the input of our callback.
-- <strong>intervals</strong>: this is the time between each update in miliseconds.
+- <strong>intervals</strong>: this is the time between each update in milliseconds.
 - <strong>n_intervals</strong>: this is the number of the interval. It is incremented at each update.</p>
 <p>As an example, we'll create a small app that draws the distribution of a variable with a normal distribution.</p>
 <p>First, we add the interval component to our layout:</p>
@@ -519,7 +519,7 @@ We'll set three attributes:
 <h1>Integrate with flask</h1>
 <p>As I mentioned at the beginning of this post, Dash is built on Flask. 
 There is a very good post written by Oleg Komarov that explains <a href="https://medium.com/@olegkomarov_77860/how-to-embed-a-dash-app-into-an-existing-flask-app-ea05d7a2210b">how to embed a Dash app into an existing Flask app</a>.
-In his post, Oleg shows an example with a fully functionning complexe flask application.</p>
+In his post, Oleg shows an example with a fully functioning complex flask application.</p>
 <h1>Conclusion</h1>
 <p>In this post, I went through the basics of creating interactive data visualizations using the Dash framework. 
 It shows how we can easily create useful dashboards with only a couple of lines of code. </p>
@@ -559,16 +559,16 @@ It shows how we can easily create useful dashboards with only a couple of lines 
       <a href="./tag/sql.html">sql</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/visualization.html">visualization</a>
+      <a href="./tag/postgresql.html">postgresql</a>
     </li>
     <li class="list-group-item tag-1">
       <a href="./tag/python.html">python</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/database.html">database</a>
+      <a href="./tag/visualization.html">visualization</a>
     </li>
     <li class="list-group-item tag-1">
-      <a href="./tag/postgresql.html">postgresql</a>
+      <a href="./tag/database.html">database</a>
     </li>
     <li class="list-group-item tag-2">
       <a href="./tag/version-control.html">version control</a>
@@ -580,16 +580,10 @@ It shows how we can easily create useful dashboards with only a couple of lines 
       <a href="./tag/analytics.html">analytics</a>
     </li>
     <li class="list-group-item tag-3">
-      <a href="./tag/linux.html">linux</a>
-    </li>
-    <li class="list-group-item tag-3">
       <a href="./tag/tableau.html">tableau</a>
     </li>
     <li class="list-group-item tag-3">
       <a href="./tag/makeovermonday.html">makeovermonday</a>
-    </li>
-    <li class="list-group-item tag-3">
-      <a href="./tag/aws.html">aws</a>
     </li>
     <li class="list-group-item tag-3">
       <a href="./tag/optimization.html">optimization</a>
@@ -597,20 +591,23 @@ It shows how we can easily create useful dashboards with only a couple of lines 
     <li class="list-group-item tag-3">
       <a href="./tag/matplotlib.html">matplotlib</a>
     </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/virtual-environments.html">virtual environments</a>
+    <li class="list-group-item tag-3">
+      <a href="./tag/aws.html">aws</a>
+    </li>
+    <li class="list-group-item tag-3">
+      <a href="./tag/linux.html">linux</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/rds.html">rds</a>
+      <a href="./tag/dash.html">dash</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/redis.html">redis</a>
+      <a href="./tag/bitmapist.html">bitmapist</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/pgbadger.html">pgbadger</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/sysadmin.html">sysadmin</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/api.html">api</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/environment-variables.html">environment variables</a>
@@ -619,52 +616,55 @@ It shows how we can easily create useful dashboards with only a couple of lines 
       <a href="./tag/marketing.html">marketing</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/machine-learning.html">machine learning</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/json.html">json</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bitmap.html">bitmap</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/dash.html">dash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/cron.html">cron</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/scipy.html">scipy</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/pgbadger.html">pgbadger</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/crm.html">crm</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/bash.html">bash</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/lambda.html">lambda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/logs.html">logs</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/conda.html">conda</a>
-    </li>
-    <li class="list-group-item tag-4">
-      <a href="./tag/anaconda.html">anaconda</a>
+      <a href="./tag/rds.html">rds</a>
     </li>
     <li class="list-group-item tag-4">
       <a href="./tag/segmentation.html">segmentation</a>
     </li>
     <li class="list-group-item tag-4">
+      <a href="./tag/redis.html">redis</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bash.html">bash</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/anaconda.html">anaconda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/crm.html">crm</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/lambda.html">lambda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/cron.html">cron</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/virtual-environments.html">virtual environments</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/bitmap.html">bitmap</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/scipy.html">scipy</a>
+    </li>
+    <li class="list-group-item tag-4">
       <a href="./tag/devops.html">devops</a>
     </li>
     <li class="list-group-item tag-4">
-      <a href="./tag/bitmapist.html">bitmapist</a>
+      <a href="./tag/api.html">api</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/conda.html">conda</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/logs.html">logs</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/machine-learning.html">machine learning</a>
+    </li>
+    <li class="list-group-item tag-4">
+      <a href="./tag/json.html">json</a>
     </li>
   </ul>
 </li>
